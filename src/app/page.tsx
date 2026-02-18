@@ -5,6 +5,7 @@ import {
   type EmergencyContact,
 } from "@/components/ui/EmergencyContactBar";
 import { Input } from "@/components/ui/Input";
+import { LocationCard } from "@/components/ui/LocationCard";
 import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { VaultItem, LockIcon } from "@/components/ui/VaultItem";
@@ -111,6 +112,54 @@ export default function Home() {
           Emergency Contact Bar
         </h2>
         <EmergencyContactBar contacts={sampleContacts} />
+      </section>
+
+      {/* ── Location Cards ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Location Cards
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--space-6)",
+            alignItems: "start",
+          }}
+        >
+          <LocationCard
+            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=450&fit=crop"
+            alt="Modern house with pool"
+            caption="Sarah's place on Oak St"
+            room="Kitchen"
+            tilt="tilted-left"
+          />
+          <LocationCard
+            src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&h=450&fit=crop"
+            alt="Cozy cottage"
+            caption="Grandma's cottage"
+            room="Living Room"
+            tilt="neutral"
+          />
+          <LocationCard
+            src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&h=450&fit=crop"
+            alt="Suburban home"
+            caption="Tom's backyard oasis"
+            room="Backyard"
+            tilt="tilted-right"
+          />
+          <LocationCard
+            caption="Awaiting photos..."
+            room="Garage"
+            tilt="neutral"
+          />
+        </div>
       </section>
 
       {/* ── Inputs ── */}

@@ -700,3 +700,155 @@ body {
   background-color: var(--primary-subtle);
   color: var(--primary-hover);
 }
+
+/* ============================================================
+   Location Card Component (Polaroid Style)
+   ============================================================ */
+
+.location-card {
+  width: 280px;
+  background-color: var(--bg-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-polaroid);
+  overflow: hidden;
+  transition:
+    transform var(--duration-normal) var(--ease-spring),
+    box-shadow var(--duration-normal) var(--ease-spring);
+}
+
+/* Tilt variants */
+.location-card-tilt-left {
+  transform: rotate(-1.5deg);
+}
+
+.location-card-tilt-neutral {
+  transform: rotate(0deg);
+}
+
+.location-card-tilt-right {
+  transform: rotate(1.2deg);
+}
+
+/* Tappable state (has image) */
+.location-card-tappable {
+  cursor: pointer;
+}
+
+.location-card-tappable:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow: var(--shadow-xl);
+}
+
+.location-card-tilt-left.location-card-tappable:hover {
+  transform: translateY(-4px) rotate(-2deg);
+  box-shadow: var(--shadow-xl);
+}
+
+.location-card-tilt-right.location-card-tappable:hover {
+  transform: translateY(-4px) rotate(0.7deg);
+  box-shadow: var(--shadow-xl);
+}
+
+.location-card-tappable:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Photo area — 4:3 aspect ratio */
+.location-card-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: var(--bg-sunken);
+}
+
+.location-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  display: block;
+}
+
+/* Placeholder state */
+.location-card-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+}
+
+.location-card-placeholder-text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Body: caption + room badge */
+.location-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.location-card-caption {
+  font-family: var(--font-handwritten);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── Fullscreen overlay ── */
+.location-card-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(42, 31, 26, 0.85);
+  animation: location-card-fade-in var(--duration-normal) var(--ease-out);
+}
+
+.location-card-overlay-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-round);
+  border: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.location-card-overlay-close:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.location-card-overlay-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+@keyframes location-card-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
