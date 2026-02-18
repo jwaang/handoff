@@ -53,10 +53,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${instrumentSerif.variable} ${bricolageGrotesque.variable} ${caveat.variable}`}
-      >
+    <html lang="en" className={`${instrumentSerif.variable} ${bricolageGrotesque.variable} ${caveat.variable}`}>
+      <body>
         <ConvexClientProvider>{children}</ConvexClientProvider>
         <ServiceWorkerRegistrar />
       </body>

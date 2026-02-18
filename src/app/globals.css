@@ -186,9 +186,9 @@
   --color-overlay-badge-text: var(--overlay-badge-text);
 
   /* Font families */
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-handwritten: var(--font-handwritten);
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-body: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-handwritten: var(--font-caveat), cursive;
 
   /* Shadows */
   --shadow-xs: var(--shadow-xs);
