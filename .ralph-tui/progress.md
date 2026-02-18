@@ -103,3 +103,20 @@ after each iteration and it's included in prompts for context.
   - `inset 0 0 0 100px rgba(0,0,0,0.06)` creates a uniform inner overlay effect — the large spread covers the entire button regardless of size
   - Using `border: none` in base `.btn` then adding `border` via Tailwind on ghost variant works well — the ghost variant's `border border-border-default` overrides correctly
 ---
+
+## 2026-02-17 - US-005
+- Created `Input` component at `src/components/ui/Input.tsx` with `forwardRef` support, label, hint text, and error state
+- Created `Textarea` component at `src/components/ui/Textarea.tsx` with `forwardRef`, vertical-only resize, min-height 100px
+- Created `SearchBar` component at `src/components/ui/SearchBar.tsx` with inline magnifying glass icon, sunken default bg, raised bg on focus
+- Added CSS classes in `globals.css`: `.input-wrapper`, `.input-label`, `.input-field`, `.input-error`, `.input-textarea`, `.input-hint`, `.input-hint-error`, `.search-bar-wrapper`, `.search-bar-icon`, `.search-bar-input`
+- Updated `page.tsx` with full input component showcase (text inputs with label/hint/error, textareas, search bar)
+- Verified at 375px viewport — all inputs render correctly, focus/error states work as expected
+- Files added: `src/components/ui/Input.tsx`, `src/components/ui/Textarea.tsx`, `src/components/ui/SearchBar.tsx`
+- Files modified: `src/app/globals.css`, `src/app/page.tsx`
+- **Learnings:**
+  - CSS `focus-within` on the wrapper (`.search-bar-wrapper:focus-within .search-bar-icon`) is cleaner than JS state for changing icon color on input focus
+  - `box-shadow: 0 0 0 3px var(--primary-subtle)` creates a soft focus ring without affecting layout — works alongside border-color change for double visual cue
+  - For SearchBar left padding, `calc(var(--space-3) + 18px + var(--space-2))` accounts for padding + icon width + gap — avoids hardcoded magic numbers
+  - `shadow-inner` token (`inset 0 1px 3px rgba(42,31,26,0.06)`) on SearchBar default state creates the "sunken" feel specified in the design system
+  - Sharing CSS class names (`.input-field`, `.input-hint`) between Input and Textarea avoids duplication — Textarea just adds `.input-textarea` for min-height and resize
+---

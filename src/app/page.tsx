@@ -1,4 +1,7 @@
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { SearchBar } from "@/components/ui/SearchBar";
 
 function PlusIcon() {
   return (
@@ -47,10 +50,92 @@ export default function Home() {
           marginBottom: "var(--space-8)",
         }}
       >
-        Button component showcase
+        Component showcase
       </p>
 
-      {/* ── Variants ── */}
+      {/* ── Inputs ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Text Input
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+          }}
+        >
+          <Input
+            label="Location Name"
+            placeholder="e.g. Grandma's House"
+            hint="Where your pet will be staying"
+          />
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="you@example.com"
+          />
+          <Input
+            label="Phone Number"
+            placeholder="(555) 555-5555"
+            error="Please enter a valid phone number"
+          />
+          <Input placeholder="No label, just placeholder" />
+        </div>
+      </section>
+
+      {/* ── Textarea ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Textarea
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+          }}
+        >
+          <Textarea
+            label="Special Instructions"
+            placeholder="Any special care instructions for your pet..."
+            hint="Include feeding schedule, medications, etc."
+          />
+          <Textarea
+            label="Notes"
+            placeholder="Add notes..."
+            error="Notes are required for this handoff"
+          />
+        </div>
+      </section>
+
+      {/* ── Search Bar ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Search Bar
+        </h2>
+        <SearchBar placeholder="Search locations, contacts..." />
+      </section>
+
+      {/* ── Buttons ── */}
       <section style={{ marginBottom: "var(--space-8)" }}>
         <h2
           style={{
