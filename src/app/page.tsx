@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/PetProfileCard";
 import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
+import { TaskItem } from "@/components/ui/TaskItem";
 import { VaultItem, LockIcon } from "@/components/ui/VaultItem";
 
 function PlusIcon() {
@@ -343,6 +344,54 @@ export default function Home() {
             state="hidden"
             icon={<LockIcon />}
             label=""
+          />
+        </div>
+      </section>
+
+      {/* ── Task Items ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Task Items
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
+        >
+          <TaskItem
+            text="Feed Luna breakfast — 1 cup dry food"
+            time="7:00 AM"
+            room="Kitchen"
+          />
+          <TaskItem
+            text="Walk Luna around the block (15 min)"
+            time="8:00 AM"
+            room="Backyard"
+            showProof
+          />
+          <TaskItem
+            text="Give Luna her joint supplement"
+            time="7:00 AM"
+            room="Kitchen"
+            overlay
+          />
+          <TaskItem
+            text="Refill water bowl"
+            defaultCompleted
+          />
+          <TaskItem
+            text="Check that garage door is locked"
+            room="Garage"
+            overlay
+            showProof
           />
         </div>
       </section>
