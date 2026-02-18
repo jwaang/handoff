@@ -21,6 +21,10 @@ after each iteration and it's included in prompts for context.
 - **Dev server**: `pnpm dev` runs Convex which requires interactive terminal. Use `npx next dev --turbopack` directly for browser verification.
 - **Tailwind v4 specificity**: Plain CSS `background-color`/`color` on `<button>` elements get overridden by Tailwind's reset layer. Use Tailwind utility classes (`bg-primary`, `text-text-on-primary`, etc.) for visual states on interactive elements, and keep plain CSS only for structural/transition/shadow properties. See Button.tsx and SectionNav.tsx for examples.
 - **Layout components in `src/components/layouts/`**: Responsive layout shells (CreatorLayout, SitterLayout) live in `layouts/` dir. They override BottomNav's `position: fixed` to `position: sticky` within their containers via `.creator-layout .bottom-nav` CSS selectors. Breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop).
+- **Convex auth file split**: Password hashing via `pbkdf2Sync` requires Node.js — put these in `convex/authActions.ts` with `"use node"` directive. Keep plain queries/mutations in `convex/auth.ts` (no directive). Actions can reference internal functions via `internal.auth._fnName`.
+- **Convex hooks + Next.js SSR**: `useAction`/`useQuery` throw "Could not find Convex client" if called outside ConvexProvider during SSR prerendering. Pattern: extract form into `LoginForm.tsx`, wrap in `LoginFormWrapper.tsx` (Client Component with `"use client"`) that uses `next/dynamic({ ssr: false })`, then use `<LoginFormWrapper />` from the Server Component page. The `ssr: false` must live in a Client Component.
+- **localStorage auth with SSR guard**: Auth context using `useState(lazyInitFn)` with `if (typeof window === "undefined") return null` guard reads localStorage once on client mount without triggering `react-hooks/set-state-in-effect` lint error. Avoids `useEffect` setState pattern.
+- **Auth page structure**: Login at `/login`, dashboard at `/dashboard`, forgot-password at `/forgot-password`. Dashboard redirect guard: `useEffect(() => { if (!isLoading && !user) router.replace("/login") }, [user, isLoading, router])`. Session stored as `{ token, email }` JSON in `localStorage` under key `handoff_session`.
 
 ---
 
@@ -345,4 +349,29 @@ after each iteration and it's included in prompts for context.
   - `100dvh` (dynamic viewport height) is better than `100vh` for mobile layouts because it accounts for the browser chrome (address bar, etc.)
   - Sidebar uses `position: sticky; top: 0; height: 100dvh` to stay visible while the main content scrolls — this avoids needing a separate scroll container for the sidebar
   - Controlled/uncontrolled pattern for sidebar nav follows the same pattern as BottomNav and SectionNav (internal state + optional external control)
+---
+
+## 2026-02-18 - US-022
+- Implemented full auth infrastructure (US-021 prerequisite was not done) + creator login page
+- **Convex backend** (`convex/schema.ts`, `convex/auth.ts`, `convex/authActions.ts`):
+  - Schema: `users` table (email, passwordHash, salt, createdAt) + `sessions` table (userId, token, expiresAt) with indexes
+  - `auth.ts`: internal mutations `_createUser`, `_createSession`; internal query `_getUserByEmail`; public query `validateSession`; public mutation `signOut`
+  - `authActions.ts`: `"use node"` file with `signUp` and `signIn` actions using `pbkdf2Sync` (100k iterations, 64-byte key) + `randomBytes` for tokens/salts from `node:crypto`
+  - Regenerated `convex/_generated/` with `npx convex codegen --system-udfs --typecheck disable`
+- **Auth context** (`src/lib/authContext.tsx`): `AuthProvider` with lazy `useState(readStoredUser)` initializer; reads `{ token, email }` from `localStorage` key `handoff_session`; provides `setUser`, `signOut`
+- **Pages created**:
+  - `src/app/login/page.tsx` — Server Component wrapping `<LoginFormWrapper />`
+  - `src/app/login/LoginFormWrapper.tsx` — Client Component with `dynamic(ssr: false)` to avoid SSR Convex hook errors
+  - `src/app/login/LoginForm.tsx` — Client Component with `useAction(api.authActions.signIn)`, form state, error display
+  - `src/app/dashboard/page.tsx` — Protected dashboard, redirects to `/login` if unauthenticated
+  - `src/app/forgot-password/page.tsx` — Placeholder with "coming soon" message + back link
+- **Root layout** updated to wrap children with `<AuthProvider>`
+- Files added: `convex/auth.ts`, `convex/authActions.ts`, `.env.local`, `src/lib/authContext.tsx`, `src/app/login/page.tsx`, `src/app/login/LoginForm.tsx`, `src/app/login/LoginFormWrapper.tsx`, `src/app/dashboard/page.tsx`, `src/app/forgot-password/page.tsx`
+- Files modified: `convex/schema.ts`, `src/app/layout.tsx`, `convex/_generated/*`
+- **Learnings:**
+  - Convex Actions need `"use node"` directive to use Node.js crypto — must be in a separate file from mutations/queries since the directive applies to the whole file
+  - `next/dynamic` with `ssr: false` cannot be in a Server Component (page.tsx) — must be in a Client Component wrapper. Pattern: `page.tsx` (Server) → `LoginFormWrapper.tsx` (Client with `"use client"` + dynamic) → `LoginForm.tsx` (actual form)
+  - `react-hooks/set-state-in-effect` lint rule rejects `setState` calls directly in `useEffect` body — use lazy `useState(() => readFromStorage())` initializer with `typeof window === "undefined"` SSR guard instead
+  - With a fake Convex URL (`NEXT_PUBLIC_CONVEX_URL=https://fake.convex.cloud`), Convex Actions just hang (WebSocket never times out) — not a real auth test environment, but sufficient for UI verification
+  - Session persistence via localStorage lazy init: dashboard reads token from localStorage on first render (no flash of unauthenticated state) and redirects via `useEffect` if not authenticated
 ---
