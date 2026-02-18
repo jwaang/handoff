@@ -11,6 +11,7 @@ after each iteration and it's included in prompts for context.
 - **Convex codegen without deployment**: Run `npx convex codegen --system-udfs --typecheck disable` to generate `convex/_generated/` without requiring a live Convex deployment. This enables `pnpm build` to pass in CI before a deployment exists.
 - **Convex + Next.js SSG**: `ConvexReactClient` constructor throws if URL is empty string. The `ConvexClientProvider` must handle missing `NEXT_PUBLIC_CONVEX_URL` gracefully (skip provider, render children directly) so `next build` can prerender static pages.
 - **Convex dev script pattern**: Use `"dev": "npx convex dev --run 'next dev --turbopack'"` to start Convex dev server alongside Next.js in a single command.
+- **PWA manifest in Next.js 16**: Use `metadata.manifest` for the manifest link, `metadata.appleWebApp` for iOS PWA meta tags, and export a separate `viewport` const for `themeColor` (Next.js 16 splits viewport from metadata).
 
 ---
 
@@ -46,5 +47,20 @@ after each iteration and it's included in prompts for context.
   - Convex codegen generates `.js` + `.d.ts` files (not `.ts`) by default; this is expected and works with TS projects
   - `ConvexReactClient("")` throws "Provided address was not an absolute URL" — must guard against empty/missing URL for SSG builds
   - Convex's `--run` flag on `convex dev` is the recommended way to start both servers; it sets env vars automatically
+---
+
+## 2026-02-17 - US-019
+- Configured PWA manifest at `public/manifest.json` with app name "Handoff", theme color `#C2704A`, background `#FAF6F1`, standalone display
+- Generated app icons at `public/icons/icon-192x192.png` and `public/icons/icon-512x512.png` (branded with "H" on theme color background)
+- Created service worker at `public/sw.js` with network-first caching strategy (precaches `/` and `/manifest.json`, caches all GET requests on fetch)
+- Created `src/components/ServiceWorkerRegistrar.tsx` — client component that registers the service worker on mount
+- Updated `src/app/layout.tsx` — added manifest link, apple-web-app meta tags, theme-color viewport, apple-touch-icon, and ServiceWorkerRegistrar
+- Files added: `public/manifest.json`, `public/icons/icon-192x192.png`, `public/icons/icon-512x512.png`, `public/sw.js`, `src/components/ServiceWorkerRegistrar.tsx`
+- Files modified: `src/app/layout.tsx`
+- **Learnings:**
+  - Next.js 16 requires `themeColor` to be in a separate `export const viewport: Viewport` — it cannot go in the `metadata` export
+  - Service workers in `public/` are served at root path by Next.js, so `public/sw.js` → `/sw.js`
+  - Pure Node.js PNG generation works via `zlib.deflateSync` on raw RGBA pixel data — no external image libraries needed for placeholder icons
+  - macOS has `sips` for image conversion but it can't create PNGs from scratch; programmatic generation is more reliable
 ---
 
