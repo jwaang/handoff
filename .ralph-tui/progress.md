@@ -139,3 +139,23 @@ after each iteration and it's included in prompts for context.
   - Warning badge text color `#8B6420` is a custom dark amber — not a design token, hardcoded in CSS since it's specific to the warning badge contrast needs
   - `line-height: 1` on badges prevents extra vertical space from the default line-height, keeping the pill shape tight
 ---
+
+## 2026-02-17 - US-011
+- Created `EmergencyContactBar` component at `src/components/ui/EmergencyContactBar.tsx` with horizontally scrollable contact chips
+- Per contact chip: 36px round icon (color-coded by role) + name + role label + `Call` link with `tel:` href
+- Icon colors: owner (`--primary-light`), vet (`--secondary-light`), neighbor (`--accent-light`), emergency (`--danger-light`)
+- Hover state: border changes to `--secondary`, bg changes to `--secondary-subtle`
+- `-webkit-overflow-scrolling: touch` for smooth mobile scroll
+- `min-width: max-content` on each chip prevents text wrapping
+- Default icon shows role initial letter (O/V/N/E) with role-specific text color; custom icon slot via `icon` prop
+- Added CSS classes in `globals.css`: `.contact-bar`, `.contact-bar-scroll`, `.contact-chip`, `.contact-chip-icon`, `.contact-chip-icon-text`, `.contact-chip-info`, `.contact-chip-name`, `.contact-chip-role`, `.contact-chip-call`
+- Updated `page.tsx` with Emergency Contact Bar showcase (5 sample contacts)
+- Verified at 375px mobile viewport — horizontal scroll works, `tel:` links correct
+- Files added: `src/components/ui/EmergencyContactBar.tsx`
+- Files modified: `src/app/globals.css`, `src/app/page.tsx`
+- **Learnings:**
+  - `-webkit-overflow-scrolling: touch` still needed for iOS momentum scrolling in 2026 — standard `overflow-x: auto` alone doesn't give the rubber-band feel
+  - `scrollbar-width: thin` on the scroll container gives a subtle scrollbar hint on desktop without the chunky default
+  - Using `"use client"` is needed here because of the `onClick` handler on the Call link (`e.stopPropagation()`)
+  - `min-width: max-content` on flex children inside an overflow scroll container is the cleanest way to prevent chips from shrinking
+---

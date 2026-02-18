@@ -525,3 +525,101 @@ body {
   background-color: var(--primary-light);
   color: var(--primary);
 }
+
+/* ============================================================
+   Emergency Contact Bar Component
+   ============================================================ */
+
+.contact-bar {
+  width: 100%;
+}
+
+.contact-bar-scroll {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--space-2);
+  scrollbar-width: thin;
+}
+
+.contact-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: max-content;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-raised);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.contact-chip:hover {
+  border-color: var(--secondary);
+  background-color: var(--secondary-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.contact-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-round);
+  flex-shrink: 0;
+}
+
+.contact-chip-icon-text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.contact-chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.contact-chip-name {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.contact-chip-role {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.contact-chip-call {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  margin-left: var(--space-2);
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.contact-chip-call:hover {
+  background-color: var(--primary-subtle);
+  color: var(--primary-hover);
+}
