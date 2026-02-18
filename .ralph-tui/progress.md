@@ -20,6 +20,7 @@ after each iteration and it's included in prompts for context.
 - **Step/state CSS pattern**: Use `.[component]-[state]` modifier classes (e.g., `.wizard-step-completed`, `.wizard-step-active`) and nest child selectors like `.wizard-step-completed .wizard-step-dot` for state-specific styling.
 - **Dev server**: `pnpm dev` runs Convex which requires interactive terminal. Use `npx next dev --turbopack` directly for browser verification.
 - **Tailwind v4 specificity**: Plain CSS `background-color`/`color` on `<button>` elements get overridden by Tailwind's reset layer. Use Tailwind utility classes (`bg-primary`, `text-text-on-primary`, etc.) for visual states on interactive elements, and keep plain CSS only for structural/transition/shadow properties. See Button.tsx and SectionNav.tsx for examples.
+- **Layout components in `src/components/layouts/`**: Responsive layout shells (CreatorLayout, SitterLayout) live in `layouts/` dir. They override BottomNav's `position: fixed` to `position: sticky` within their containers via `.creator-layout .bottom-nav` CSS selectors. Breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop).
 
 ---
 
@@ -327,4 +328,21 @@ after each iteration and it's included in prompts for context.
   - Curly/smart quotes (`\u201c` / `\u201d`) in JSX string attributes cause TS parse errors — must use `{'string with \u201cquotes\u201d'}` expression syntax instead
   - `margin-top: 6px` on the 8px dot aligns it vertically with the center of `text-sm` (14px) text — formula: `(lineHeight * fontSize - dotSize) / 2`
   - The `hideBorder` prop pattern (opt-out rather than opt-in) keeps the common case clean — most items have borders, only the last one opts out
+---
+
+## 2026-02-18 - US-020
+- Set up responsive app layout shell with two layout components: CreatorLayout and SitterLayout
+- CreatorLayout: sidebar nav (desktop 1024px+) with "Handoff" logo + 3 nav items (My Property, Trips, Settings), bottom nav (mobile/tablet), main content area with responsive max-widths (960px desktop, 720px tablet, 768px mobile)
+- SitterLayout: full-width mobile-first layout with bottom nav always visible, content max-width 640px centered, Today view as default
+- Breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop) — all verified in browser
+- Layout BottomNav override: within layout shells, BottomNav uses `position: sticky` instead of `position: fixed` so it stays within the layout container
+- Both layouts use `min-height: 100dvh` with flex column for full-height stretching
+- Files added: `src/components/layouts/CreatorLayout.tsx`, `src/components/layouts/SitterLayout.tsx`
+- Files modified: `src/app/globals.css`, `src/app/page.tsx`
+- **Learnings:**
+  - Layout components go in `src/components/layouts/` (new directory) to distinguish from UI primitives in `src/components/ui/`
+  - The BottomNav has `position: fixed` in its base CSS — to embed it within layout containers, override with `.creator-layout .bottom-nav, .sitter-layout .bottom-nav { position: sticky }` so it sticks to the layout bottom instead of the viewport
+  - `100dvh` (dynamic viewport height) is better than `100vh` for mobile layouts because it accounts for the browser chrome (address bar, etc.)
+  - Sidebar uses `position: sticky; top: 0; height: 100dvh` to stay visible while the main content scrolls — this avoids needing a separate scroll container for the sidebar
+  - Controlled/uncontrolled pattern for sidebar nav follows the same pattern as BottomNav and SectionNav (internal state + optional external control)
 ---

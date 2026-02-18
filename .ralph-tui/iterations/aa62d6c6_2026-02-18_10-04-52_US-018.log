@@ -1,0 +1,132 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: US-018
+- **Task Title**: Build Activity Feed Item component
+- **Description**: As a developer, I need activity feed item components for the owner's chronological log.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-18T16:04:52.565Z
+- **Ended At**: 2026-02-18T16:08:16.799Z
+- **Duration**: 3m 24s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the PRD context and progress file, then implement the Activity Feed Item component.
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m pattern: [96msrc/components/ui/**/*[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/globals.css[0m
+Now let me look at an existing simple component to follow the pattern, and the page.tsx to see the showcase structure.
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/TimeSlotDivider.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m
+Good. I have all the context needed. Let me implement the Activity Feed Item component.
+[94m[TodoWrite][0m
+Now let me create the component. The acceptance criteria specify:
+- Color-coded 8px dots: view (terracotta), task (sage), vault (slate), proof (amber)
+- Text with bold name, text-sm, timestamp in text-xs muted
+- Items separated by 1px bottom border
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/components/ui/ActivityFeedItem.tsx[0m "import { type HTMLAttributes } from "react";
+
+type ActivityType = "view" | "task" | "vault" | "proof";
+
+interface ActivityFeedItemProps extends HTMLAttributes<HTMLDivElement> {
+  /** The type of activ... (1372 chars)"
+[94m[TodoWrite][0m
+Now add the CSS classes to globals.css.
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/globals.css[0m edit: ".time-slot-divider-line {
+  flex: 1;
+  height: 1px..." → ".time-slot-divider-line {
+  flex: 1;
+  height: 1px..."
+[94m[TodoWrite][0m
+Now add the showcase to page.tsx.
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m edit: "import { TimeSlotDivider } from "@/components/ui/T..." → "import { TimeSlotDivider } from "@/components/ui/T..."
+Now add the showcase section. I'll put it after the Time Slot Dividers section.
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m edit: "      {/* ── Bottom Navigation (inline demo) ── */..." → "      {/* ── Activity Feed Items ── */}
+      <sec..."
+[94m[TodoWrite][0m
+Now run the quality checks.
+[94m[Bash][0m Run TypeScript type checking $ pnpm typecheck 2>&1
+
+[91m[Error: Exit code 2
+
+> handoff@0.1.0 typecheck /Users/john/Coding/handoff
+> tsc --noEmit
+
+src/app/page.tsx(160,51): error TS1003: Identifier expected.
+src/app/page.tsx(162,12): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/app/page.tsx(172,50): error TS1003: Identifier expected.
+src/app/page.tsx(174,12): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+ ELIFECYCLE  Command failed with exit code 2.
+
+
+> handoff@0.1.0 typecheck /Users/john/Coding/handoff
+> tsc --noEmit
+
+src/app/page.tsx(160,51): error TS1003: Identifier expected.
+src/app/page.tsx(162,12): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/app/page.tsx(172,50): error TS1003: Identifier expected.
+src/app/page.tsx(174,12): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+ ELIFECYCLE  Command failed with exit code 2.][0m
+The curly quotes in the JSX are causing issues. Let me check those lines.
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m
+The curly double quotes `\u201c` and `\u201d` in JSX attributes are not valid. Need to use escaped quotes or different characters.
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m edit: "            action="completed "Feed Luna breakfast..." → "            action={'completed \u201cFeed Luna bre..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/page.tsx[0m edit: "            action="uploaded proof for "Walk Luna"..." → "            action={'uploaded proof for \u201cWalk..."
+[94m[Bash][0m Run TypeScript type checking $ pnpm typecheck 2>&1
+Typecheck passes. Now lint and build.
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+[94m[Bash][0m Run Next.js build $ pnpm build 2>&1
+All three quality checks pass (0 errors, only pre-existing `<img>` warnings from other components).
+[94m[TodoWrite][0m
+Now let me start the dev server and verify in the browser.
+[94m[Bash][0m Start Next.js dev server for browser verification $ npx next dev --turbopack --port 3000 2>&1
+[94m[Bash][0m Wait for dev server and check it's responding $ sleep 3 && curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+Server is up. Let me verify in the browser using the dev-browser skill.
+[94m[mcp__chrome-devtools__navigate_page][0m [96mhttp://localhost:3000[0m
+[94m[mcp__chrome-devtools__take_screenshot][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/screenshot-full.png[0m
+I can see the Activity Feed section is rendering. Let me get a closer look at it to verify the details.
+[94m[mcp__chrome-devtools__take_snapshot][0m
+I can see the Activity Feed section rendering with all 5 items (uid 1_18 through 1_33). Let me take a zoomed screenshot of just that section for closer verification.
+[94m[mcp__chrome-devtools__evaluate_script][0m
+[94m[mcp__chrome-devtools__take_screenshot][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/screenshot-activity-feed.png[0m
+The Activity Feed component renders correctly. I can verify all acceptance criteria:
+
+1. **Color-coded 8px dots**: Visible next to each item — terracotta (view), sage (task), slate (vault), amber (proof) dots are all showing with correct colors
+2. **Text with bold name**: "Jamie" is bold in each item, followed by the action text in `text-sm`
+3. **Timestamp in text-xs muted**: Timestamps ("2 min ago", "15 min ago", etc.) render in smaller, muted text below each action
+4. **Items separated by 1px bottom border**: Clear border separators between each item, with the last item having no border
+
+Let me stop the dev server and clean up screenshots.
+[94m[TaskStop][0m
+[94m[Bash][0m Clean up screenshot files $ rm -f /Users/john/Coding/handoff/screenshot-full.png /Users/john/Coding/handoff/screenshot-activity-...
+[94m[TodoWrite][0m
+Now update progress.md.
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - Using variant-specific CSS classes (`.time-slo..." → "  - Using variant-specific CSS classes (`.time-slo..."
+[94m[TodoWrite][0m
+All tasks complete. Summary of what was implemented:
+
+**US-018 - Activity Feed Item component**
+
+- **Component**: `src/components/ui/ActivityFeedItem.tsx` — pure presentational, no client directive needed
+- **CSS**: 11 new classes in `globals.css` under "Activity Feed Item Component" section
+- **Showcase**: 5 sample items in `page.tsx` showing all 4 activity types
+
+**Acceptance criteria verified:**
+- Color-coded 8px dots: view (terracotta), task (sage), vault (slate), proof (amber)
+- Text with bold name, text-sm, timestamp in text-xs muted
+- Items separated by 1px bottom border
+- `pnpm typecheck` passes
+- `pnpm lint` passes (0 errors)
+- `pnpm build` passes
+- Verified in browser — all items render correctly
+
+<promise>COMPLETE</promise>

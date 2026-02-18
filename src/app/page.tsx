@@ -21,6 +21,8 @@ import { NotificationToast } from "@/components/ui/NotificationToast";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { TimeSlotDivider } from "@/components/ui/TimeSlotDivider";
 import { ActivityFeedItem } from "@/components/ui/ActivityFeedItem";
+import { CreatorLayout } from "@/components/layouts/CreatorLayout";
+import { SitterLayout } from "@/components/layouts/SitterLayout";
 
 function PlusIcon() {
   return (
@@ -92,6 +94,167 @@ export default function Home() {
       >
         Component showcase
       </p>
+
+      {/* ── Layout Shells ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Layout Shells
+        </h2>
+        <p
+          style={{
+            fontSize: "var(--text-sm)",
+            color: "var(--text-muted)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Responsive layout containers. Creator: sidebar nav (desktop) + bottom
+          nav (mobile). Sitter: full-width mobile-first + bottom nav. Resize
+          browser to see breakpoint changes.
+        </p>
+
+        {/* Creator Layout Demo */}
+        <div style={{ marginBottom: "var(--space-6)" }}>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              fontWeight: 600,
+              color: "var(--text-secondary)",
+              marginBottom: "var(--space-2)",
+            }}
+          >
+            Creator Dashboard Layout
+          </p>
+          <div
+            style={{
+              border: "1.5px solid var(--border)",
+              borderRadius: "var(--radius-lg)",
+              overflow: "hidden",
+              height: 320,
+              position: "relative",
+            }}
+          >
+            <CreatorLayout
+              style={{
+                minHeight: 320,
+                height: 320,
+              }}
+            >
+              <div
+                style={{
+                  padding: "var(--space-6)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-4)",
+                }}
+              >
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "var(--text-xl)",
+                  }}
+                >
+                  My Property
+                </h3>
+                <p
+                  style={{
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Sidebar visible at 1024px+. Bottom nav visible below 1024px.
+                  Content max-width: 960px (desktop), 720px (tablet), 768px
+                  (mobile).
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "var(--space-3)",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Badge variant="room">Kitchen</Badge>
+                  <Badge variant="room">Garage</Badge>
+                  <Badge variant="success">Active</Badge>
+                </div>
+              </div>
+            </CreatorLayout>
+          </div>
+        </div>
+
+        {/* Sitter Layout Demo */}
+        <div>
+          <p
+            style={{
+              fontSize: "var(--text-sm)",
+              fontWeight: 600,
+              color: "var(--text-secondary)",
+              marginBottom: "var(--space-2)",
+            }}
+          >
+            Sitter View Layout
+          </p>
+          <div
+            style={{
+              border: "1.5px solid var(--border)",
+              borderRadius: "var(--radius-lg)",
+              overflow: "hidden",
+              height: 320,
+              position: "relative",
+            }}
+          >
+            <SitterLayout
+              style={{
+                minHeight: 320,
+                height: 320,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-4)",
+                }}
+              >
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "var(--text-xl)",
+                  }}
+                >
+                  Today View
+                </h3>
+                <p
+                  style={{
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Full-width mobile-first layout. Bottom nav always visible.
+                  Content max-width: 640px centered. Today view is the default
+                  landing.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "var(--space-3)",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Badge variant="time">7:00 AM</Badge>
+                  <Badge variant="overlay">This Trip Only</Badge>
+                  <Badge variant="success">Active</Badge>
+                </div>
+              </div>
+            </SitterLayout>
+          </div>
+        </div>
+      </section>
 
       {/* ── Today View Header ── */}
       <section style={{ marginBottom: "var(--space-8)", marginLeft: "calc(-1 * var(--space-4))", marginRight: "calc(-1 * var(--space-4))", marginTop: "calc(-1 * var(--space-8))" }}>

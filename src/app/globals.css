@@ -230,6 +230,199 @@ body {
 }
 
 /* ============================================================
+   Layout Shell — Responsive Breakpoints
+   375px (mobile) | 768px (tablet) | 1024px (desktop)
+   ============================================================ */
+
+/* ── Creator Layout ── */
+
+.creator-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.creator-sidebar {
+  display: none;
+}
+
+.creator-main {
+  flex: 1;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.creator-content {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.creator-bottom-nav {
+  display: block;
+}
+
+/* Desktop: sidebar visible, bottom nav hidden */
+@media (min-width: 1024px) {
+  .creator-layout {
+    flex-direction: row;
+  }
+
+  .creator-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    flex-shrink: 0;
+    background-color: var(--bg-raised);
+    border-right: 1px solid var(--border);
+    padding: var(--space-6) 0;
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .creator-main {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 0;
+  }
+
+  .creator-content {
+    max-width: 960px;
+    padding: var(--space-8) var(--space-8);
+  }
+
+  .creator-bottom-nav {
+    display: none;
+  }
+}
+
+/* Tablet: wider content area */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .creator-content {
+    max-width: 720px;
+    padding: var(--space-6) var(--space-6);
+  }
+}
+
+/* ── Creator Sidebar Internals ── */
+
+.creator-sidebar-header {
+  padding: 0 var(--space-6) var(--space-6);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-4);
+}
+
+.creator-sidebar-logo {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--primary);
+  font-style: italic;
+}
+
+.creator-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0 var(--space-3);
+}
+
+.creator-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.creator-sidebar-item:hover {
+  background-color: var(--bg-sunken);
+  color: var(--text);
+}
+
+.creator-sidebar-item-active {
+  background-color: var(--primary-subtle);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.creator-sidebar-item-active:hover {
+  background-color: var(--primary-light);
+}
+
+.creator-sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.creator-sidebar-label {
+  white-space: nowrap;
+}
+
+/* ── Sitter Layout ── */
+
+.sitter-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.sitter-main {
+  flex: 1;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.sitter-content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+/* Tablet: slightly wider */
+@media (min-width: 768px) {
+  .sitter-content {
+    max-width: 640px;
+    padding: var(--space-6) var(--space-6);
+  }
+}
+
+/* Desktop: constrained mobile-first feel even on large screens */
+@media (min-width: 1024px) {
+  .sitter-content {
+    max-width: 640px;
+    padding: var(--space-8) var(--space-6);
+  }
+}
+
+/* ── Layout BottomNav Override ── */
+/* Within layout shells, make bottom nav stick to the layout bottom instead of viewport */
+.creator-layout .bottom-nav,
+.sitter-layout .bottom-nav {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  flex-shrink: 0;
+}
+
+/* ============================================================
    Button Component
    ============================================================ */
 
