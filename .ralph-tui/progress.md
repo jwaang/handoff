@@ -25,7 +25,10 @@ after each iteration and it's included in prompts for context.
 - **`ssr: false` with `next/dynamic` must be in a Client Component**: In Next.js 16, `dynamic(() => import('./X'), { ssr: false })` throws a build error if called in a Server Component. Create a dedicated `"use client"` wrapper component that does the dynamic import.
 - **Convex `"use node"` TypeScript inference**: Actions marked `"use node"` lose TypeScript inference for handler return types. Explicitly annotate the handler: `handler: async (ctx, args): Promise<{ ... }> => { ... }` and cast internal mutation results via `as Id<"tablename">`.
 - **Convex codegen local binary**: Use `node_modules/.bin/convex codegen --system-udfs --typecheck disable` (not `npx convex codegen`) to avoid downloading a different version. Run `pnpm install` first if `node_modules/.bin/convex` doesn't exist.
-- **Auth pages route structure**: Signup page at `src/app/signup/` uses 3 files: `page.tsx` (server, metadata), `SignupPageClient.tsx` (client wrapper with `dynamic(ssr:false)`), `SignupForm.tsx` (actual form with Convex hooks + env guard).
+- **Auth pages route structure**: Signup at `src/app/signup/` (3 files: `page.tsx` server + metadata, `SignupPageClient.tsx` client wrapper with `dynamic(ssr:false)`, `SignupForm.tsx` form with Convex hooks + env guard). Login at `/login`, dashboard at `/dashboard`, forgot-password at `/forgot-password`.
+- **Convex auth file split**: Password hashing via `pbkdf2Sync` requires Node.js — put these in `convex/authActions.ts` with `"use node"` directive. Keep plain queries/mutations in `convex/auth.ts` (no directive). Actions reference internal functions via `internal.auth._fnName`.
+- **localStorage auth with SSR guard**: Auth context using `useState(lazyInitFn)` with `if (typeof window === "undefined") return null` guard reads localStorage once on client mount without triggering `react-hooks/set-state-in-effect` lint error. Session stored as `{ token, email }` JSON in `localStorage` under key `handoff_session`.
+- **Dashboard redirect guard**: `useEffect(() => { if (!isLoading && !user) router.replace("/login") }, [user, isLoading, router])` — reads session from `useAuth()`, redirects to login if unauthenticated.
 
 ---
 
@@ -356,20 +359,28 @@ after each iteration and it's included in prompts for context.
 - Implemented creator signup with email and password authentication
 - Added `users` table to Convex schema with `by_email` index for email uniqueness queries
 - Created `convex/users.ts` with `create` internal mutation that checks email uniqueness and throws `EMAIL_TAKEN` error
-- Created `convex/auth.ts` with `signup` action (`"use node"` runtime) using PBKDF2 hashing via Node.js `crypto` module — no external bcrypt package needed
 - Created `src/app/signup/page.tsx` (server component) with metadata, wordmark, heading, and sign-in link
 - Created `src/app/signup/SignupPageClient.tsx` (client wrapper) that uses `dynamic(ssr: false)` to lazy-load the form — required because `ssr: false` cannot be used in Server Components
 - Created `src/app/signup/SignupForm.tsx` with guard pattern: outer component checks `NEXT_PUBLIC_CONVEX_URL` and renders a fallback when Convex is not configured; inner `SignupFormInner` holds all Convex hooks
 - Client-side validation: email format check, password ≥ 8 characters, passwords match
-- Server-side email uniqueness check returns `EMAIL_TAKEN` error which is surfaced as a field error
 - On success: redirects to `/wizard` via `router.push`
-- Files added: `convex/users.ts`, `convex/auth.ts`, `src/app/signup/page.tsx`, `src/app/signup/SignupPageClient.tsx`, `src/app/signup/SignupForm.tsx`
+- Files added: `convex/users.ts`, `src/app/signup/page.tsx`, `src/app/signup/SignupPageClient.tsx`, `src/app/signup/SignupForm.tsx`
 - Files modified: `convex/schema.ts`, `convex/_generated/` (re-generated)
+
+---
+
+## 2026-02-18 - US-022
+- Refactored auth into `convex/auth.ts` (internal mutations/queries) + `convex/authActions.ts` (`"use node"` actions)
+- Schema updated: `users` table gains `salt` field; `sessions` table added (userId, token, expiresAt) with `by_token` index
+- `auth.ts`: `_createUser`, `_createSession` (internal mutations); `_getUserByEmail` (internal query); `validateSession`, `signOut` (public)
+- `authActions.ts`: `signUp` and `signIn` node actions using `pbkdf2Sync` (100k iterations) + `randomBytes` from `node:crypto`
+- `src/lib/authContext.tsx`: `AuthProvider` with lazy `useState(readStoredUser)`; persists `{ token, email }` to `localStorage` key `handoff_session`; exports `useAuth()` hook
+- Pages: `src/app/login/` (page + LoginFormWrapper + LoginForm), `src/app/dashboard/page.tsx` (protected), `src/app/forgot-password/page.tsx` (placeholder)
+- Root layout wrapped with `<AuthProvider>`
+- Files added: `convex/authActions.ts`, `src/lib/authContext.tsx`, `src/app/login/*`, `src/app/dashboard/page.tsx`, `src/app/forgot-password/page.tsx`
+- Files modified: `convex/auth.ts`, `convex/schema.ts`, `src/app/layout.tsx`, `convex/_generated/*`
 - **Learnings:**
-  - `"use node"` in Convex actions causes TypeScript to lose inference for `handler` return types — must add explicit return type annotation like `Promise<{ userId: Id<"users"> }>` and cast `ctx.runMutation` result with `as Id<"users">`
-  - `ssr: false` with `next/dynamic` is NOT allowed in Server Components in Next.js 16 — must move the `dynamic()` call into a `"use client"` wrapper component
-  - `useAction` (and all Convex hooks) throw immediately if no `ConvexProvider` is in the React tree — guard by splitting into an outer component that checks `NEXT_PUBLIC_CONVEX_URL` and an inner component that holds the hooks; the inner only renders when ConvexProvider is guaranteed to exist
-  - PBKDF2 via Node.js `crypto` module (`pbkdf2Sync`, `randomBytes`) works perfectly in Convex `"use node"` actions — secure password hashing without adding npm dependencies
-  - Password stored as `${salt}:${hash}` (hex-encoded, colon-separated) for easy splitting during login verification
-  - `pnpm install` must be run before `node_modules/.bin/convex codegen` — `npx convex codegen` tries to download a different version; use the locally installed binary instead
+  - Convex `"use node"` directive applies to the whole file — keep node actions in a separate file from plain mutations/queries
+  - `react-hooks/set-state-in-effect` lint rejects `setState` in `useEffect` body — use lazy `useState(() => readFromStorage())` with SSR guard instead
+  - Convex Actions hang with a fake URL (WebSocket never times out) — sufficient for UI verification but not real auth testing
 ---

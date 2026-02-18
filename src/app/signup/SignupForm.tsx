@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useAuth } from "@/lib/authContext";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
@@ -32,7 +33,8 @@ function validatePassword(password: string): string | null {
 // Inner component: only rendered when ConvexProvider is in the tree
 function SignupFormInner() {
   const router = useRouter();
-  const signupAction = useAction(api.auth.signup);
+  const signupAction = useAction(api.authActions.signUp);
+  const { setUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,10 +66,11 @@ function SignupFormInner() {
     setIsLoading(true);
 
     try {
-      await signupAction({ email, password });
+      const { token, email: userEmail } = await signupAction({ email, password });
+      setUser({ token, email: userEmail });
       router.push("/wizard");
     } catch (err) {
-      if (err instanceof Error && err.message.includes("EMAIL_TAKEN")) {
+      if (err instanceof Error && err.message.includes("already exists")) {
         setErrors({ email: "An account with this email already exists" });
       } else {
         setErrors({ general: "Something went wrong. Please try again." });

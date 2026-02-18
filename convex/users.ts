@@ -5,6 +5,7 @@ export const create = internalMutation({
   args: {
     email: v.string(),
     passwordHash: v.string(),
+    salt: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -19,6 +20,7 @@ export const create = internalMutation({
     return await ctx.db.insert("users", {
       email: args.email,
       passwordHash: args.passwordHash,
+      salt: args.salt,
       createdAt: Date.now(),
     });
   },
