@@ -852,3 +852,136 @@ body {
     opacity: 1;
   }
 }
+
+/* ============================================================
+   Pet Profile Card Component
+   ============================================================ */
+
+.pet-card {
+  max-width: 360px;
+  background-color: var(--bg-raised);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.pet-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Hero photo — 1:1, full bleed, object-fit cover */
+.pet-card-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.pet-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder gradient when no photo */
+.pet-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-light) 0%,
+    var(--accent-light) 50%,
+    var(--secondary-light) 100%
+  );
+}
+
+/* Body: structured details below photo */
+.pet-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+}
+
+/* Name — Instrument Serif text-3xl */
+.pet-card-name {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text);
+  margin: 0;
+}
+
+/* Breed + age — text-sm muted */
+.pet-card-meta {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Detail rows */
+.pet-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.pet-card-detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.pet-card-detail-emoji {
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  font-size: var(--text-base);
+}
+
+.pet-card-detail-label {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.pet-card-detail-value {
+  color: var(--text);
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Tap-to-call in sage/secondary */
+.pet-card-detail-phone {
+  color: var(--secondary);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: auto;
+  text-align: right;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.pet-card-detail-phone:hover {
+  color: var(--secondary-hover);
+}
+
+/* Personality note — Caveat font on accent-subtle bg */
+.pet-card-personality {
+  font-family: var(--font-handwritten);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  background-color: var(--accent-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-1) 0 0;
+}

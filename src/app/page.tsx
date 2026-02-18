@@ -6,6 +6,10 @@ import {
 } from "@/components/ui/EmergencyContactBar";
 import { Input } from "@/components/ui/Input";
 import { LocationCard } from "@/components/ui/LocationCard";
+import {
+  PetProfileCard,
+  type PetDetail,
+} from "@/components/ui/PetProfileCard";
 import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { VaultItem, LockIcon } from "@/components/ui/VaultItem";
@@ -26,6 +30,18 @@ function PlusIcon() {
     </svg>
   );
 }
+
+const samplePetDetails: PetDetail[] = [
+  { emoji: "🍗", label: "Feeding", value: "2× daily, 1 cup kibble" },
+  { emoji: "💊", label: "Medications", value: "Apoquel, 1 tab AM" },
+  { emoji: "🦮", label: "Walking", value: "30 min, morning & evening" },
+  {
+    emoji: "🏥",
+    label: "Vet",
+    value: "Dr. Rivera · (555) 987-6543",
+    phone: "+15559876543",
+  },
+];
 
 const sampleContacts: EmergencyContact[] = [
   { name: "Sarah M.", role: "owner", phone: "+15551234567" },
@@ -112,6 +128,47 @@ export default function Home() {
           Emergency Contact Bar
         </h2>
         <EmergencyContactBar contacts={sampleContacts} />
+      </section>
+
+      {/* ── Pet Profile Cards ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Pet Profile Cards
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--space-6)",
+            alignItems: "start",
+          }}
+        >
+          <PetProfileCard
+            src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=600&fit=crop"
+            alt="Golden Retriever sitting in a field"
+            name="Biscuit"
+            breed="Golden Retriever"
+            age="3 years old"
+            details={samplePetDetails}
+            personalityNote="Loves belly rubs, hides socks under the couch, and will sit by the door when she needs to go out 🐾"
+          />
+          <PetProfileCard
+            name="Mochi"
+            breed="Siamese Cat"
+            age="5 years old"
+            details={[
+              { emoji: "🍗", label: "Feeding", value: "3× daily, wet food" },
+              { emoji: "💊", label: "Medications", value: "None" },
+            ]}
+            personalityNote="Shy at first, then won't leave your lap. Chirps at birds through the window."
+          />
+        </div>
       </section>
 
       {/* ── Location Cards ── */}
