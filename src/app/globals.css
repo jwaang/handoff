@@ -525,3 +525,80 @@ body {
   background-color: var(--primary-light);
   color: var(--primary);
 }
+
+/* ============================================================
+   Vault Item Component
+   ============================================================ */
+
+.vault-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--vault-light);
+  background-color: var(--vault-subtle);
+}
+
+.vault-item-revealed {
+  background-color: var(--secondary-subtle);
+  border-color: var(--secondary-light);
+}
+
+.vault-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--vault);
+  color: var(--text-on-vault);
+}
+
+.vault-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.vault-item-label {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--text);
+}
+
+.vault-item-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.vault-item-message {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.vault-item-value {
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--vault);
+  white-space: nowrap;
+}
+
+.vault-item-action {
+  flex-shrink: 0;
+}

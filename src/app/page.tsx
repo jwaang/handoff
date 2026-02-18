@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
+import { VaultItem, LockIcon } from "@/components/ui/VaultItem";
 
 function PlusIcon() {
   return (
@@ -166,6 +167,52 @@ export default function Home() {
           Search Bar
         </h2>
         <SearchBar placeholder="Search locations, contacts..." />
+      </section>
+
+      {/* ── Vault Items ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Vault Items
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
+        >
+          <VaultItem
+            state="revealed"
+            icon={<LockIcon />}
+            label="Front Door Code"
+            hint="Enter on keypad, press #"
+            value="4 8 2 7"
+          />
+          <VaultItem
+            state="revealed"
+            icon={<LockIcon />}
+            label="WiFi Password"
+            hint="Network: HomeNet-5G"
+            value="sunny42!"
+          />
+          <VaultItem
+            state="locked"
+            icon={<LockIcon />}
+            label="Garage Code"
+            hint="Verify your phone number to view"
+          />
+          <VaultItem
+            state="hidden"
+            icon={<LockIcon />}
+            label=""
+          />
+        </div>
       </section>
 
       {/* ── Buttons ── */}

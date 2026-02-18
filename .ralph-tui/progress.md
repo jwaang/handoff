@@ -139,3 +139,21 @@ after each iteration and it's included in prompts for context.
   - Warning badge text color `#8B6420` is a custom dark amber — not a design token, hardcoded in CSS since it's specific to the warning badge contrast needs
   - `line-height: 1` on badges prevents extra vertical space from the default line-height, keeping the pill shape tight
 ---
+
+## 2026-02-17 - US-010
+- Created `VaultItem` component at `src/components/ui/VaultItem.tsx` with three states: revealed, locked, hidden
+- Structure: icon (44px, --radius-md, --vault bg, white icon) + label/hint + value or verify button
+- Revealed state: --secondary-subtle bg, --secondary-light border, monospace code with letter-spacing 0.15em
+- Locked state (unverified): --vault-subtle bg, --vault-light border, shows label + hint + verify button
+- Hidden state: --vault-subtle bg, --vault-light border, no label/code shown, only "verify your phone number" message + verify button — no blurred/teased state
+- Exported `LockIcon` helper SVG component for default vault icon usage
+- Added CSS classes in `globals.css`: `.vault-item`, `.vault-item-revealed`, `.vault-item-locked`, `.vault-item-icon`, `.vault-item-content`, `.vault-item-label`, `.vault-item-hint`, `.vault-item-message`, `.vault-item-value`, `.vault-item-action`
+- Updated `page.tsx` with vault item showcase showing all three states
+- Files added: `src/components/ui/VaultItem.tsx`
+- Files modified: `src/app/globals.css`, `src/app/page.tsx`
+- **Learnings:**
+  - VaultItem is a pure presentational component (no `"use client"` needed) since Button handles its own client-side concerns — the VaultItem just renders conditionally based on `state` prop
+  - `ui-monospace, 'Courier New', monospace` is the standard system monospace font stack — works across macOS (SF Mono), Windows (Cascadia Code), and Linux (Ubuntu Mono)
+  - For multi-state components, a single CSS base class (`.vault-item`) + state modifier classes (`.vault-item-revealed`, `.vault-item-locked`) is cleaner than variant maps when only background/border change between states
+  - `min-width: 0` on the flex content area prevents long label text from overflowing the flex container — essential for vault items with long credential names
+---
