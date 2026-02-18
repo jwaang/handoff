@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Instrument_Serif,
   Bricolage_Grotesque,
   Caveat,
 } from "next/font/google";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -31,6 +32,19 @@ export const metadata: Metadata = {
   title: "Handoff",
   description:
     "The warmth of a handwritten care note meets the precision of a beautifully designed cookbook.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Handoff",
+  },
+  icons: {
+    apple: "/icons/icon-192x192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#C2704A",
 };
 
 export default function RootLayout({
@@ -44,6 +58,7 @@ export default function RootLayout({
         className={`${instrumentSerif.variable} ${bricolageGrotesque.variable} ${caveat.variable}`}
       >
         <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
