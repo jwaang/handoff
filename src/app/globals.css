@@ -1,26 +1,230 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Handoff Design System Tokens
+   Aesthetic: Warm Editorial
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Colors: Core ── */
+  --primary: #C2704A;
+  --primary-hover: #A85C38;
+  --primary-active: #934F30;
+  --primary-light: #F5E6DD;
+  --primary-subtle: #FAF0EA;
+
+  --secondary: #5E8B6A;
+  --secondary-hover: #4D7558;
+  --secondary-light: #E4EDE7;
+  --secondary-subtle: #F2F7F3;
+
+  --accent: #D4943A;
+  --accent-hover: #BB7F2E;
+  --accent-light: #FBF0DD;
+  --accent-subtle: #FDF8F0;
+
+  --vault: #3D4F5F;
+  --vault-hover: #2F3F4D;
+  --vault-light: #E8ECF0;
+  --vault-subtle: #F2F4F6;
+
+  /* ── Colors: Backgrounds ── */
+  --bg: #FAF6F1;
+  --bg-raised: #FFFFFF;
+  --bg-sunken: #F3EDE5;
+  --bg-warm-wash: #FDF8F3;
+
+  /* ── Colors: Text ── */
+  --text: #2A1F1A;
+  --text-secondary: #6B5A50;
+  --text-muted: #A89890;
+  --text-on-primary: #FFFFFF;
+  --text-on-vault: #FFFFFF;
+
+  /* ── Colors: Borders ── */
+  --border: #E8DFD6;
+  --border-strong: #D4C8BC;
+  --border-focus: var(--primary);
+
+  /* ── Colors: Semantic ── */
+  --success: #5E8B6A;
+  --success-light: #E4EDE7;
+  --warning: #D4943A;
+  --warning-light: #FBF0DD;
+  --danger: #C45050;
+  --danger-light: #FAEAEA;
+
+  /* ── Colors: Special ── */
+  --overlay-badge: #EAB440;
+  --overlay-badge-text: #5C4310;
+
+  /* ── Typography: Font Families ── */
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-body: var(--font-bricolage-grotesque), system-ui, sans-serif;
+  --font-handwritten: var(--font-caveat), cursive;
+
+  /* ── Typography: Type Scale ── */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+
+  /* ── Typography: Line Height ── */
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* ── Typography: Letter Spacing ── */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+
+  /* ── Spacing ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ── Border Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-pill: 9999px;
+  --radius-round: 50%;
+
+  /* ── Shadows (warm-tinted) ── */
+  --shadow-xs: 0 1px 2px rgba(42, 31, 26, 0.04);
+  --shadow-sm: 0 1px 4px rgba(42, 31, 26, 0.06),
+    0 1px 2px rgba(42, 31, 26, 0.04);
+  --shadow-md: 0 4px 12px rgba(42, 31, 26, 0.07),
+    0 2px 4px rgba(42, 31, 26, 0.04);
+  --shadow-lg: 0 12px 32px rgba(42, 31, 26, 0.1),
+    0 4px 8px rgba(42, 31, 26, 0.04);
+  --shadow-xl: 0 20px 48px rgba(42, 31, 26, 0.14),
+    0 8px 16px rgba(42, 31, 26, 0.05);
+  --shadow-polaroid: 2px 4px 16px rgba(42, 31, 26, 0.13),
+    0 1px 3px rgba(42, 31, 26, 0.08);
+  --shadow-inner: inset 0 1px 3px rgba(42, 31, 26, 0.06);
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-reveal: 600ms;
 }
+
+/* ============================================================
+   Tailwind v4 Theme Integration
+   Maps CSS custom properties to Tailwind utility classes
+   ============================================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors */
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-bg-warm-wash: var(--bg-warm-wash);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-light: var(--primary-light);
+  --color-primary-subtle: var(--primary-subtle);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-subtle: var(--secondary-subtle);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-accent-subtle: var(--accent-subtle);
+
+  --color-vault: var(--vault);
+  --color-vault-hover: var(--vault-hover);
+  --color-vault-light: var(--vault-light);
+  --color-vault-subtle: var(--vault-subtle);
+
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-primary: var(--text-on-primary);
+  --color-text-on-vault: var(--text-on-vault);
+
+  --color-border-default: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-focus: var(--border-focus);
+
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
+
+  --color-overlay-badge: var(--overlay-badge);
+  --color-overlay-badge-text: var(--overlay-badge-text);
+
+  /* Font families */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-handwritten: var(--font-handwritten);
+
+  /* Shadows */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-polaroid: var(--shadow-polaroid);
+  --shadow-inner: var(--shadow-inner);
+
+  /* Border radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-pill: var(--radius-pill);
+  --radius-round: var(--radius-round);
+
+  /* Transitions */
+  --ease-out: var(--ease-out);
+  --ease-spring: var(--ease-spring);
+
+  --animate-duration-fast: var(--duration-fast);
+  --animate-duration-normal: var(--duration-normal);
+  --animate-duration-slow: var(--duration-slow);
+  --animate-duration-reveal: var(--duration-reveal);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ============================================================
+   Body: Linen Background with Subtle Noise Texture
+   ============================================================ */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  color: var(--text);
+  font-family: var(--font-body);
 }

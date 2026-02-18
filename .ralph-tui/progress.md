@@ -11,6 +11,8 @@ after each iteration and it's included in prompts for context.
 - **Convex codegen without deployment**: Run `npx convex codegen --system-udfs --typecheck disable` to generate `convex/_generated/` without requiring a live Convex deployment. This enables `pnpm build` to pass in CI before a deployment exists.
 - **Convex + Next.js SSG**: `ConvexReactClient` constructor throws if URL is empty string. The `ConvexClientProvider` must handle missing `NEXT_PUBLIC_CONVEX_URL` gracefully (skip provider, render children directly) so `next build` can prerender static pages.
 - **Convex dev script pattern**: Use `"dev": "npx convex dev --run 'next dev --turbopack'"` to start Convex dev server alongside Next.js in a single command.
+- **Design tokens via CSS custom properties + Tailwind v4 `@theme inline`**: All design tokens live in `:root` as CSS custom properties, then mapped into Tailwind via `@theme inline` block in `globals.css`. Use `var(--token-name)` in inline styles and Tailwind utility classes (e.g., `bg-primary`, `shadow-polaroid`, `rounded-lg`) in className.
+- **Google Fonts via `next/font/google`**: Use `next/font/google` imports (not `<link>` tags) to avoid `@next/next/no-page-custom-font` lint warning. Each font exports a `variable` CSS property that feeds into the `--font-display`/`--font-body`/`--font-handwritten` tokens.
 
 ---
 
@@ -46,5 +48,21 @@ after each iteration and it's included in prompts for context.
   - Convex codegen generates `.js` + `.d.ts` files (not `.ts`) by default; this is expected and works with TS projects
   - `ConvexReactClient("")` throws "Provided address was not an absolute URL" — must guard against empty/missing URL for SSG builds
   - Convex's `--run` flag on `convex dev` is the recommended way to start both servers; it sets env vars automatically
+---
+
+## 2026-02-17 - US-003
+- Implemented all design tokens from `docs/handoff-design-system.md` as CSS custom properties in `:root`
+- Mapped tokens to Tailwind v4 via `@theme inline` block (colors, fonts, shadows, radii, easing, durations)
+- Loaded 3 Google Fonts via `next/font/google`: Instrument Serif (display), Bricolage Grotesque (body/UI), Caveat (handwritten)
+- Implemented linen background with inline SVG noise texture at 2.5% opacity on `body`
+- Updated `page.tsx` with token showcase (headings, color swatches, card with polaroid shadow, badge pills)
+- Removed default Geist fonts and dark mode styles
+- Files modified: `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`
+- **Learnings:**
+  - `@next/next/no-page-custom-font` warns if you use `<link>` for Google Fonts in layout — must use `next/font/google` imports instead
+  - `next/font/google` `Instrument_Serif` only supports `weight: "400"` (not variable weight), but supports `style: ["normal", "italic"]`
+  - Tailwind v4 `@theme inline` maps CSS custom properties to utility classes — e.g., `--color-primary: var(--primary)` enables `bg-primary`, `text-primary` etc.
+  - SVG noise texture works as inline data URI in `background-image` — no external file needed
+  - Font variable names from `next/font` (e.g., `--font-instrument-serif`) must be used in the CSS `--font-display` token, not the raw font name
 ---
 
