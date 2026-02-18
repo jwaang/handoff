@@ -1,5 +1,9 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import {
+  EmergencyContactBar,
+  type EmergencyContact,
+} from "@/components/ui/EmergencyContactBar";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
@@ -21,6 +25,14 @@ function PlusIcon() {
     </svg>
   );
 }
+
+const sampleContacts: EmergencyContact[] = [
+  { name: "Sarah M.", role: "owner", phone: "+15551234567" },
+  { name: "Dr. Rivera", role: "vet", phone: "+15559876543" },
+  { name: "Tom K.", role: "neighbor", phone: "+15554567890" },
+  { name: "Animal Control", role: "emergency", phone: "+15550001111" },
+  { name: "Pet Poison Help", role: "emergency", phone: "+18882324435" },
+];
 
 export default function Home() {
   return (
@@ -85,6 +97,20 @@ export default function Home() {
           <Badge variant="time">7:00 AM</Badge>
           <Badge variant="time">6:00 PM</Badge>
         </div>
+      </section>
+
+      {/* ── Emergency Contact Bar ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Emergency Contact Bar
+        </h2>
+        <EmergencyContactBar contacts={sampleContacts} />
       </section>
 
       {/* ── Inputs ── */}
