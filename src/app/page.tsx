@@ -15,6 +15,9 @@ import { Textarea } from "@/components/ui/Textarea";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { TaskItem } from "@/components/ui/TaskItem";
 import { VaultItem, LockIcon } from "@/components/ui/VaultItem";
+import { SectionNav } from "@/components/ui/SectionNav";
+import { WizardProgress } from "@/components/ui/WizardProgress";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 function PlusIcon() {
   return (
@@ -96,6 +99,130 @@ export default function Home() {
           completedTasks={2}
           proofNeeded={3}
         />
+      </section>
+
+      {/* ── Wizard Progress ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Wizard Progress
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-6)",
+          }}
+        >
+          <div>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>Step 1 of 6 (Home)</p>
+            <WizardProgress currentStep={0} />
+          </div>
+          <div>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>Step 3 of 6 (Access)</p>
+            <WizardProgress currentStep={2} />
+          </div>
+          <div>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>Step 6 of 6 (Review)</p>
+            <WizardProgress currentStep={5} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section Navigation ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Section Navigation
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-6)",
+          }}
+        >
+          <div>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>Sitter manual sections</p>
+            <SectionNav
+              sections={[
+                { id: "overview", emoji: "🏠", label: "Overview" },
+                { id: "feeding", emoji: "🍗", label: "Feeding" },
+                { id: "walking", emoji: "🦮", label: "Walking" },
+                { id: "medications", emoji: "💊", label: "Medications" },
+                { id: "emergency", emoji: "🚨", label: "Emergency" },
+                { id: "house-rules", emoji: "📋", label: "House Rules" },
+                { id: "vet-info", emoji: "🏥", label: "Vet Info" },
+              ]}
+              activeId="feeding"
+            />
+          </div>
+          <div>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", marginBottom: "var(--space-2)" }}>First section active (default)</p>
+            <SectionNav
+              sections={[
+                { id: "overview", emoji: "🏠", label: "Overview" },
+                { id: "feeding", emoji: "🍗", label: "Feeding" },
+                { id: "walking", emoji: "🦮", label: "Walking" },
+                { id: "medications", emoji: "💊", label: "Medications" },
+                { id: "emergency", emoji: "🚨", label: "Emergency" },
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Notification Toasts ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-2xl)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          Notification Toasts
+        </h2>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-4)",
+            alignItems: "flex-end",
+          }}
+        >
+          <NotificationToast
+            variant="success"
+            title="Task completed"
+            message="Luna's morning walk has been marked as done."
+            timestamp="Just now"
+            autoDismissMs={0}
+          />
+          <NotificationToast
+            variant="vault"
+            title="Vault item revealed"
+            message="Front door code is now visible for 10 minutes."
+            timestamp="2 min ago"
+            autoDismissMs={0}
+          />
+          <NotificationToast
+            variant="warning"
+            title="Task overdue"
+            message="Evening feeding was due 30 minutes ago."
+            timestamp="5 min ago"
+            autoDismissMs={0}
+          />
+        </div>
       </section>
 
       {/* ── Badges ── */}

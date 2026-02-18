@@ -1219,3 +1219,297 @@ body {
   color: var(--primary);
   border-color: var(--primary);
 }
+
+/* ============================================================
+   Wizard Progress Indicator Component
+   ============================================================ */
+
+.wizard-progress {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding-bottom: var(--space-2);
+}
+
+.wizard-progress-track {
+  display: flex;
+  align-items: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: max-content;
+}
+
+.wizard-step-group {
+  display: flex;
+  align-items: flex-start;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 72px;
+}
+
+/* ── Dot ── */
+.wizard-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-round);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+/* Completed: sage dot with checkmark */
+.wizard-step-completed .wizard-step-dot {
+  background-color: var(--secondary);
+  color: var(--text-on-primary);
+}
+
+/* Active: terracotta dot with number + colored shadow */
+.wizard-step-active .wizard-step-dot {
+  background-color: var(--primary);
+  color: var(--text-on-primary);
+  box-shadow: 0 4px 14px rgba(194, 112, 74, 0.35);
+}
+
+/* Upcoming: border-outlined dot */
+.wizard-step-upcoming .wizard-step-dot {
+  background-color: transparent;
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+/* ── Step number inside dot ── */
+.wizard-step-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Label ── */
+.wizard-step-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.wizard-step-completed .wizard-step-label {
+  color: var(--secondary);
+}
+
+.wizard-step-active .wizard-step-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.wizard-step-upcoming .wizard-step-label {
+  color: var(--text-muted);
+}
+
+/* ── Connector lines ── */
+.wizard-connector {
+  display: block;
+  width: 32px;
+  height: 2px;
+  background-color: var(--border);
+  border-radius: 1px;
+  margin-top: 15px; /* vertically center with 32px dot */
+  flex-shrink: 0;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.wizard-connector-completed {
+  background-color: var(--secondary);
+}
+
+/* ============================================================
+   Section Navigation Component (Horizontal Pill Tabs)
+   ============================================================ */
+
+.section-nav {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+
+.section-nav-track {
+  display: flex;
+  gap: var(--space-2);
+  min-width: max-content;
+  padding-bottom: var(--space-2);
+}
+
+.section-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1.5px solid;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.section-nav-pill-active {
+  box-shadow: 0 2px 8px rgba(194, 112, 74, 0.25);
+}
+
+.section-nav-emoji {
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+/* ============================================================
+   Notification Toast Component
+   ============================================================ */
+
+.notification-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 380px;
+  width: 100%;
+  padding: var(--space-4);
+  background-color: var(--bg-raised);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--secondary);
+  box-shadow: var(--shadow-lg);
+  animation: notification-toast-slide-in 0.5s var(--ease-spring) both;
+}
+
+.notification-toast-exit {
+  animation: notification-toast-slide-out 0.3s var(--ease-out) both;
+}
+
+/* Variant left-border colors */
+.notification-toast-success {
+  border-left-color: var(--secondary);
+}
+
+.notification-toast-vault {
+  border-left-color: var(--vault);
+}
+
+.notification-toast-warning {
+  border-left-color: var(--warning);
+}
+
+/* Icon */
+.notification-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+}
+
+/* Content */
+.notification-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-toast-title {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--text);
+  margin: 0;
+}
+
+.notification-toast-message {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.notification-toast-timestamp {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Close button */
+.notification-toast-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.notification-toast-close:hover {
+  background-color: var(--bg-sunken);
+  color: var(--text);
+}
+
+/* Entrance: slide from right with spring easing */
+@keyframes notification-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Exit: slide out to right */
+@keyframes notification-toast-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
