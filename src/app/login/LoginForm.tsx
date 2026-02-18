@@ -28,8 +28,10 @@ export function LoginForm() {
       setUser({ token: result.token, email: result.email });
       router.push("/dashboard");
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "An error occurred. Please try again.";
+      const raw = err instanceof Error ? err.message : "";
+      // Convex wraps server errors: extract the actual message after "Uncaught Error: "
+      const match = raw.match(/Uncaught Error: ([^\n]+?)(?:\s+at |\s+Called by|$)/);
+      const message = match ? match[1].trim() : raw || "An error occurred. Please try again.";
       setError(message);
     } finally {
       setIsSubmitting(false);
