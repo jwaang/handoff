@@ -4,8 +4,8 @@ import { v } from "convex/values";
 export const create = internalMutation({
   args: {
     email: v.string(),
-    passwordHash: v.string(),
-    salt: v.string(),
+    passwordHash: v.optional(v.string()),
+    salt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db

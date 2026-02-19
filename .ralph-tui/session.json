@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "sessionId": "07fb1135-a34e-466e-bda6-219c19ba046b",
+  "status": "running",
+  "startedAt": "2026-02-18T23:57:12.773Z",
+  "updatedAt": "2026-02-19T00:12:35.900Z",
+  "currentIteration": 0,
+  "maxIterations": 10,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "./docs/handoff-tasks/epic-02-auth.json",
+    "totalTasks": 4,
+    "tasks": [
+      {
+        "id": "US-021",
+        "title": "Creator signup with email and password",
+        "status": "completed",
+        "completedInSession": false
+      },
+      {
+        "id": "US-022",
+        "title": "Creator login",
+        "status": "completed",
+        "completedInSession": false
+      },
+      {
+        "id": "US-023",
+        "title": "OAuth login (Google, Apple)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-024",
+        "title": "Creator dashboard shell",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "/Users/john/Coding/handoff",
+  "activeTaskIds": [],
+  "subagentPanelVisible": true
+}

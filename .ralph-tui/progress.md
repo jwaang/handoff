@@ -29,6 +29,8 @@ after each iteration and it's included in prompts for context.
 - **Convex auth file split**: Password hashing via `pbkdf2Sync` requires Node.js — put these in `convex/authActions.ts` with `"use node"` directive. Keep plain queries/mutations in `convex/auth.ts` (no directive). Actions reference internal functions via `internal.auth._fnName`.
 - **localStorage auth with SSR guard**: Auth context using `useState(lazyInitFn)` with `if (typeof window === "undefined") return null` guard reads localStorage once on client mount without triggering `react-hooks/set-state-in-effect` lint error. Session stored as `{ token, email }` JSON in `localStorage` under key `handoff_session`.
 - **Dashboard redirect guard**: `useEffect(() => { if (!isLoading && !user) router.replace("/login") }, [user, isLoading, router])` — reads session from `useAuth()`, redirects to login if unauthenticated.
+- **Convex optional index fields**: Convex indexes work on `v.optional(v.string())` fields — documents missing the field are excluded from `.withIndex(...).eq(someValue)` queries. Safe for OAuth provider IDs that only some users have.
+- **`react-hooks/set-state-in-effect` in callback pages**: All synchronous pre-condition checks (missing code, CSRF) should go into a `useState(() => computeInitialState())` lazy initializer, not inside `useEffect`. Async callbacks (`.then`/`.catch`) are allowed to call `setState`.
 
 ### Design System (`docs/handoff-design-system.md`)
 
@@ -424,4 +426,21 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - Convex `"use node"` directive applies to the whole file — keep node actions in a separate file from plain mutations/queries
   - `react-hooks/set-state-in-effect` lint rejects `setState` in `useEffect` body — use lazy `useState(() => readFromStorage())` with SSR guard instead
   - Convex Actions hang with a fake URL (WebSocket never times out) — sufficient for UI verification but not real auth testing
+---
+
+## 2026-02-18 - US-023
+- Added Google and Apple OAuth buttons to signup and login pages
+- Backend: `exchangeOAuthCode` Convex node action handles Authorization Code flow for both providers; creates or merges accounts by email (same email across providers links to same user record)
+- Schema: `users` table gets optional `googleId`, `appleId` fields with indexes; `passwordHash`/`salt` made optional (OAuth users have no password)
+- `auth.ts`: added `_getUserByGoogleId`, `_getUserByAppleId`, `_linkOAuthProvider` internal functions
+- Apple Sign In: client secret JWT built with `node:crypto` `createSign('SHA256')` (ES256); `id_token` payload decoded for user ID and email
+- OAuth buttons live in `src/components/ui/OAuthButtons.tsx`; Google uses official logo SVG + white/gray button; Apple uses  logo + black button
+- Callback routes: `src/app/auth/callback/google/` and `src/app/auth/callback/apple/` — follow the `ssr:false` dynamic import pattern; state param CSRF check via sessionStorage
+- Files added: `src/components/ui/OAuthButtons.tsx`, `src/app/auth/callback/CallbackHandler.tsx`, `src/app/auth/callback/CallbackPageClient.tsx`, `src/app/auth/callback/google/page.tsx`, `src/app/auth/callback/apple/page.tsx`
+- Files modified: `convex/schema.ts`, `convex/auth.ts`, `convex/authActions.ts`, `convex/users.ts`, `src/app/signup/SignupForm.tsx`, `src/app/login/LoginForm.tsx`, `src/app/globals.css`, `.env.example`, `convex/_generated/*`
+- **Learnings:**
+  - `react-hooks/set-state-in-effect` blocks synchronous `setState` calls anywhere in `useEffect` body — move all sync pre-condition checks into a `useState(() => computeInitialState())` lazy initializer instead; async callbacks (`.catch`, `.then`) are fine
+  - Convex indexes work on optional fields: documents without the indexed field are effectively excluded from `withIndex(...).eq(someValue)` queries — safe to index `googleId`/`appleId` which are undefined for password users
+  - Convex `"use node"` actions can call `node:crypto`'s `createSign('SHA256')` with an EC private key to produce ES256 (ECDSA) signatures for Apple's client secret JWT without any external JWT library
+  - Making schema fields optional (`v.optional(v.string())`) is backward-compatible with `ctx.db.insert()` — just omit the field or pass `undefined`; existing queries that don't reference the optional field continue to work
 ---

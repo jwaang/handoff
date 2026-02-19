@@ -66,11 +66,12 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex to configure Google and Apple OAuth providers in Convex auth and handle the OAuth callback with identity linking. Load /convex-best-practices for account merging strategy when the same email exists across providers. Load /frontend-design to build the OAuth buttons following provider brand guidelines (Google colors + logo, Apple black button). Load /nextjs-best-practices for OAuth redirect and callback route handling in App Router. Use /dev-browser to verify both OAuth flows, test new vs returning user paths, and confirm same-email account merging.",
       "dependsOn": [
         "US-021"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-024",
@@ -97,6 +98,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-18T23:55:56.593Z"
+    "updatedAt": "2026-02-19T00:12:35.897Z"
   }
 }

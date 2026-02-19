@@ -1,18 +1,22 @@
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Internal: create a new user record
+// Internal: create a new user record (password or OAuth)
 export const _createUser = internalMutation({
   args: {
     email: v.string(),
-    passwordHash: v.string(),
-    salt: v.string(),
+    passwordHash: v.optional(v.string()),
+    salt: v.optional(v.string()),
+    googleId: v.optional(v.string()),
+    appleId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return ctx.db.insert("users", {
       email: args.email,
       passwordHash: args.passwordHash,
       salt: args.salt,
+      googleId: args.googleId,
+      appleId: args.appleId,
       createdAt: Date.now(),
     });
   },
@@ -38,6 +42,43 @@ export const _getUserByEmail = internalQuery({
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
+  },
+});
+
+// Internal: look up user by Google ID
+export const _getUserByGoogleId = internalQuery({
+  args: { googleId: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("users")
+      .withIndex("by_google_id", (q) => q.eq("googleId", args.googleId))
+      .unique();
+  },
+});
+
+// Internal: look up user by Apple ID
+export const _getUserByAppleId = internalQuery({
+  args: { appleId: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("users")
+      .withIndex("by_apple_id", (q) => q.eq("appleId", args.appleId))
+      .unique();
+  },
+});
+
+// Internal: link an OAuth provider ID to an existing user
+export const _linkOAuthProvider = internalMutation({
+  args: {
+    userId: v.id("users"),
+    googleId: v.optional(v.string()),
+    appleId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const patch: Record<string, string> = {};
+    if (args.googleId) patch.googleId = args.googleId;
+    if (args.appleId) patch.appleId = args.appleId;
+    await ctx.db.patch(args.userId, patch);
   },
 });
 

@@ -7,6 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { OAuthButtons } from "@/components/ui/OAuthButtons";
 
 export function LoginForm() {
   const router = useRouter();
@@ -39,48 +40,57 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      <Input
-        label="Email"
-        type="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        autoComplete="email"
-        required
-        disabled={isSubmitting}
-      />
+    <div className="flex flex-col gap-5">
+      {/* OAuth sign-in buttons */}
+      <OAuthButtons className="flex flex-col gap-3" />
 
-      <Input
-        label="Password"
-        type="password"
-        placeholder="••••••••"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-        required
-        disabled={isSubmitting}
-      />
+      {/* Divider */}
+      <div className="oauth-divider">or</div>
 
-      {error && (
-        <div
-          className="rounded-lg px-4 py-3 font-body text-sm text-danger"
-          style={{ backgroundColor: "var(--color-danger-light)" }}
-          role="alert"
+      {/* Email/password form */}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <Input
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          required
+          disabled={isSubmitting}
+        />
+
+        <Input
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          required
+          disabled={isSubmitting}
+        />
+
+        {error && (
+          <div
+            className="rounded-lg px-4 py-3 font-body text-sm text-danger"
+            style={{ backgroundColor: "var(--color-danger-light)" }}
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={isSubmitting || !email || !password}
+          className="w-full mt-1"
         >
-          {error}
-        </div>
-      )}
-
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        disabled={isSubmitting || !email || !password}
-        className="w-full mt-1"
-      >
-        {isSubmitting ? "Signing in…" : "Sign in"}
-      </Button>
-    </form>
+          {isSubmitting ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
+    </div>
   );
 }
