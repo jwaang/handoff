@@ -22,7 +22,7 @@ export default defineSchema({
 
   properties: defineTable({
     name: v.string(),
-    address: v.string(),
+    address: v.optional(v.string()),
     photo: v.optional(v.id("_storage")),
     ownerId: v.id("users"),
   }).index("by_owner", ["ownerId"]),

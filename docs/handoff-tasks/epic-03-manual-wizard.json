@@ -43,13 +43,14 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to implement the property upsert mutation with Convex file storage: use generateUploadUrl action + storageId reference pattern for the photo field, and a createOrUpdateProperty mutation that accepts partial data for the 'Save & finish later' path. Load /nextjs-best-practices to scaffold the wizard at src/app/wizard/[step]/page.tsx using App Router dynamic segments with a shared WizardLayout that holds the progress indicator state. Load /tailwind-design-system to style the step card using bg-bg-raised, rounded-xl, shadow-md, and the Input + Button components from src/components/ui — use primary button for Next, ghost/outline for Save & finish later. Use /dev-browser to verify at 375px: photo preview thumbnail renders after file selection, progress indicator highlights step 1, Next proceeds to step 2, Save & finish later persists the property name without completing the wizard.",
       "dependsOn": [
         "US-005",
         "US-013",
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-030",
@@ -293,6 +294,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T01:42:48.359Z"
+    "updatedAt": "2026-02-19T01:50:21.441Z"
   }
 }

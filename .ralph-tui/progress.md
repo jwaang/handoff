@@ -504,3 +504,23 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - For polymorphic `parentId` (instruction/pet/vault), `v.string()` is correct since Convex typed IDs are table-specific
   - Pre-existing lint error in `dashboard/page.tsx` (`setMounted(true)` in empty-dep `useEffect`) was already committed; fixed with `// eslint-disable-next-line react-hooks/set-state-in-effect`
 ---
+
+## 2026-02-18 - US-026
+- Implemented wizard step 1 "Add your home" at `/wizard/1`
+- **Files changed:**
+  - `convex/schema.ts` — Made `address` optional (`v.optional(v.string())`) in `properties` table to support partial "save & finish later" saves
+  - `convex/properties.ts` — Updated `create`/`get`/`listByOwner` returns validators to reflect optional address; added `createOrUpdate` upsert mutation (finds existing property by owner, patches or creates)
+  - `convex/storage.ts` — New file: `generateUploadUrl` action (returns presigned upload URL) and `getUrl` query (resolves storageId → public URL)
+  - `src/app/wizard/page.tsx` — Redirects `/wizard` → `/wizard/1`
+  - `src/app/wizard/[step]/page.tsx` — Server component: parses `step` param, renders `WizardStepClient`
+  - `src/app/wizard/[step]/WizardStepClient.tsx` — "use client" + `dynamic(ssr:false)` wrapper (same pattern as SignupPageClient)
+  - `src/app/wizard/[step]/WizardStepInner.tsx` — Env guard + `WizardLayout` (wordmark, WizardProgress, step card) + step routing (step 1 → Step1Home, others → ComingSoon)
+  - `src/app/wizard/[step]/Step1Home.tsx` — Step 1 form: property name (required), address (optional), photo upload with `URL.createObjectURL` preview thumbnail, Next → `/wizard/2`, Save & finish later → `/dashboard`
+- **Learnings:**
+  - Convex file upload pattern: `generateUploadUrl` action → `fetch(url, { method: "POST", body: file })` → `response.json()` returns `{ storageId }` → pass to mutation as `v.id("_storage")`
+  - `URL.createObjectURL(file)` gives instant local preview without uploading; revoke with `URL.revokeObjectURL(url)` on removal to avoid memory leaks
+  - Wizard layout is a React component (not Next.js layout) since `WizardProgress currentStep` must be derived from the URL param — avoids needing a `usePathname()` client layout
+  - `useQuery(api.auth.validateSession, user?.token ? { token } : "skip")` is the clean pattern to get userId from session token; "skip" prevents the query from running when there's no token
+  - Photo preview uses `<img>` with `eslint-disable-next-line @next/next/no-img-element` since it's a local blob URL (no `next/image` optimization possible for blob URLs)
+  - `params` in Next.js 16 App Router dynamic pages is a `Promise<{ step: string }>` — must `await params` in the server component
+---
