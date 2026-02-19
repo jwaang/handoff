@@ -1,0 +1,192 @@
+# Iteration 1 Log
+
+## Metadata
+
+- **Task ID**: US-037
+- **Task Title**: Upload photo for location card
+- **Description**: As a creator, I want to upload a photo for a location card so the sitter can see exactly where something is.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T19:36:29.569Z
+- **Ended At**: 2026-02-19T19:45:10.791Z
+- **Duration**: 8m 41s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Task][0m Read progress.md and existing location card code
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/components/ui/*[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/**/*location*[0m
+[94m[Bash][0m $ ls -la /Users/john/Coding/handoff/convex/ | grep -E "\.ts$" | head -20
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/locationCards.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/locationCards.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/LocationCard.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/app/**/*.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step5Sections.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/dashboard/property/sections/SectionsEditor.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+Now let me look at the ManualView to understand how location cards are displayed:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/manual/[propertyId]/ManualView.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/manual/[propertyId]/ManualView.tsx[0m
+[94m[Grep][0m [95m/Users/john/Coding/handoff/src/app/manual[0m pattern: [96mphotoUrl|storageId|locationCard[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/manualView.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/manualView.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/manual/[propertyId]/ManualView.tsx[0m
+Now I have a full understanding. Let me implement all the changes needed:
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  locationCards: defineTable({
+    parentId: v.str..." → "  locationCards: defineTable({
+    parentId: v.str..."
+[94m[TodoWrite][0m
+Now update `convex/locationCards.ts` to add `generateUploadUrl` and `storageId` support:
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/locationCards.ts[0m "import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+
+const parentTypeValidator = v.union(
+  v.literal("instruction"),... (2842 chars)"
+[94m[TodoWrite][0m
+Now update `manualView.ts` to resolve `storageId` → URL for location cards:
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/manualView.ts[0m "// Manual sitter view query — composed to avoid N+1 patterns
+import { query } from "./_generated/server";
+import { v } from "convex/values";
+
+/**
+ * Composed query returning all data needed for the si... (3854 chars)"
+[94m[TodoWrite][0m
+Now create the `LocationCardUploader` component:
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/components/ui/LocationCardUploader.tsx[0m ""use client";
+
+import { useRef, useState, useCallback } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+
+// ── Types ───────────────────... (13513 chars)"
+[94m[TodoWrite][0m
+Now wire up the "photo card" button in both `Step5Sections.tsx` and `SectionsEditor.tsx`. I need to update `InstructionRow` in both files to open the `LocationCardUploader`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step5Sections.tsx[0m edit: "import { useState } from "react";
+import { useRout..." → "import { useState } from "react";
+import { useRout..."
+Now update the `InstructionRow` interface and component in Step5Sections.tsx to support the uploader:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step5Sections.tsx[0m edit: "interface InstructionRowProps {
+  instruction: Ins..." → "interface InstructionRowProps {
+  instruction: Ins..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step5Sections.tsx[0m edit: "        {/* Location card — placeholder for epic-0..." → "        {/* Location card upload */}
+        <butt..."
+Now do the same for SectionsEditor.tsx:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/dashboard/property/sections/SectionsEditor.tsx[0m edit: "import { useState, useEffect } from "react";
+impor..." → "import { useState, useEffect } from "react";
+impor..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/dashboard/property/sections/SectionsEditor.tsx[0m edit: "function InstructionRow({
+  instruction,
+  canMove..." → "function InstructionRow({
+  instruction,
+  canMove..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/dashboard/property/sections/SectionsEditor.tsx[0m edit: "        {/* Location card — placeholder for epic-0..." → "        {/* Location card upload */}
+        <butt..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run Convex codegen to regenerate types $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[Bash][0m Run TypeScript type check $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+No errors, just pre-existing img warnings. Let me run the build:
+[94m[Bash][0m Build Next.js project $ pnpm build 2>&1
+Build passes. Now let me verify in the browser:
+[94m[TodoWrite][0m
+[94m[Skill][0m
+[94m[Bash][0m Check if dev-browser skill exists in project $ cd /Users/john/Coding/handoff/skills/dev-browser && ls 2>/dev/null || echo "No skills/dev-browser di...
+[94m[Bash][0m Check dev-browser skill location $ ls /Users/john/.claude/skills/dev-browser/
+[94m[Bash][0m Start the dev-browser server $ cd /Users/john/.claude/skills/dev-browser && ./server.sh & sleep 3 echo "Server started"
+[94m[Bash][0m Navigate to wizard step 5 and take screenshot $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard5.png[0m
+[94m[Bash][0m Wait for wizard step 5 to load $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard5_loaded.png[0m
+The page loaded with existing data and I can see "+ Photo card" button. Let me scroll down and click it to verify the uploader modal opens:
+[94m[Bash][0m Click the photo card button and check modal opens $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/uploader_modal.png[0m
+The uploader modal looks excellent. Let me verify the caption renders in Caveat font and room tag selection works:
+[94m[Bash][0m Fill caption and select room tag, then screenshot $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/uploader_filled.png[0m
+All UI elements verified:
+- Caption renders in Caveat handwritten font ✅
+- "Kitchen" tag selected with terracotta highlight ✅ 
+- Photo upload zone with camera icon ✅
+- Save card disabled until photo selected ✅
+[94m[TodoWrite][0m
+Now update the progress.md:
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m Check end of progress.md to find where to append $ tail -20 /Users/john/Coding/handoff/.ralph-tui/progress.md
+[94m[Bash][0m Append US-037 learnings to progress.md $ resolvedUrlByCardId map overrides `photoUrl` for display   - `src/components/ui/LocationCardUploader...
+<promise>COMPLETE</promise>
+
+---
+
+**US-037 implemented.** Here's a summary of what was built:
+
+### Files Changed
+- **`convex/schema.ts`** — Added `storageId: v.optional(v.id("_storage"))` to `locationCards` table
+- **`convex/locationCards.ts`** — Added `generateUploadUrl` mutation + `storageId` support to `create`, `update`, `listByParent`
+- **`convex/manualView.ts`** — Resolves `storageId → URL` for location cards via `ctx.storage.getUrl()` in parallel
+- **`src/components/ui/LocationCardUploader.tsx`** (new) — Upload modal with:
+  - `<input type='file' accept='image/*' capture='environment'>` for mobile camera capture
+  - Canvas-based resize to max 1920px wide (JPEG 0.85 quality)
+  - Object URL thumbnail preview shown immediately after file selection
+  - Caption field in Caveat (handwritten) font
+  - Room tag selector as rounded-pill chips (10 presets + Custom… input)
+  - Convex upload flow: `generateUploadUrl` → `fetch POST blob` → `createLocationCard`
+- **`Step5Sections.tsx`** + **`SectionsEditor.tsx`** — Replaced placeholder "photo card" button with live `LocationCardUploader` modal
+
+### Quality checks: ✅ typecheck, ✅ lint (0 errors), ✅ build
+
+--- SUBAGENT TRACE ---
+{
+  "events": [
+    {
+      "id": "subagent_1771529802383_bppkqns",
+      "type": "spawn",
+      "timestamp": "2026-02-19T19:36:42.383Z",
+      "agentType": "Explore",
+      "description": "Read progress.md and existing location card code",
+      "prompt": "Read the following files and return their full contents:\n1. /Users/john/Coding/handoff/.ralph-tui/progress.md\n2. /Users/john/Coding/handoff/convex/locationCards.ts (if it exists)\n3. /Users/john/Coding/handoff/convex/schema.ts\n4. /Users/john/Coding/handoff/src/components/ui/ (list all files)\n\nAlso search for any existing location card related files in /Users/john/Coding/handoff/src/"
+    },
+    {
+      "id": "subagent_1771529802383_bppkqns",
+      "type": "complete",
+      "timestamp": "2026-02-19T19:45:10.409Z",
+      "agentType": "Explore",
+      "description": "Read progress.md and existing location card code",
+      "exitStatus": "success",
+      "durationMs": 508026
+    }
+  ],
+  "hierarchy": [
+    {
+      "state": {
+        "id": "subagent_1771529802383_bppkqns",
+        "agentType": "Explore",
+        "description": "Read progress.md and existing location card code",
+        "status": "completed",
+        "childIds": [],
+        "spawnedAt": "2026-02-19T19:36:42.383Z",
+        "prompt": "Read the following files and return their full contents:\n1. /Users/john/Coding/handoff/.ralph-tui/progress.md\n2. /Users/john/Coding/handoff/convex/locationCards.ts (if it exists)\n3. /Users/john/Coding/handoff/convex/schema.ts\n4. /Users/john/Coding/handoff/src/components/ui/ (list all files)\n\nAlso search for any existing location card related files in /Users/john/Coding/handoff/src/",
+        "endedAt": "2026-02-19T19:45:10.409Z",
+        "durationMs": 508026
+      },
+      "children": []
+    }
+  ],
+  "stats": {
+    "totalSubagents": 1,
+    "byType": {
+      "Explore": 1
+    },
+    "totalDurationMs": 508026,
+    "failureCount": 0,
+    "maxDepth": 1
+  }
+}

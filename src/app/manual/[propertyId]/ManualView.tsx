@@ -26,6 +26,7 @@ interface SearchResult {
 interface LocationCardData {
   _id: string;
   photoUrl?: string;
+  resolvedVideoUrl?: string | null;
   caption: string;
   roomTag?: string;
 }
@@ -564,6 +565,7 @@ export default function ManualView({ propertyId }: ManualViewProps) {
                                     room={card.roomTag}
                                     tilt={TILT_VARIANTS[idx % 3]}
                                     className="shrink-0 w-[200px]"
+                                    videoSrc={card.resolvedVideoUrl ?? undefined}
                                   />
                                 ))}
                               </div>

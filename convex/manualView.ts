@@ -58,20 +58,33 @@ export const getFullManual = query({
       ),
     );
 
-    // Flatten all location cards and resolve storageId → URL in parallel
+    // Flatten all location cards and resolve storageId/videoStorageId → URLs in parallel
     const allLocationCards = locationCardsPerInstruction.flat();
-    const resolvedPhotoUrls = await Promise.all(
-      allLocationCards.map(async (card) => {
-        if (card.storageId) {
-          return ctx.storage.getUrl(card.storageId);
-        }
-        return card.photoUrl ?? null;
-      }),
-    );
+    const [resolvedPhotoUrls, resolvedVideoUrls] = await Promise.all([
+      Promise.all(
+        allLocationCards.map(async (card) => {
+          if (card.storageId) {
+            return ctx.storage.getUrl(card.storageId);
+          }
+          return card.photoUrl ?? null;
+        }),
+      ),
+      Promise.all(
+        allLocationCards.map(async (card) => {
+          if (card.videoStorageId) {
+            return ctx.storage.getUrl(card.videoStorageId);
+          }
+          return card.videoUrl ?? null;
+        }),
+      ),
+    ]);
 
-    // Build a map from card._id to its resolved photoUrl
+    // Build maps from card._id to resolved URLs
     const resolvedUrlByCardId = new Map(
       allLocationCards.map((card, i) => [card._id, resolvedPhotoUrls[i]]),
+    );
+    const resolvedVideoUrlByCardId = new Map(
+      allLocationCards.map((card, i) => [card._id, resolvedVideoUrls[i]]),
     );
 
     // Build instruction._id → locationCards[] lookup
@@ -100,6 +113,7 @@ export const getFullManual = query({
           (card) => ({
             ...card,
             photoUrl: resolvedUrlByCardId.get(card._id) ?? card.photoUrl ?? null,
+            resolvedVideoUrl: resolvedVideoUrlByCardId.get(card._id) ?? null,
           }),
         ),
       })),

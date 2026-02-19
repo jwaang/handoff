@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/authContext";
 import { CreatorLayout } from "@/components/layouts/CreatorLayout";
 import { Button } from "@/components/ui/Button";
 import { LocationCardUploader } from "@/components/ui/LocationCardUploader";
+import { LocationCardVideoUploader } from "@/components/ui/LocationCardVideoUploader";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -199,6 +200,7 @@ function InstructionRow({
   const updateInstruction = useMutation(api.instructions.update);
   const [text, setText] = useState(instruction.text);
   const [showUploader, setShowUploader] = useState(false);
+  const [showVideoUploader, setShowVideoUploader] = useState(false);
 
   const handleTextBlur = () => {
     const trimmed = text.trim();
@@ -292,13 +294,22 @@ function InstructionRow({
         </button>
 
         {/* Location card upload */}
-        <button
-          type="button"
-          className="ml-auto font-body text-xs text-text-muted hover:text-primary transition-colors duration-150"
-          onClick={() => setShowUploader(true)}
-        >
-          + Photo card
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            className="font-body text-xs text-text-muted hover:text-primary transition-colors duration-150"
+            onClick={() => setShowUploader(true)}
+          >
+            + Photo card
+          </button>
+          <button
+            type="button"
+            className="font-body text-xs text-text-muted hover:text-primary transition-colors duration-150"
+            onClick={() => setShowVideoUploader(true)}
+          >
+            + Video card
+          </button>
+        </div>
       </div>
 
       {showUploader && (
@@ -307,6 +318,14 @@ function InstructionRow({
           parentType="instruction"
           onSuccess={() => setShowUploader(false)}
           onClose={() => setShowUploader(false)}
+        />
+      )}
+      {showVideoUploader && (
+        <LocationCardVideoUploader
+          parentId={instruction._id as string}
+          parentType="instruction"
+          onSuccess={() => setShowVideoUploader(false)}
+          onClose={() => setShowVideoUploader(false)}
         />
       )}
     </div>

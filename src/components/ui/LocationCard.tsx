@@ -7,7 +7,7 @@ import { Badge } from "./Badge";
 type TiltVariant = "tilted-left" | "neutral" | "tilted-right";
 
 interface LocationCardProps extends HTMLAttributes<HTMLDivElement> {
-  /** Photo URL — renders placeholder when absent */
+  /** Photo or thumbnail URL — renders placeholder when absent */
   src?: string;
   /** Alt text for the photo */
   alt?: string;
@@ -19,6 +19,8 @@ interface LocationCardProps extends HTMLAttributes<HTMLDivElement> {
   tilt?: TiltVariant;
   /** Called when the card is tapped; receives the src */
   onExpand?: (src: string) => void;
+  /** When set, shows a play icon overlay and plays this video on expand */
+  videoSrc?: string;
 }
 
 function PlaceholderIcon() {
@@ -38,6 +40,21 @@ function PlaceholderIcon() {
       <circle cx="18" cy="22" r="4" />
       <path d="M42 32l-10-10-16 16" />
       <path d="M28 28l4-4 10 10" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="white"
+      stroke="none"
+      aria-hidden="true"
+    >
+      <polygon points="5 3 19 12 5 21 5 3" />
     </svg>
   );
 }
@@ -79,17 +96,20 @@ function LocationCard({
   room,
   tilt = "neutral",
   onExpand,
+  videoSrc,
   className,
   ...props
 }: LocationCardProps) {
   const [expanded, setExpanded] = useState(false);
 
+  const isClickable = !!(src || videoSrc);
+
   const handleClick = useCallback(() => {
-    if (src) {
+    if (isClickable) {
       setExpanded(true);
-      onExpand?.(src);
+      if (src) onExpand?.(src);
     }
-  }, [src, onExpand]);
+  }, [isClickable, src, onExpand]);
 
   const handleClose = useCallback(() => {
     setExpanded(false);
@@ -121,19 +141,20 @@ function LocationCard({
         className={cn(
           "w-[280px] bg-bg-raised rounded-lg shadow-polaroid ring-1 ring-inset ring-[rgba(42,31,26,0.06)] transition-[translate,rotate,box-shadow] duration-250 ease-spring",
           tiltBase[tilt],
-          src && "cursor-pointer focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
-          src && tiltHover[tilt],
+          isClickable && "cursor-pointer focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2",
+          isClickable && tiltHover[tilt],
           className,
         )}
-        role={src ? "button" : undefined}
-        tabIndex={src ? 0 : undefined}
+        role={isClickable ? "button" : undefined}
+        tabIndex={isClickable ? 0 : undefined}
         onClick={handleClick}
-        onKeyDown={src ? handleKeyDown : undefined}
+        onKeyDown={isClickable ? handleKeyDown : undefined}
         {...props}
       >
         <div className="p-2">
           <div className="relative w-full aspect-[4/3] overflow-hidden bg-bg-sunken rounded-md">
             {src ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={src}
                 alt={alt}
@@ -148,6 +169,14 @@ function LocationCard({
                 </span>
               </div>
             )}
+            {/* Play icon overlay for video cards */}
+            {videoSrc && src && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex items-center justify-center w-12 h-12 rounded-round bg-black/40">
+                  <PlayIcon />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -159,7 +188,7 @@ function LocationCard({
         </div>
       </div>
 
-      {expanded && src && (
+      {expanded && isClickable && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-[rgba(42,31,26,0.85)] animate-location-fade-in"
           onClick={handleClose}
@@ -175,12 +204,23 @@ function LocationCard({
           >
             <CloseIcon />
           </button>
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-md"
-            onClick={(e) => e.stopPropagation()}
-          />
+          {videoSrc ? (
+            <video
+              src={videoSrc}
+              controls
+              autoPlay
+              className="max-w-[90vw] max-h-[90vh] rounded-md"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-md"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
         </div>
       )}
     </>

@@ -44,11 +44,12 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to reuse the generateUploadUrl + storageId pattern from US-037 for video, storing videoUrl on the LocationCards record alongside photoUrl. Load /frontend-design to build the video upload component: use <input type='file' accept='video/*' capture='environment'>, load the selected file into an <video> element to read duration and reject if > 30 seconds with a user-facing error, generate a poster thumbnail by seeking to 0s and drawing to canvas, then upload the blob. Use the same caption and roomTag fields as photo cards. Load /tailwind-design-system to render the video thumbnail as a polaroid-style card (shadow-polaroid, 8px inset padding) with a centered play icon overlay using a semi-transparent rounded-round bg-black/40 circle and white play icon, matching the LocationCard component design. Use /dev-browser to verify: selecting a video > 30s shows a rejection message, a valid video shows a thumbnail with play overlay, caption and room tag inputs work, the card renders in the sitter view with the play icon.",
       "dependsOn": [
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-039",
@@ -77,6 +78,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T19:45:10.794Z"
+    "updatedAt": "2026-02-19T20:00:59.305Z"
   }
 }

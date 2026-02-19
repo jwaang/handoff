@@ -64,6 +64,7 @@ export default defineSchema({
       v.literal("vault"),
     ),
     storageId: v.optional(v.id("_storage")),
+    videoStorageId: v.optional(v.id("_storage")),
     photoUrl: v.optional(v.string()),
     videoUrl: v.optional(v.string()),
     caption: v.optional(v.string()),

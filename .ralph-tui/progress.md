@@ -703,3 +703,23 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **sr-only file input pattern**: Use `className="sr-only"` on `<input type='file'>` and trigger it via `ref.current.click()` on a styled button — provides full design control while maintaining native file picker behavior.
   - **Convex storageId type casting**: When passing `storageId` from a JSON response to a Convex mutation expecting `v.id("_storage")`, cast as `Parameters<typeof mutation>[0]["storageId"]` to satisfy TypeScript without hardcoding the string literal type.
 ---
+
+## 2026-02-19 - US-038
+- Implemented video upload for location cards: file picker with mobile camera capture, client-side duration check (max 30s), canvas-based thumbnail generation, dual Convex file storage upload (thumbnail + video), play icon overlay, video playback in fullscreen expand
+- **Files changed:**
+  - `convex/schema.ts` — Added `videoStorageId: v.optional(v.id("_storage"))` to `locationCards` table (separate from photo `storageId`)
+  - `convex/locationCards.ts` — Added `videoStorageId` field to `create`, `update`, and `listByParent` validators
+  - `convex/manualView.ts` — Added parallel `videoStorageId` → URL resolution alongside existing photo URL resolution; returns `resolvedVideoUrl` on each card
+  - `src/components/ui/LocationCardVideoUploader.tsx` (new) — Modal component: hidden `<input type='file' accept='video/*' capture='environment'>`, `processVideoFile()` function that checks duration via `onloadedmetadata` and generates JPEG thumbnail via `onloadeddata` + canvas `drawImage`, dual parallel upload flow (thumbnail + video), caption field, room tag chips
+  - `src/components/ui/LocationCard.tsx` — Added `videoSrc?: string` prop, `PlayIcon` SVG, play icon overlay (when both `src` and `videoSrc` are set), video `<video controls autoPlay>` in fullscreen expand (vs `<img>` for photos); `isClickable` now includes `videoSrc`
+  - `src/app/manual/[propertyId]/ManualView.tsx` — Updated `LocationCardData` interface to include `resolvedVideoUrl`; passes `videoSrc={card.resolvedVideoUrl ?? undefined}` to `<LocationCard>`
+  - `src/app/wizard/[step]/Step5Sections.tsx` — Added `LocationCardVideoUploader` import + `showVideoUploader` state + `+ Video card` button + modal render in `InstructionRow`
+  - `src/app/dashboard/property/sections/SectionsEditor.tsx` — Same video uploader additions as Step5Sections
+- **Learnings:**
+  - **Dual Convex upload pattern**: Call `generateUploadUrl({})` twice in parallel (`Promise.all`), then `fetch` POST both blobs in parallel. Store thumbnail in `storageId` (existing photo field) and video in `videoStorageId` (new field) — schema-level separation keeps photo and video clearly distinct.
+  - **Video thumbnail via `onloadeddata`**: Use `video.onloadeddata` (first frame available, no seek needed) to capture thumbnail. Draw to canvas with `ctx2d.drawImage(video, 0, 0, w, h)`. This avoids `onseeked` not firing at time=0 edge cases that can occur on some mobile browsers.
+  - **`settled` flag pattern for video Promise**: When using both `onloadedmetadata` (duration check) and `onloadeddata` (thumbnail), both events can fire; use a `let settled = false` flag to prevent duplicate resolve/reject calls. Set `settled = true` before any resolve/reject call.
+  - **Duration validation**: Check `video.duration > MAX_VIDEO_DURATION` in `onloadedmetadata`. Reject the promise with a user-facing error string — this bubbles up to `setError()` in the component and displays in the `role="alert"` div.
+  - **Unused ESLint disable comment**: `/* eslint-disable-next-line jsx-a11y/media-has-caption */` before `<video>` causes a lint error ("unused directive") if the `jsx-a11y/media-has-caption` rule isn't active in the project's ESLint config. Simply omit the comment — the `<video>` element with `controls` is acceptable without captions for this use case.
+  - **Write tool for large file rewrites**: When an Edit introduces duplicate code (e.g., duplicate function definition from an imprecise `old_string` match), use the Write tool to rewrite the entire file cleanly rather than trying to surgically fix the duplication with another Edit — faster and eliminates cascading issues.
+---
