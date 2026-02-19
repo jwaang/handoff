@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/authContext";
 import { CreatorLayout, type CreatorNavId } from "@/components/layouts/CreatorLayout";
 import { Button } from "@/components/ui/Button";
@@ -151,6 +152,12 @@ function DashboardOverview({ email }: { email: string }) {
           >
             My Property
           </h2>
+          <Link
+            href="/dashboard/property/sections"
+            className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
+          >
+            Edit sections →
+          </Link>
         </div>
         <EmptyStateCard
           icon={<HouseIcon className="text-primary" />}

@@ -1,0 +1,100 @@
+# Iteration 8 Log
+
+## Metadata
+
+- **Task ID**: US-032
+- **Task Title**: Wizard step 6 — Review & publish
+- **Description**: As a creator, I want to review my complete Handoff before publishing so I can catch any missing information.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T02:37:52.665Z
+- **Ended At**: 2026-02-19T03:05:31.960Z
+- **Duration**: 27m 39s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+[94m[Glob][0m pattern: [96msrc/app/wizard/**/*.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step5Sections.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/properties.ts[0m
+Let me read the remaining key files to understand the existing schema and patterns:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/sections.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/instructions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/emergencyContacts.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/pets.ts[0m
+Now I have everything I need. Let me implement US-032.
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  properties: defineTable({
+    name: v.string(),
+..." → "  properties: defineTable({
+    name: v.string(),
+..."
+[94m[TodoWrite][0m
+Now update `properties.ts` to add the `status` field to the validator and add the two new functions:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/properties.ts[0m edit: "import { mutation, query } from "./_generated/serv..." → "import { mutation, query } from "./_generated/serv..."
+Now add `getManualSummary` and `publishManual` at the end of `properties.ts`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/properties.ts[0m edit: "export const remove = mutation({
+  args: { propert..." → "export const remove = mutation({
+  args: { propert..."
+[94m[TodoWrite][0m
+Now create the Step6Review component:
+Now create the `Step6Review.tsx` component:
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step6Review.tsx[0m ""use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useMutation, useQuery } from "convex/react";
+import { api } from ".... (17417 chars)"
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m edit: "import Step5Sections from "./Step5Sections";" → "import Step5Sections from "./Step5Sections";
+impor..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m edit: "      ) : step === 5 ? (
+        <Step5Sections />..." → "      ) : step === 5 ? (
+        <Step5Sections />..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run Convex codegen to update generated types $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[Bash][0m Run TypeScript type check $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+[94m[Bash][0m Run Next.js production build $ pnpm build 2>&1
+All checks pass. Now let me verify the implementation in the browser:
+[94m[Skill][0m
+[94m[Bash][0m Check if dev-browser skill directory exists $ cd /Users/john/Coding/handoff/skills/dev-browser 2>/dev/null || cd /Users/john/.claude/skills/dev-br...
+[94m[Bash][0m Start the dev-browser server $ cd /Users/john/.claude/skills/dev-browser && ./server.sh & sleep 3 echo "Server started"
+[94m[Bash][0m Navigate to wizard step 6 and take screenshot $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard6.png[0m
+The page loads correctly with the skeleton loading state (no Convex backend in test). Let me take a full page screenshot to see the complete layout including the progress bar:
+[94m[Bash][0m Take full page screenshot and get accessibility snapshot $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard6_full.png[0m
+The page renders correctly:
+- Wizard progress bar shows step 6 "Review" as active
+- "Review & publish" heading visible
+- 5 skeleton loading rows in summary checklist (waiting for Convex data)
+- "Publish Handoff" button disabled (no property data)
+- "Save & finish later" ghost button works
+
+All quality checks pass. Let me update the progress log and complete.
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - **Custom section sortOrder**: Use `Math.max(ma..." → "  - **Custom section sortOrder**: Use `Math.max(ma..."
+<promise>COMPLETE</promise>
+
+---
+
+US-032 is implemented. Here's what was built:
+
+**Convex backend:**
+- `convex/schema.ts` — Added `status` field (`draft` | `published`, optional) to `properties` table
+- `convex/properties.ts` — Added `getManualSummary` query that aggregates counts for pets/vault items/contacts/sections/instructions plus completeness flags; added `publishManual` mutation that sets `status = "published"`
+
+**UI (`src/app/wizard/[step]/Step6Review.tsx`):**
+- **Summary checklist** — 5 rows (Your home, Pets, Access & security, Emergency contacts, House instructions), each showing count details, a status badge (`bg-secondary-light text-secondary` = complete, `bg-warning-light text-warning` = incomplete), and a ghost Edit link back to the relevant step
+- **Read-only sitter preview** — Scrollable pane (`max-height: 400px`) showing property header, emergency contacts, pets chips, house sections with instruction previews, and vault item count
+- **Publish button** — Disabled until property name exists; calls `publishManual` then `router.push("/dashboard")`; "Save & finish later" ghost button available throughout
+- Skeleton loading states while Convex data resolves

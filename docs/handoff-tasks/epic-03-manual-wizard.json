@@ -216,12 +216,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to confirm the ManualSections and Instructions mutations from US-025/US-031 are used directly here — Convex's reactive useQuery will auto-refresh the UI after any mutation without extra polling. Add a deleteSection mutation with a cascade that also removes all child Instructions. Load /nextjs-best-practices to wire up the route src/app/dashboard/property/sections/page.tsx using the CreatorLayout from src/components/layouts, with a back-link to the dashboard. Load /tailwind-design-system to reuse the section editor UI from US-031 in standalone (non-wizard) context — same rounded-lg section cards, instruction row layout, and arrow reorder buttons. Render delete confirmation as an inline warning state (bg-danger-light, text-danger) within the card rather than a modal. Use /dev-browser to verify: editing an instruction text field blurs and saves immediately, section reorder via arrows persists after page reload, deleting a section shows inline confirmation before removing it and its instructions, attaching a location card to an existing instruction reflects in the manual sitter view.",
       "dependsOn": [
         "US-025",
         "US-032"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-034",
@@ -300,6 +301,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T03:05:31.962Z"
+    "updatedAt": "2026-02-19T03:20:52.167Z"
   }
 }

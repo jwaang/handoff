@@ -3,10 +3,10 @@
   "sessionId": "0c7bb654-853b-4159-9ea9-3142ded8a22b",
   "status": "running",
   "startedAt": "2026-02-19T01:38:40.613Z",
-  "updatedAt": "2026-02-19T03:05:31.967Z",
-  "currentIteration": 7,
+  "updatedAt": "2026-02-19T03:20:52.170Z",
+  "currentIteration": 8,
   "maxIterations": 10,
-  "tasksCompleted": 7,
+  "tasksCompleted": 8,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -59,8 +59,8 @@
       {
         "id": "US-032",
         "title": "Wizard step 6 — Review & publish",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-033",
@@ -158,6 +158,16 @@
       "durationMs": 865306,
       "startedAt": "2026-02-19T02:23:27.217Z",
       "endedAt": "2026-02-19T02:37:52.523Z"
+    },
+    {
+      "iteration": 8,
+      "status": "completed",
+      "taskId": "US-032",
+      "taskTitle": "Wizard step 6 — Review & publish",
+      "taskCompleted": true,
+      "durationMs": 1659295,
+      "startedAt": "2026-02-19T02:37:52.665Z",
+      "endedAt": "2026-02-19T03:05:31.960Z"
     }
   ],
   "skippedTaskIds": [],

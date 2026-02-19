@@ -613,3 +613,20 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Shared validator constant for union types**: Define `const statusValidator = v.optional(v.union(...))` once and reference it in both `propertyObject` (returns validator) and `getManualSummary` return type — keeps shape in sync without duplication
   - **Read-only preview sub-components**: Each sub-component (`PreviewSectionInstructions`) independently calls `useQuery` — same per-query pattern as `SectionPanel` in Step5. The component tree still renders correctly when parent has no data yet.
 ---
+
+## 2026-02-18 - US-033
+- Implemented standalone sections editor at `/dashboard/property/sections`
+- **Files changed:**
+  - `convex/sections.ts` — Added `reorderSections` mutation (batch sortOrder patch, same pattern as `reorderInstructions`)
+  - `convex/_generated/*` — Re-run codegen
+  - `src/app/dashboard/property/sections/page.tsx` (new) — Server component with `metadata.title = "Edit Sections | Handoff"`; renders `SectionsEditorPageClient`
+  - `src/app/dashboard/property/sections/SectionsEditorPageClient.tsx` (new) — `"use client"` wrapper doing `dynamic(() => import("./SectionsEditor"), { ssr: false })` (required because SectionsEditor reads localStorage via `useAuth`)
+  - `src/app/dashboard/property/sections/SectionsEditor.tsx` (new) — Full editor component: `InstructionRow` (same as wizard, blur-saves text, time slot select, proof toggle, `+ Photo card` placeholder); `SectionEditPanel` (section-level up/down reorder arrows, inline title/icon edit form with 20-icon picker, inline delete confirmation as `bg-danger-light` panel inside card); `CustomSectionForm`; main `SectionsEditor` with auth guard, CreatorLayout, back link, "no property" empty state, loading skeleton, active sections list, prebuilt/custom add section area
+  - `src/app/dashboard/page.tsx` — Added `Link` import and `"Edit sections →"` link in the "My Property" section header pointing to `/dashboard/property/sections`
+- **Learnings:**
+  - **Inline delete confirmation pattern**: Use a `showDeleteConfirm: boolean` state flag. When true, render a `bg-danger-light` panel as a sibling to the header (but within the same card), with "Are you sure?" text plus Cancel/Delete buttons. No modal needed — keeps the interaction within the card.
+  - **Inline title/icon edit pattern**: Use `isEditing: boolean` state. When true, replace the header icon+title with an input field and icon picker grid. On save call the `update` mutation; on cancel reset local state to `section.title`/`section.icon`. The edit form renders inside the header `div` using flex.
+  - **Section-level reorder**: Same swap pattern as instruction reorder — store `prev` and `curr` sortOrders, swap them in a `reorderSections({ updates: [{id, sortOrder}] })` batch mutation. Always derive sort from the live query result array, not from local state.
+  - **Sub-page with CreatorLayout**: For sub-pages under dashboard, pass `activeNav="property"` and `onNavChange={() => router.push("/dashboard")}` to CreatorLayout so sidebar nav items navigate back to dashboard (since this is a dedicated page, not the in-app tab switcher pattern of the dashboard).
+  - **3-file auth page pattern**: page.tsx (server, metadata) → `*PageClient.tsx` ("use client", `dynamic(ssr:false)`) → main component. The ssr:false is required whenever the component uses `useAuth()` which reads localStorage.
+---
