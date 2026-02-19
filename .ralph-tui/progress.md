@@ -5,6 +5,9 @@ after each iteration and it's included in prompts for context.
 
 ## Codebase Patterns (Study These First)
 
+- **Convex CRUD pattern**: Each domain file exports `create` mutation, `listBy<X>` query with index, `update` mutation (patch only changed fields via `Object.fromEntries(Object.entries(fields).filter(([, val]) => val !== undefined))`), and `remove` mutation (check existence, throw `ConvexError`, delete). Always include `returns` validator on all functions.
+- **Convex polymorphic references**: For `parentId` referencing multiple tables (e.g., instruction/pet/vault), use `v.string()` (not `v.id("tableName")`) paired with a `parentType` discriminant union field.
+
 - **Next.js 16 + ESLint 9 flat config**: Uses `eslint.config.mjs` (not `.eslintrc`). Import `eslint-config-next/core-web-vitals` and `eslint-config-next/typescript` as arrays to spread. Add `eslint-config-prettier` last to disable formatting rules.
 - **pnpm scripts**: `typecheck` = `tsc --noEmit`, `lint` = `eslint`, `build` = `next build`. All three must pass for every story.
 - **Tailwind CSS v4**: Uses `@tailwindcss/postcss` plugin, no `tailwind.config.js` — config is done via CSS `@theme` blocks.
@@ -484,4 +487,20 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - `BottomNav` on mobile shows sitter-oriented tabs (Today/Manual/Vault/Contacts) even within `CreatorLayout` — this is a placeholder until a creator-specific mobile nav is built in a later story; the sidebar satisfies the desktop navigation AC
   - Email → display name extraction: `email.split("@")[0].replace(/[^a-zA-Z]/g, " ").split(" ")[0]` gives a reasonable first-name guess without a separate name field
   - `dev-browser` server runs on port 9222 (not 3001); connect with default `connect()` which defaults to `http://localhost:9222`
+---
+
+## 2026-02-18 - US-025
+- Implemented Property data model in Convex with four tables and CRUD operations
+- **Files changed:**
+  - `convex/schema.ts` — Added `properties`, `manualSections`, `instructions`, `locationCards` tables with compound indexes
+  - `convex/properties.ts` — create, get, listByOwner, update, remove
+  - `convex/sections.ts` — create, listByProperty, update, remove
+  - `convex/instructions.ts` — create, listBySection, update, remove
+  - `convex/locationCards.ts` — create, listByParent, update, remove
+  - `src/app/dashboard/page.tsx` — Fixed pre-existing `react-hooks/set-state-in-effect` lint error with inline disable comment (SSR hydration pattern)
+- **Learnings:**
+  - `v.id("_storage")` is the correct Convex validator for storage file references (used for property photo)
+  - Compound indexes: `.index("by_property_sort", ["propertyId", "sortOrder"])` — array order matters; first field is the equality filter, second is the range/order field
+  - For polymorphic `parentId` (instruction/pet/vault), `v.string()` is correct since Convex typed IDs are table-specific
+  - Pre-existing lint error in `dashboard/page.tsx` (`setMounted(true)` in empty-dep `useEffect`) was already committed; fixed with `// eslint-disable-next-line react-hooks/set-state-in-effect`
 ---

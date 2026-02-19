@@ -1,7 +1,7 @@
 {
   "name": "Epic 3: Property Manual & Guided Wizard",
-  "branchName": "ralph/epic-03-manual-wizard",
   "description": "The core content creation flow. Creator builds the permanent manual through a guided wizard.",
+  "branchName": "ralph/epic-03-manual-wizard",
   "userStories": [
     {
       "id": "US-025",
@@ -19,9 +19,12 @@
         "pnpm build passes"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": "",
-      "dependsOn": ["US-002"]
+      "passes": true,
+      "notes": "Load /convex-best-practices to define the Property, ManualSections, Instructions, and LocationCards tables in convex/schema.ts. Use v.id('_storage') for the photo file reference, v.union(v.literal('morning'), v.literal('afternoon'), v.literal('evening'), v.literal('anytime')) for timeSlot, and v.union(v.literal('instruction'), v.literal('pet'), v.literal('vault')) for LocationCards parentType. Add compound indexes: ManualSections by propertyId+sortOrder, Instructions by sectionId+sortOrder, LocationCards by parentId+parentType. Write typed CRUD mutations in convex/properties.ts, convex/sections.ts, convex/instructions.ts, and convex/locationCards.ts following the Zen of Convex single-responsibility pattern. Validate all schemas compile cleanly with pnpm typecheck.",
+      "dependsOn": [
+        "US-002"
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-026",
@@ -41,8 +44,12 @@
       ],
       "priority": 2,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-005", "US-013", "US-025"]
+      "notes": "Load /convex-best-practices to implement the property upsert mutation with Convex file storage: use generateUploadUrl action + storageId reference pattern for the photo field, and a createOrUpdateProperty mutation that accepts partial data for the 'Save & finish later' path. Load /nextjs-best-practices to scaffold the wizard at src/app/wizard/[step]/page.tsx using App Router dynamic segments with a shared WizardLayout that holds the progress indicator state. Load /tailwind-design-system to style the step card using bg-bg-raised, rounded-xl, shadow-md, and the Input + Button components from src/components/ui — use primary button for Next, ghost/outline for Save & finish later. Use /dev-browser to verify at 375px: photo preview thumbnail renders after file selection, progress indicator highlights step 1, Next proceeds to step 2, Save & finish later persists the property name without completing the wizard.",
+      "dependsOn": [
+        "US-005",
+        "US-013",
+        "US-025"
+      ]
     },
     {
       "id": "US-030",
@@ -58,8 +65,10 @@
       ],
       "priority": 3,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-002"]
+      "notes": "Load /convex-best-practices to define the Pets table in convex/schema.ts. Use v.array(v.id('_storage')) for photos, v.array(v.object({ name: v.string(), dosage: v.string(), frequency: v.string(), time: v.string(), locationCardId: v.optional(v.id('locationCards')) })) for medications, and v.optional(v.string()) for all optional text fields. Add byPropertyId index on propertyId+sortOrder. Write getPetsByPropertyId query and typed createPet, updatePet, deletePet mutations in convex/pets.ts. Ensure the medications sub-object schema matches the UI shape needed in US-027 exactly so no casting is required in the mutation handlers.",
+      "dependsOn": [
+        "US-002"
+      ]
     },
     {
       "id": "US-027",
@@ -80,8 +89,11 @@
       ],
       "priority": 4,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-026", "US-030"]
+      "notes": "Load /convex-best-practices to wire useMutation(api.pets.create) and useQuery(api.pets.getPetsByPropertyId) in the wizard step 2 page, with optimistic updates so each saved pet card appears immediately. Load /frontend-design to build the pet profile form: required fields at top with clear validation, collapsible 'More details' section for optional fields, medications sub-form with add/remove rows (name, dosage, frequency, time fields per row), and photo array upload showing thumbnail grid. Load /tailwind-design-system to render saved pets as PetProfileCard summary cards (src/components/ui/PetProfileCard) below the form, apply font-body for all labels, use danger-light/text-danger for required field errors, and secondary color for the species/breed badge. Use /dev-browser to verify: 'Add a pet' shows the form, required fields block submission when empty, a saved pet renders as a PetProfileCard, adding a second pet appends a second card, Skip navigates to step 3.",
+      "dependsOn": [
+        "US-026",
+        "US-030"
+      ]
     },
     {
       "id": "US-028",
@@ -100,8 +112,11 @@
       ],
       "priority": 5,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-026", "US-049"]
+      "notes": "Load /convex-best-practices to implement VaultItems table mutations (create, update, delete) linked by propertyId, with a type field as v.union of the 7 pre-built literals plus 'custom'. Load /tailwind-design-system to reuse the VaultItem component pattern from src/components/ui — apply vault color tokens (bg-vault, text-vault, border-vault) for item cards, a masked input (type=password with show/hide toggle using text-text-muted eye icon) for the value field, and font-handwritten for the revealed value display per the design system spec. Load /frontend-design to build the type selector as an icon-grid picker (door, alarm, WiFi, gate, garage, safe, custom icons) that pre-fills the label field. Use /dev-browser to verify: selecting a type pre-fills the label, value field masks on input with toggle, 'Add another' appends a new blank item form, Skip navigates to step 4 without requiring any vault items.",
+      "dependsOn": [
+        "US-026",
+        "US-049"
+      ]
     },
     {
       "id": "US-029",
@@ -120,8 +135,11 @@
       ],
       "priority": 6,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-026", "US-057"]
+      "notes": "Load /convex-best-practices to create an EmergencyContacts table with propertyId, name, role, phone, notes, sortOrder fields plus an isLocked boolean for the ASPCA slot. Write reorderContacts mutation that accepts an array of {id, sortOrder} pairs for bulk sort update. Load /frontend-design to build the contacts list: the ASPCA slot renders read-only with a lock indicator (non-deletable, non-editable), the 4 default slots render as pre-labeled empty forms, and 'Add another' appends a new blank contact. Implement reorder via up/down arrow buttons that swap sortOrder values. Load /tailwind-design-system to style each contact card using bg-bg-raised, rounded-lg, border-border-default, the secondary color for the tap-to-call phone link (font-body text-secondary), and text-text-muted for the role label. Use /dev-browser to verify: ASPCA slot shows locked and cannot be deleted, default slots accept input, up/down arrows reorder contacts and persist on reload, 'Add another' adds a 5th editable slot.",
+      "dependsOn": [
+        "US-026",
+        "US-057"
+      ]
     },
     {
       "id": "US-031",
@@ -141,8 +159,11 @@
       ],
       "priority": 7,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-026", "US-025"]
+      "notes": "Load /convex-best-practices to implement section selection (upsert ManualSections from the 8 pre-built titles with default icons + sortOrder), instruction CRUD mutations (createInstruction, updateInstruction, deleteInstruction, reorderInstructions), and locationCardId attachment on updateInstruction. Load /frontend-design to build: (1) a checkbox grid for the 8 pre-built sections plus an 'Add custom section' row that opens a title + icon picker, (2) an expandable per-section panel with an instruction list where each row has a text input, time slot dropdown (morning/afternoon/evening/anytime), proof-required toggle, and 'Attach location card' button, (3) up/down arrow reorder that calls reorderInstructions. Load /tailwind-design-system to style sections as rounded-lg cards with bg-bg-raised, instruction rows with border-border-default separators, accent color for time slot badges (bg-accent-light text-accent), and the secondary color for the proof toggle active state. Use /dev-browser to verify: unchecking a section hides it from the list, adding an instruction to a section saves it immediately, arrows reorder within the section, custom section appears with the entered title and icon.",
+      "dependsOn": [
+        "US-026",
+        "US-025"
+      ]
     },
     {
       "id": "US-032",
@@ -162,8 +183,14 @@
       ],
       "priority": 8,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-026", "US-027", "US-028", "US-029", "US-031"]
+      "notes": "Load /convex-best-practices to write a getManualSummary query that returns counts for pets, vault items, contacts, sections, and instructions alongside completeness flags (e.g. hasPropertyName, hasAtLeastOneInstruction). Write a publishManual mutation that sets Property.status from 'draft' to 'published'. Load /nextjs-best-practices to handle router.push('/dashboard') after publish resolves, and embed the read-only sitter preview using the same components built in US-036 inside a scrollable preview pane. Load /tailwind-design-system to render the summary checklist: use bg-warning-light + text-warning + rounded-pill badge for incomplete items, bg-secondary-light + text-secondary for complete items, and a prominent btn-primary Publish button with btn-no-shadow for the ghost Edit links. Use /dev-browser to verify: summary counts match actual data, incomplete sections show warning badge with a working Edit link that navigates to the correct wizard step, Publish button transitions the manual to published status and redirects to dashboard.",
+      "dependsOn": [
+        "US-026",
+        "US-027",
+        "US-028",
+        "US-029",
+        "US-031"
+      ]
     },
     {
       "id": "US-033",
@@ -183,8 +210,11 @@
       ],
       "priority": 9,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-025", "US-032"]
+      "notes": "Load /convex-best-practices to confirm the ManualSections and Instructions mutations from US-025/US-031 are used directly here — Convex's reactive useQuery will auto-refresh the UI after any mutation without extra polling. Add a deleteSection mutation with a cascade that also removes all child Instructions. Load /nextjs-best-practices to wire up the route src/app/dashboard/property/sections/page.tsx using the CreatorLayout from src/components/layouts, with a back-link to the dashboard. Load /tailwind-design-system to reuse the section editor UI from US-031 in standalone (non-wizard) context — same rounded-lg section cards, instruction row layout, and arrow reorder buttons. Render delete confirmation as an inline warning state (bg-danger-light, text-danger) within the card rather than a modal. Use /dev-browser to verify: editing an instruction text field blurs and saves immediately, section reorder via arrows persists after page reload, deleting a section shows inline confirmation before removing it and its instructions, attaching a location card to an existing instruction reflects in the manual sitter view.",
+      "dependsOn": [
+        "US-025",
+        "US-032"
+      ]
     },
     {
       "id": "US-034",
@@ -204,8 +234,11 @@
       ],
       "priority": 10,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-030", "US-032"]
+      "notes": "Load /convex-best-practices to confirm pet mutations from US-030 are used here. Add a reorderPets batch mutation that accepts [{id, sortOrder}] array. Ensure updatePet uses a patch-style mutation (partial fields only) so editing one field doesn't overwrite unrelated fields. Load /nextjs-best-practices to set up src/app/dashboard/property/pets/page.tsx within CreatorLayout, navigable from the dashboard My Property section. Load /tailwind-design-system to reuse the pet profile form from US-027 in edit mode: pre-populate all form fields from the existing pet record, show each saved pet as a PetProfileCard with an Edit button that expands inline. Render the delete confirmation as an inline warning within the pet card (bg-danger-light). Use /dev-browser to verify: clicking Edit on a PetProfileCard expands the form pre-filled with existing data, saving a field change reflects immediately in the PetProfileCard, deleting a pet requires confirmation and removes the card, adding a new pet appends a blank form, reorder persists across page reloads.",
+      "dependsOn": [
+        "US-030",
+        "US-032"
+      ]
     },
     {
       "id": "US-035",
@@ -225,8 +258,12 @@
       ],
       "priority": 11,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-014", "US-005", "US-025"]
+      "notes": "Load /convex-best-practices to add Convex search indexes in convex/schema.ts: searchIndex on Instructions by 'text', ManualSections by 'title', Pets by 'name' and 'feedingInstructions', LocationCards by 'caption'. Write a searchManual query using ctx.db.search() that fans out across all four indexes and returns results with { type, id, snippet, sectionName, propertyId }. Load /nextjs-best-practices to implement client-side debounced search input (300ms) using useQuery(api.search.searchManual, { query }) — pass undefined when query is empty to skip the query. Use URL search params to persist the query so tapping a result and pressing back restores the search. Load /tailwind-design-system to render the SearchBar component at the top of the manual view (src/components/ui), result rows with section name in text-text-muted and matched text bolded using font-medium, and the empty state using text-text-muted font-body. Use /dev-browser to verify: typing 'dog food' returns matching instruction results within 300ms, tapping a result scrolls to that instruction in the manual, the empty state appears for a nonsense query, and results are visible after toggling airplane mode (offline cache).",
+      "dependsOn": [
+        "US-014",
+        "US-005",
+        "US-025"
+      ]
     },
     {
       "id": "US-036",
@@ -246,8 +283,16 @@
       ],
       "priority": 12,
       "passes": false,
-      "notes": "",
-      "dependsOn": ["US-007", "US-008", "US-014", "US-025"]
+      "notes": "Load /convex-best-practices to write a getFullManual query that returns Property + ManualSections (ordered by sortOrder) + Instructions per section (ordered by sortOrder) + LocationCards per instruction + Pets (ordered by sortOrder) + EmergencyContacts (ordered by sortOrder) in a single composed query, avoiding N+1 patterns by fetching all child records in parallel using Promise.all(). Load /nextjs-best-practices to set up src/app/manual/[propertyId]/page.tsx using SitterLayout from src/components/layouts — ensure the Manual tab in the bottom nav (US-007) links to this route. Load /tailwind-design-system to render: section navigation pills using the SectionNav component from US-014 (sticky at top, scrollable horizontally), each instruction row matching the TaskItem component style (bg-bg-raised rounded-lg), inline LocationCard components below instructions that support the polaroid shadow-polaroid style, PetProfileCard from src/components/ui for each pet, and emergency contacts as rounded-lg cards with a tap-to-call phone link styled text-secondary font-body. Implement smooth scroll-to-section using element IDs and scrollIntoView on pill tap. Use /dev-browser to verify: all sections appear as navigation pills, tapping a pill smoothly scrolls to that section header, instructions render with inline location card thumbnails, pet profiles match PetProfileCard design, emergency contacts show tap-to-call links, the Manual tab in bottom nav is active on this page.",
+      "dependsOn": [
+        "US-007",
+        "US-008",
+        "US-014",
+        "US-025"
+      ]
     }
-  ]
+  ],
+  "metadata": {
+    "updatedAt": "2026-02-19T01:42:48.359Z"
+  }
 }
