@@ -33,7 +33,7 @@ function buildAppleUrl(redirectUri: string): string {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    response_mode: "query",
+    response_mode: "form_post",
     scope: "name email",
     state,
   });
