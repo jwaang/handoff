@@ -343,14 +343,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoading, signOut } = useAuth();
   const [activeNav, setActiveNav] = useState<CreatorNavId>("property");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && !user) {
       router.replace("/login");
     }
-  }, [user, isLoading, router]);
+  }, [mounted, user, isLoading, router]);
 
-  if (isLoading || !user) {
+  // Render LoadingScreen on server and client's first pass so both match.
+  // After mount, re-render with real auth state.
+  if (!mounted || isLoading || !user) {
     return <LoadingScreen />;
   }
 
