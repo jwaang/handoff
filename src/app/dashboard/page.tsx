@@ -152,12 +152,20 @@ function DashboardOverview({ email }: { email: string }) {
           >
             My Property
           </h2>
-          <Link
-            href="/dashboard/property/sections"
-            className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
-          >
-            Edit sections →
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/property/pets"
+              className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
+            >
+              Pets →
+            </Link>
+            <Link
+              href="/dashboard/property/sections"
+              className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
+            >
+              Sections →
+            </Link>
+          </div>
         </div>
         <EmptyStateCard
           icon={<HouseIcon className="text-primary" />}

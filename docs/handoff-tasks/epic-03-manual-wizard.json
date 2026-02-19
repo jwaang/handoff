@@ -241,12 +241,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to confirm pet mutations from US-030 are used here. Add a reorderPets batch mutation that accepts [{id, sortOrder}] array. Ensure updatePet uses a patch-style mutation (partial fields only) so editing one field doesn't overwrite unrelated fields. Load /nextjs-best-practices to set up src/app/dashboard/property/pets/page.tsx within CreatorLayout, navigable from the dashboard My Property section. Load /tailwind-design-system to reuse the pet profile form from US-027 in edit mode: pre-populate all form fields from the existing pet record, show each saved pet as a PetProfileCard with an Edit button that expands inline. Render the delete confirmation as an inline warning within the pet card (bg-danger-light). Use /dev-browser to verify: clicking Edit on a PetProfileCard expands the form pre-filled with existing data, saving a field change reflects immediately in the PetProfileCard, deleting a pet requires confirmation and removes the card, adding a new pet appends a blank form, reorder persists across page reloads.",
       "dependsOn": [
         "US-030",
         "US-032"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-035",
@@ -301,6 +302,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T03:20:52.167Z"
+    "updatedAt": "2026-02-19T03:31:39.821Z"
   }
 }

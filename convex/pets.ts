@@ -145,3 +145,20 @@ export const remove = mutation({
     return null;
   },
 });
+
+export const reorderPets = mutation({
+  args: {
+    updates: v.array(
+      v.object({ petId: v.id("pets"), sortOrder: v.number() }),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await Promise.all(
+      args.updates.map(({ petId, sortOrder }) =>
+        ctx.db.patch(petId, { sortOrder }),
+      ),
+    );
+    return null;
+  },
+});

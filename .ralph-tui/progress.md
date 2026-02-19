@@ -630,3 +630,23 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Sub-page with CreatorLayout**: For sub-pages under dashboard, pass `activeNav="property"` and `onNavChange={() => router.push("/dashboard")}` to CreatorLayout so sidebar nav items navigate back to dashboard (since this is a dedicated page, not the in-app tab switcher pattern of the dashboard).
   - **3-file auth page pattern**: page.tsx (server, metadata) → `*PageClient.tsx` ("use client", `dynamic(ssr:false)`) → main component. The ssr:false is required whenever the component uses `useAuth()` which reads localStorage.
 ---
+
+## 2026-02-18 - US-034
+- Added `reorderPets` batch mutation to `convex/pets.ts` accepting `[{petId, sortOrder}]` array
+- Created `src/app/dashboard/property/pets/page.tsx` (server wrapper with metadata)
+- Created `src/app/dashboard/property/pets/PetsEditorPageClient.tsx` (dynamic import, ssr:false)
+- Created `src/app/dashboard/property/pets/PetsEditor.tsx` (full client editor)
+  - Queries pets by propertyId, shows each as PetProfileCard with Edit/Delete/Up/Down actions
+  - Edit button expands inline PetForm pre-populated from pet doc; Cancel collapses
+  - PetForm handles both add (blank) and edit (pre-filled) modes via `initialValues` + `existingPhotoIds`
+  - Existing photos shown as thumbnails with delete buttons; new photos uploadable via file input
+  - Delete confirmation renders inline within pet card using `bg-danger-light`
+  - Reorder swaps sortOrder between adjacent pets via reorderPets mutation
+  - `showMoreDetails` auto-expands when editing a pet that has any optional fields filled
+- Updated `src/app/dashboard/page.tsx` My Property section: split "Edit sections →" into "Pets →" and "Sections →" links
+- **Learnings:**
+  - `// eslint-disable-next-line react-hooks/set-state-in-effect` in useEffect triggers "unused directive" warning when the rule doesn't actually fire — just omit the comment (no real error is suppressed in this file)
+  - For `onSave` callbacks where the parent doesn't need a parameter (e.g., `keptPhotoIds` for new pet creation), simply omit the trailing param from the arrow function — TypeScript allows functions with fewer params to satisfy types expecting more
+  - `PetForm` auto-expands "Add more details" section when `initialValues` has any optional fields filled: good UX for edit mode
+  - ExistingPhotoThumb as a separate component (one per photo ID) cleanly handles per-photo useQuery hooks
+---
