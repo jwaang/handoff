@@ -266,13 +266,14 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to add Convex search indexes in convex/schema.ts: searchIndex on Instructions by 'text', ManualSections by 'title', Pets by 'name' and 'feedingInstructions', LocationCards by 'caption'. Write a searchManual query using ctx.db.search() that fans out across all four indexes and returns results with { type, id, snippet, sectionName, propertyId }. Load /nextjs-best-practices to implement client-side debounced search input (300ms) using useQuery(api.search.searchManual, { query }) — pass undefined when query is empty to skip the query. Use URL search params to persist the query so tapping a result and pressing back restores the search. Load /tailwind-design-system to render the SearchBar component at the top of the manual view (src/components/ui), result rows with section name in text-text-muted and matched text bolded using font-medium, and the empty state using text-text-muted font-body. Use /dev-browser to verify: typing 'dog food' returns matching instruction results within 300ms, tapping a result scrolls to that instruction in the manual, the empty state appears for a nonsense query, and results are visible after toggling airplane mode (offline cache).",
       "dependsOn": [
         "US-014",
         "US-005",
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-036",
@@ -302,6 +303,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T03:31:39.821Z"
+    "updatedAt": "2026-02-19T04:00:05.555Z"
   }
 }

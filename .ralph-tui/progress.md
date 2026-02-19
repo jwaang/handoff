@@ -650,3 +650,23 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - `PetForm` auto-expands "Add more details" section when `initialValues` has any optional fields filled: good UX for edit mode
   - ExistingPhotoThumb as a separate component (one per photo ID) cleanly handles per-photo useQuery hooks
 ---
+
+## 2026-02-18 - US-035
+- Implemented full-text search across the sitter-side manual view
+- **Files changed:**
+  - `convex/schema.ts` — Added search indexes: `search_title` on `manualSections.title` (filterField: propertyId), `search_text` on `instructions.text`, `search_name` on `pets.name` (filterField: propertyId), `search_feeding` on `pets.feedingInstructions` (filterField: propertyId), `search_caption` on `locationCards.caption`
+  - `convex/search.ts` (new) — `searchManual` query: searches instructions (joins to section for propertyId filter), section titles, pet names, pet feeding instructions, location card captions; returns `SearchResult[]` with type/id/snippet/sectionName/sectionId/propertyId
+  - `convex/_generated/*` — Re-run codegen
+  - `src/app/manual/[propertyId]/page.tsx` (new) — Server component with metadata
+  - `src/app/manual/[propertyId]/ManualPageClient.tsx` (new) — `"use client"` + `dynamic(() => import("./ManualView"), { ssr: false })` wrapper + Convex env guard
+  - `src/app/manual/[propertyId]/ManualView.tsx` (new) — Full sitter manual view: SearchBar (300ms debounce, URL sync via replaceState/pushState, popstate restore), SectionNav tabs, SectionInstructions per-section with instruction highlight, client-side offline fallback search via useMemo + cached instructions state, Convex `searchManual` query, ResultRow with bolded match text, EmptyState
+- **Learnings:**
+  - **Convex full-text search API**: Use `ctx.db.query("table").withSearchIndex("indexName", (q) => q.search("field", query).eq("filterField", value)).take(n)` — NOT `ctx.db.search()` (doesn't exist). The search filter builder supports chaining `.eq()` for filter fields defined in the index.
+  - **Convex offline codegen type assertion**: When `ctx.db.get()` is called on a joined record, offline codegen returns union of all table types. Use `as Doc<"tableName"> | null` type assertion to narrow to the specific table type.
+  - **`react-hooks/set-state-in-effect` fix patterns**:
+    1. For state derived from a query: use `useMemo` instead of `useEffect + setState` (e.g., `cachedSections = useMemo(() => sections?.map(...) ?? [], [sections])`)
+    2. For "default active item" pattern: derive `effectiveActiveSection = activeSection || sections?.[0]?._id || ""` instead of `useEffect(() => setActiveSection(...), [sections])`
+  - **`react-hooks/refs` fix**: Replace `useRef` cache accessed during render with `useState` + `useMemo` for derived search results — `ref.current` cannot be read during render body per ESLint rule
+  - **URL search param persistence**: `window.history.replaceState` for typing updates (no history), `window.history.pushState` when navigating to a result (adds history entry so back restores search), `popstate` listener for browser back support
+  - **`convex data <table>`** CLI command lists all documents in a table — useful for getting test IDs during browser verification
+---

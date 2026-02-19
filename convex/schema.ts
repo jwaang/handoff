@@ -33,7 +33,12 @@ export default defineSchema({
     title: v.string(),
     icon: v.string(),
     sortOrder: v.number(),
-  }).index("by_property_sort", ["propertyId", "sortOrder"]),
+  })
+    .index("by_property_sort", ["propertyId", "sortOrder"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["propertyId"],
+    }),
 
   instructions: defineTable({
     sectionId: v.id("manualSections"),
@@ -47,7 +52,9 @@ export default defineSchema({
     ),
     isRecurring: v.boolean(),
     proofRequired: v.boolean(),
-  }).index("by_section_sort", ["sectionId", "sortOrder"]),
+  })
+    .index("by_section_sort", ["sectionId", "sortOrder"])
+    .searchIndex("search_text", { searchField: "text" }),
 
   locationCards: defineTable({
     parentId: v.string(),
@@ -60,7 +67,9 @@ export default defineSchema({
     videoUrl: v.optional(v.string()),
     caption: v.optional(v.string()),
     roomTag: v.optional(v.string()),
-  }).index("by_parent", ["parentId", "parentType"]),
+  })
+    .index("by_parent", ["parentId", "parentType"])
+    .searchIndex("search_caption", { searchField: "caption" }),
 
   vaultItems: defineTable({
     propertyId: v.id("properties"),
@@ -108,7 +117,16 @@ export default defineSchema({
     groomingNeeds: v.optional(v.string()),
     comfortItems: v.optional(v.string()),
     sortOrder: v.number(),
-  }).index("by_property_sort", ["propertyId", "sortOrder"]),
+  })
+    .index("by_property_sort", ["propertyId", "sortOrder"])
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["propertyId"],
+    })
+    .searchIndex("search_feeding", {
+      searchField: "feedingInstructions",
+      filterFields: ["propertyId"],
+    }),
 
   emergencyContacts: defineTable({
     propertyId: v.id("properties"),
