@@ -165,7 +165,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to write a getTodayTasks query that accepts tripId + today's date and returns: (1) recurring Instructions with timeSlot from ManualSections, (2) OverlayItems where date matches today or date is null (applies every day), merged and sorted by timeSlot. Also return TaskCompletions for today to drive checked state. Load /nextjs-best-practices to set up src/app/t/[tripId]/page.tsx as the sitter landing using SitterLayout from src/components/layouts — this is the default route for shared links. Load /tailwind-design-system to render: the greeting header using font-display italic, day X of Y counter in text-text-muted, task summary stats (X of Y done) in font-body; Time Slot Divider component (US-017) between Morning/Afternoon/Evening/Anytime sections; TaskItem component (US-009) for each task row; the overlay badge using bg-accent-light text-accent rounded-pill for trip-specific tasks; a collapsed 'Tomorrow' section at the bottom using bg-bg-sunken rounded-lg. Include the Emergency Contact Bar (US-011) below the header. Use /dev-browser to verify: sitter name appears in greeting if pre-registered, tasks are grouped by time slot with dividers, overlay items show amber badge, a completed task shows checkmark, the Tomorrow preview section is collapsed and expandable.",
       "dependsOn": [
         "US-009",
@@ -174,7 +174,8 @@
         "US-017",
         "US-040",
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-047",
@@ -200,6 +201,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T22:54:44.802Z"
+    "updatedAt": "2026-02-19T23:10:12.365Z"
   }
 }

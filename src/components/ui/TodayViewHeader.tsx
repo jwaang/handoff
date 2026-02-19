@@ -57,7 +57,7 @@ function TodayViewHeader({
 
       {/* Content */}
       <div className="relative flex flex-col gap-2">
-        <h1 className="font-display text-3xl leading-tight tracking-tight text-text-on-primary m-0">
+        <h1 className="font-display italic text-3xl leading-tight tracking-tight text-text-on-primary m-0">
           Good morning, {sitterName}
         </h1>
         <p className="font-body text-sm leading-normal text-text-on-primary opacity-80 m-0">

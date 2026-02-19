@@ -30,6 +30,7 @@ import type * as sections from "../sections.js";
 import type * as sitters from "../sitters.js";
 import type * as storage from "../storage.js";
 import type * as taskCompletions from "../taskCompletions.js";
+import type * as todayView from "../todayView.js";
 import type * as trips from "../trips.js";
 import type * as users from "../users.js";
 import type * as vaultItems from "../vaultItems.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   sitters: typeof sitters;
   storage: typeof storage;
   taskCompletions: typeof taskCompletions;
+  todayView: typeof todayView;
   trips: typeof trips;
   users: typeof users;
   vaultItems: typeof vaultItems;

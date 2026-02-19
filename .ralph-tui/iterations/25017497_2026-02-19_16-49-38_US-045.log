@@ -1,0 +1,91 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: US-045
+- **Task Title**: Trip overlay auto-expiration
+- **Description**: As a system, I need to automatically expire trips and overlay content when the end date passes so the manual reverts to baseline.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T22:49:38.139Z
+- **Ended At**: 2026-02-19T22:54:44.801Z
+- **Duration**: 5m 6s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (26785 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/*.ts[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m $ ls /Users/john/Coding/handoff/convex/
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+Now let me look at more recent progress entries and the schema to understand what's already implemented:
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+Let me check for existing crons and activity log:
+[94m[Bash][0m $ ls /Users/john/Coding/handoff/convex/ && cat /Users/john/Coding/handoff/convex/sitters.ts
+Now I have a clear picture. Let me set up the todo list and implement US-045:
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  taskCompletions: defineTable({
+    tripId: v.id(..." → "  taskCompletions: defineTable({
+    tripId: v.id(..."
+[94m[TodoWrite][0m
+Now update `convex/trips.ts` with:
+1. Import `internalMutation`
+2. Lazy expiration check in `getActiveTripForProperty`
+3. `expireTripInternal` and `expireTripsDaily` internal mutations
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "import { mutation, query } from "./_generated/serv..." → "import { mutation, query, internalMutation } from ..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "export const getActiveTripForProperty = query({
+  ..." → "export const getActiveTripForProperty = query({
+  ..."
+Now add the two internal mutations at the end of `trips.ts`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "export const remove = mutation({
+  args: { tripId:..." → "export const remove = mutation({
+  args: { tripId:..."
+[94m[TodoWrite][0m
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/crons.ts[0m "import { cronJobs } from "convex/server";
+import { internal } from "./_generated/api";
+
+const crons = cronJobs();
+
+// Daily job: expire trips whose endDate has passed.
+// Runs at midnight UTC every da... (327 chars)"
+[94m[TodoWrite][0m
+[94m[Bash][0m $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[Bash][0m $ pnpm typecheck 2>&1
+[94m[Bash][0m $ pnpm lint 2>&1
+[94m[Bash][0m $ pnpm build 2>&1
+All checks pass. Let me verify the final state of the files:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[TodoWrite][0m
+Now append to progress.md:
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - **`sectionTitle: v.optional(v.string())`**: Co..." → "  - **`sectionTitle: v.optional(v.string())`**: Co..."
+All done. Here's a summary of what was implemented:
+
+**US-045 — Trip auto-expiration**
+
+**Files changed:**
+- `convex/schema.ts` — Added `activityLog` table (tripId, propertyId, event, createdAt) with `by_trip` and `by_property` indexes
+- `convex/trips.ts` — Three changes:
+  1. `getActiveTripForProperty` now returns `null` immediately if `trip.endDate < today` (lazy expiration — clients see correct state before the cron runs)
+  2. `expireTripInternal` internal mutation — expires a single trip: patches status → `"expired"`, sets all sitters' `vaultAccess = false`, inserts `activityLog` event
+  3. `expireTripsDaily` internal mutation — daily batch: scans all active trips with past endDate, expires each one
+- `convex/crons.ts` (new) — Registers a daily cron at midnight UTC calling `internal.trips.expireTripsDaily`
+
+**Acceptance criteria met:**
+- Scheduled cron (`crons.daily`) runs nightly ✅
+- Status changes `active` → `expired` when `endDate < now` ✅
+- Overlay items don't appear after expiration (query returns null → no active trip context) ✅
+- Vault access revoked on expiration (`sitters.vaultAccess = false`) ✅
+- `trip_expired` event logged to `activityLog` (satisfies "Trip complete" notification requirement) ✅
+- typecheck, lint, build all pass ✅
+
+<promise>COMPLETE</promise>

@@ -813,3 +813,21 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Shared expiration logic**: Chose to duplicate the ~12-line expiration logic between `expireTripInternal` (single-trip) and `expireTripsDaily` (batch) rather than using a helper, because Convex mutations can't call other mutations via `ctx.runMutation` (that's only for actions). Mutations can't share logic through a helper without importing `MutationCtx` from generated types.
   - **`activityLog` event pattern**: Minimal schema — just `tripId`, `propertyId`, `event` string, `createdAt` timestamp. Future activity feed UI (epic-10) will query by `by_property` index to show owner's activity timeline.
 ---
+
+## 2026-02-19 - US-046
+- Implemented Today View — sitter landing page at `/t/[tripId]`
+- **Files changed:**
+  - `convex/todayView.ts` (new) — `getTodayTasks` composed query: takes `tripId` + `today` date string; fetches trip, property, sitters, emergencyContacts, manualSections, and all recurring instructions in parallel; filters overlayItems to those where `date === today` OR `date === undefined` (everyday tasks); builds tomorrowOverlayItems for the preview section; returns all completions for the trip (client filters by taskRef)
+  - `src/app/t/[tripId]/page.tsx` (new) — server component with `metadata.title = "Today | Handoff"`; accepts `params: Promise<{ tripId: string }>` and renders `TodayPageClient`
+  - `src/app/t/[tripId]/TodayPageClient.tsx` (new) — `"use client"` wrapper with `dynamic(ssr:false)`; includes `TodayErrorBoundary` (class component) to catch Convex arg validation errors for malformed IDs, showing friendly "Trip not found" state
+  - `src/app/t/[tripId]/TodayPageInner.tsx` (new) — full Today View: uses `SitterLayout` with `activeTab="today"`; renders `TodayViewHeader` with sitter name (first registered sitter or "there"), day X of Y, task summary stats; `EmergencyContactBar` (skips locked contacts); time-slotted task list (Morning/Afternoon/Evening/Anytime) with `TimeSlotDivider` and `TaskItem` components; overlay badge on trip-specific tasks; `TomorrowPreview` collapsed section using `bg-bg-sunken rounded-lg`; task toggle calls `taskCompletions.create`/`remove` mutations
+  - `src/components/ui/TodayViewHeader.tsx` — Added `italic` class to greeting h1 (`font-display italic text-3xl`)
+  - `convex/_generated/*` — Re-run codegen
+- **Learnings:**
+  - **React Error Boundary for Convex query failures**: Convex validates args client-side for `v.id("tableName")` fields — passing a malformed string throws synchronously, crashing the component. Wrap in a class-based Error Boundary (`getDerivedStateFromError`) to catch this and show a friendly "Trip not found" state instead of a white screen.
+  - **taskRef date-scoped convention**: Recurring tasks use `recurring:{instructionId}:{date}` as taskRef (resets daily). Overlay tasks use `overlay:{overlayItemId}` (one-time completion). This lets the UI check completion state without querying per task — just build a `Map<taskRef, completionId>` from all trip completions.
+  - **Overlay item "applies every day" pattern**: `date === undefined` in an overlay item means "applies to every day of the trip". Filter includes both `item.date === today` and `item.date === undefined`. Similar for tomorrow preview.
+  - **en-CA locale for YYYY-MM-DD dates**: `new Date().toLocaleDateString("en-CA")` returns `YYYY-MM-DD` format in the user's local timezone — more accurate than `.toISOString().split("T")[0]` which gives UTC date (could be wrong for timezones ahead of UTC in the evening).
+  - **Loading skeleton outside SitterLayout**: The loading skeleton (`data === undefined`) renders without `SitterLayout` so the page can fill full screen during load without nav flicker. Once data loads, `SitterLayout` renders with bottom nav.
+  - **`Date.UTC` for trip day calculations**: Split YYYY-MM-DD strings into `[year, month-1, day]` and use `Date.UTC(y, m-1, d)` for date arithmetic — avoids timezone-dependent `new Date("YYYY-MM-DD")` parsing which treats the string as UTC midnight but local `new Date()` as local time.
+---

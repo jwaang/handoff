@@ -3,10 +3,10 @@
   "sessionId": "25017497-f030-4ff8-9ae5-b49f0449d85e",
   "status": "running",
   "startedAt": "2026-02-19T22:18:59.153Z",
-  "updatedAt": "2026-02-19T22:54:44.804Z",
-  "currentIteration": 3,
+  "updatedAt": "2026-02-19T23:10:12.367Z",
+  "currentIteration": 4,
   "maxIterations": 10,
-  "tasksCompleted": 3,
+  "tasksCompleted": 4,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -47,8 +47,8 @@
       {
         "id": "US-045",
         "title": "Trip overlay auto-expiration",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-046",
@@ -94,6 +94,16 @@
       "durationMs": 501087,
       "startedAt": "2026-02-19T22:41:16.927Z",
       "endedAt": "2026-02-19T22:49:38.014Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-045",
+      "taskTitle": "Trip overlay auto-expiration",
+      "taskCompleted": true,
+      "durationMs": 306662,
+      "startedAt": "2026-02-19T22:49:38.139Z",
+      "endedAt": "2026-02-19T22:54:44.801Z"
     }
   ],
   "skippedTaskIds": [],
