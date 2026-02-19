@@ -101,7 +101,9 @@ export function OAuthButtons({ className }: OAuthButtonsProps) {
 
   const handleApple = () => {
     if (typeof window === "undefined") return;
-    const redirectUri = `${window.location.origin}/auth/callback/apple`;
+    const origin =
+      process.env.NEXT_PUBLIC_APPLE_REDIRECT_ORIGIN ?? window.location.origin;
+    const redirectUri = `${origin}/auth/callback/apple`;
     window.location.href = buildAppleUrl(redirectUri);
   };
 
