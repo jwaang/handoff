@@ -14,6 +14,7 @@ import type * as emergencyContacts from "../emergencyContacts.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as instructions from "../instructions.js";
 import type * as locationCards from "../locationCards.js";
+import type * as manualView from "../manualView.js";
 import type * as pets from "../pets.js";
 import type * as properties from "../properties.js";
 import type * as search from "../search.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   healthCheck: typeof healthCheck;
   instructions: typeof instructions;
   locationCards: typeof locationCards;
+  manualView: typeof manualView;
   pets: typeof pets;
   properties: typeof properties;
   search: typeof search;

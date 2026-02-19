@@ -3,10 +3,10 @@
   "sessionId": "0c7bb654-853b-4159-9ea9-3142ded8a22b",
   "status": "running",
   "startedAt": "2026-02-19T01:38:40.613Z",
-  "updatedAt": "2026-02-19T04:00:05.558Z",
-  "currentIteration": 10,
+  "updatedAt": "2026-02-19T04:25:16.254Z",
+  "currentIteration": 11,
   "maxIterations": 10,
-  "tasksCompleted": 10,
+  "tasksCompleted": 11,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -77,8 +77,8 @@
       {
         "id": "US-035",
         "title": "Full-text search across manual (sitter-side)",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-036",
@@ -188,6 +188,16 @@
       "durationMs": 647516,
       "startedAt": "2026-02-19T03:20:52.303Z",
       "endedAt": "2026-02-19T03:31:39.819Z"
+    },
+    {
+      "iteration": 11,
+      "status": "completed",
+      "taskId": "US-035",
+      "taskTitle": "Full-text search across manual (sitter-side)",
+      "taskCompleted": true,
+      "durationMs": 1522672,
+      "startedAt": "2026-02-19T03:34:42.881Z",
+      "endedAt": "2026-02-19T04:00:05.553Z"
     }
   ],
   "skippedTaskIds": [],

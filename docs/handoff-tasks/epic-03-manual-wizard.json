@@ -292,17 +292,18 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to write a getFullManual query that returns Property + ManualSections (ordered by sortOrder) + Instructions per section (ordered by sortOrder) + LocationCards per instruction + Pets (ordered by sortOrder) + EmergencyContacts (ordered by sortOrder) in a single composed query, avoiding N+1 patterns by fetching all child records in parallel using Promise.all(). Load /nextjs-best-practices to set up src/app/manual/[propertyId]/page.tsx using SitterLayout from src/components/layouts — ensure the Manual tab in the bottom nav (US-007) links to this route. Load /tailwind-design-system to render: section navigation pills using the SectionNav component from US-014 (sticky at top, scrollable horizontally), each instruction row matching the TaskItem component style (bg-bg-raised rounded-lg), inline LocationCard components below instructions that support the polaroid shadow-polaroid style, PetProfileCard from src/components/ui for each pet, and emergency contacts as rounded-lg cards with a tap-to-call phone link styled text-secondary font-body. Implement smooth scroll-to-section using element IDs and scrollIntoView on pill tap. Use /dev-browser to verify: all sections appear as navigation pills, tapping a pill smoothly scrolls to that section header, instructions render with inline location card thumbnails, pet profiles match PetProfileCard design, emergency contacts show tap-to-call links, the Manual tab in bottom nav is active on this page.",
       "dependsOn": [
         "US-007",
         "US-008",
         "US-014",
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T04:00:05.555Z"
+    "updatedAt": "2026-02-19T04:25:16.251Z"
   }
 }

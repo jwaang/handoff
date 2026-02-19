@@ -670,3 +670,19 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **URL search param persistence**: `window.history.replaceState` for typing updates (no history), `window.history.pushState` when navigating to a result (adds history entry so back restores search), `popstate` listener for browser back support
   - **`convex data <table>`** CLI command lists all documents in a table — useful for getting test IDs during browser verification
 ---
+
+## 2026-02-18 - US-036
+- Implemented manual sitter view with full-page scroll browsing, section navigation, inline location cards, pet profiles, and emergency contacts
+- **Files changed:**
+  - `convex/manualView.ts` (new) — `getFullManual` query: fetches property + all sections (with nested instructions + location cards) + pets (with resolved photo URLs) + emergency contacts in a single composed query using `Promise.all()` to avoid N+1 patterns. Uses `ctx.storage.getUrl()` to resolve pet photo storage IDs to URLs.
+  - `convex/_generated/*` — Re-run codegen
+  - `src/app/manual/[propertyId]/ManualView.tsx` — Rewrote from tab-based section view to full-page scroll view: all sections visible simultaneously, `SectionNav` scrolls to sections via `scrollIntoView({ behavior: "smooth", block: "start" })`, inline `LocationCard` thumbnails (horizontal scroll row) per instruction, `PetProfileCard` horizontal scroll row for pets, emergency contact cards with tap-to-call (`tel:` links). Preserved search functionality from US-035 (search shows results panel; browse mode shows full scroll layout). Client-side fallback search now uses `fullManual` data directly instead of separately cached instructions.
+  - `src/app/manual/[propertyId]/page.tsx`, `ManualPageClient.tsx` — Unchanged (3-file pattern works)
+- **Learnings:**
+  - **Convex composed query pattern**: Create a dedicated `convex/manualView.ts` for view-specific queries that aggregate data from multiple tables. Use `Promise.all()` to batch parallel fetches, then build lookups (Map or index matching) to assemble nested structures without N+1.
+  - **Convex `v.any()` for returns**: Valid validator for complex nested return types. The Convex dev server auto-deploys on file changes, but may be slow to detect newly created files — run `npx convex dev --once` to force sync if the function doesn't appear after 10+ seconds.
+  - **Sticky SectionNav full-bleed pattern**: Use `-mx-4 px-4 md:-mx-6 md:px-6` (negative margin + re-add padding) with `sticky top-0 z-10 bg-bg` to make a sticky nav span full container width while the content stays padded. Matches the parent's responsive padding values.
+  - **Scroll-to-section with sticky header**: Use `scroll-mt-24` (96px) on section elements when there's a sticky header, so `scrollIntoView({ block: "start" })` doesn't hide the section header behind the sticky nav.
+  - **LocationCard width override**: Pass `className="shrink-0 w-[200px]"` to override the default `w-[280px]` — tailwind-merge in `cn()` resolves the width conflict and the last class wins.
+  - **`ctx.storage.getUrl()` in queries**: Available in Convex queries (not just actions). Safe to call in parallel with `Promise.all()` for batch photo URL resolution.
+---
