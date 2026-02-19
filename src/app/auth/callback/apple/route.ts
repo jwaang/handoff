@@ -14,8 +14,13 @@ export async function POST(request: NextRequest) {
   if (code) params.set("code", code);
   if (state) params.set("state", state);
 
-  return NextResponse.redirect(
-    new URL(`/auth/callback/apple/complete?${params.toString()}`, request.url),
-    { status: 302 },
-  );
+  // Build redirect URL from request.url, but force http:// on localhost.
+  // ngrok sets X-Forwarded-Proto: https which Next.js reflects in request.url,
+  // causing https://localhost which isn't valid.
+  const base = new URL(request.url);
+  if (base.hostname === "localhost") base.protocol = "http:";
+  base.pathname = "/auth/callback/apple/complete";
+  base.search = params.toString();
+
+  return NextResponse.redirect(base.toString(), { status: 302 });
 }
