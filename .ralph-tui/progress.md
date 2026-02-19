@@ -582,3 +582,19 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - `propertyId` chain: session token → `validateSession` → userId → `listByOwner` → `properties[0]._id`. Each step uses "skip" pattern when previous step's result is undefined
   - "Property not found" error appears correctly in browser when no Convex backend is running — the guard condition `if (!propertyId)` works as expected
 ---
+
+## 2026-02-18 - US-031
+- Implemented wizard step 5 "House instructions by section" at `/wizard/5`
+- **Files changed:**
+  - `convex/sections.ts` — Updated `remove` mutation to cascade-delete all instructions before deleting the section
+  - `convex/instructions.ts` — Added `reorderInstructions` mutation (bulk sortOrder swap, same pattern as `reorderContacts`)
+  - `convex/_generated/*` — Re-run codegen
+  - `src/app/wizard/[step]/Step5Sections.tsx` (new) — `InstructionRow` (text textarea with on-blur save, time slot select with `bg-accent-light text-accent` styling, proof toggle, `+ Photo card` placeholder button); `SectionPanel` (expandable with icon/title header, instruction CRUD, up/down reorder); `CustomSectionForm` (title input + 12-emoji icon picker grid); `Step5Sections` main component with 2-column prebuilt checkbox grid + sections panels
+  - `src/app/wizard/[step]/WizardStepInner.tsx` — Added Step5Sections import + routing for `step === 5`
+- **Learnings:**
+  - **`react-hooks/set-state-in-effect` vs `key` prop reset**: Avoid `useEffect(() => { setState(prop); }, [prop._id])` — the lint rule `react-hooks/set-state-in-effect` blocks synchronous setState in effects. Use `key={item._id}` on the parent render instead — React remounts the child on key change, automatically resetting `useState(initialValue)` from props. This is cleaner and avoids the lint error entirely.
+  - **Section toggle = create/delete pattern**: No `isEnabled` field needed in schema. Checked sections exist in DB; unchecked = deleted (with cascade). Derive checkbox state from `Set(sections.map(s => s.title))`. Pre-built sort orders (0-7), custom sections (100+).
+  - **Cascade delete in Convex**: Fetch child records with the relevant index, loop `ctx.db.delete()` for each, then delete parent. No foreign key cascade support in Convex — must do it manually in the mutation handler.
+  - **Section panels per-query pattern**: Each `SectionPanel` independently calls `useQuery(api.instructions.listBySection, { sectionId })` — 0-8 concurrent Convex queries is fine and gives per-section real-time updates without a parent-level join.
+  - **Custom section sortOrder**: Use `Math.max(maxExistingSortOrder + 1, 100)` to place custom sections after all pre-built sections (0-7) in the sort order.
+---

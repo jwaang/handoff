@@ -69,6 +69,14 @@ export const remove = mutation({
     if (!section) {
       throw new ConvexError({ code: "NOT_FOUND", message: "Section not found" });
     }
+    // Cascade: delete all instructions belonging to this section
+    const instructions = await ctx.db
+      .query("instructions")
+      .withIndex("by_section_sort", (q) => q.eq("sectionId", args.sectionId))
+      .collect();
+    for (const instruction of instructions) {
+      await ctx.db.delete(instruction._id);
+    }
     await ctx.db.delete(args.sectionId);
     return null;
   },

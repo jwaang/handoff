@@ -88,3 +88,21 @@ export const remove = mutation({
     return null;
   },
 });
+
+export const reorderInstructions = mutation({
+  args: {
+    updates: v.array(
+      v.object({
+        id: v.id("instructions"),
+        sortOrder: v.number(),
+      }),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, { updates }) => {
+    for (const { id, sortOrder } of updates) {
+      await ctx.db.patch(id, { sortOrder });
+    }
+    return null;
+  },
+});

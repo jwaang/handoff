@@ -163,12 +163,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to implement section selection (upsert ManualSections from the 8 pre-built titles with default icons + sortOrder), instruction CRUD mutations (createInstruction, updateInstruction, deleteInstruction, reorderInstructions), and locationCardId attachment on updateInstruction. Load /frontend-design to build: (1) a checkbox grid for the 8 pre-built sections plus an 'Add custom section' row that opens a title + icon picker, (2) an expandable per-section panel with an instruction list where each row has a text input, time slot dropdown (morning/afternoon/evening/anytime), proof-required toggle, and 'Attach location card' button, (3) up/down arrow reorder that calls reorderInstructions. Load /tailwind-design-system to style sections as rounded-lg cards with bg-bg-raised, instruction rows with border-border-default separators, accent color for time slot badges (bg-accent-light text-accent), and the secondary color for the proof toggle active state. Use /dev-browser to verify: unchecking a section hides it from the list, adding an instruction to a section saves it immediately, arrows reorder within the section, custom section appears with the entered title and icon.",
       "dependsOn": [
         "US-026",
         "US-025"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-032",
@@ -298,6 +299,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T02:23:27.065Z"
+    "updatedAt": "2026-02-19T02:37:52.526Z"
   }
 }
