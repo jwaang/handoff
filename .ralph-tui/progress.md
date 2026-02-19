@@ -552,6 +552,22 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Snapshot refs change on re-render**: After a React state change, aria snapshot refs are invalidated — always call `getAISnapshot()` again before `selectSnapshotRef()` when the page has re-rendered; OR use `page.click('button:has-text("...")')` for stable selectors
 ---
 
+## 2026-02-18 - US-029
+- Implemented wizard step 4 "Emergency contacts" at `/wizard/4`
+- **Files changed:**
+  - `convex/schema.ts` — Added `emergencyContacts` table with `propertyId`, `name`, `role`, `phone`, `notes` (optional), `sortOrder`, `isLocked`; `by_property_sort` compound index
+  - `convex/emergencyContacts.ts` (new) — `create`, `listByPropertyId`, `update`, `remove` mutations/queries; `reorderContacts` mutation accepting `{ id, sortOrder }[]` array for bulk sort update; `seedDefaults` mutation that checks for existing contacts before inserting ASPCA + 4 default slots
+  - `convex/_generated/*` — Re-run codegen
+  - `src/app/wizard/[step]/Step4Contacts.tsx` (new) — `LockedContactCard` for ASPCA (read-only, lock icon, tap-to-call link); `EditableContactCard` with inline Name/Role/Phone/Notes inputs, up/down arrows, delete, explicit "Save contact" button; `Step4Contacts` main component with seeding logic, reorder handlers, "Add another" button
+  - `src/app/wizard/[step]/WizardStepInner.tsx` — Added Step4Contacts import + routing for `step === 4`
+- **Learnings:**
+  - **`react-hooks/set-state-in-effect` guard**: Use `useRef` instead of `useState` for one-shot trigger flags (like `seededRef.current = true`) — refs mutate without causing re-renders and are not subject to the setState-in-effect lint rule
+  - **Seeding idempotency**: `seedDefaults` mutation checks for existing records before inserting (`ctx.db.query(...).first()`) — safe to call multiple times; the `seededRef` guard in the component prevents redundant calls during the same session
+  - **Inline editable cards**: `useEffect` that only runs on `contact._id` change (not every prop update) lets the form maintain local edits without being overwritten by Convex real-time updates; `isDirty` computed with `.trim()` comparison handles whitespace differences between form and Convex state
+  - **Up/down reorder canMoveUp logic**: `canMoveUp = index > 0 && !contacts[index - 1].isLocked` — prevents any contact from moving above the locked ASPCA slot without special-casing ASPCA itself
+  - **Unique Input IDs across repeated cards**: Pass `id={`${contact._id}-fieldname`}` to override the Input component's auto-derived id (from label) — prevents duplicate `id` attributes in the DOM when multiple cards share the same field labels
+---
+
 ## 2026-02-18 - US-027
 - Implemented wizard step 2 "Add your pets" at `/wizard/2`
 - **Files changed:**

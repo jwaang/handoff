@@ -138,12 +138,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to create an EmergencyContacts table with propertyId, name, role, phone, notes, sortOrder fields plus an isLocked boolean for the ASPCA slot. Write reorderContacts mutation that accepts an array of {id, sortOrder} pairs for bulk sort update. Load /frontend-design to build the contacts list: the ASPCA slot renders read-only with a lock indicator (non-deletable, non-editable), the 4 default slots render as pre-labeled empty forms, and 'Add another' appends a new blank contact. Implement reorder via up/down arrow buttons that swap sortOrder values. Load /tailwind-design-system to style each contact card using bg-bg-raised, rounded-lg, border-border-default, the secondary color for the tap-to-call phone link (font-body text-secondary), and text-text-muted for the role label. Use /dev-browser to verify: ASPCA slot shows locked and cannot be deleted, default slots accept input, up/down arrows reorder contacts and persist on reload, 'Add another' adds a 5th editable slot.",
       "dependsOn": [
         "US-026",
         "US-057"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-031",
@@ -297,6 +298,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T02:10:55.483Z"
+    "updatedAt": "2026-02-19T02:23:27.065Z"
   }
 }

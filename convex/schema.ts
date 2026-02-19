@@ -108,4 +108,14 @@ export default defineSchema({
     comfortItems: v.optional(v.string()),
     sortOrder: v.number(),
   }).index("by_property_sort", ["propertyId", "sortOrder"]),
+
+  emergencyContacts: defineTable({
+    propertyId: v.id("properties"),
+    name: v.string(),
+    role: v.string(),
+    phone: v.string(),
+    notes: v.optional(v.string()),
+    sortOrder: v.number(),
+    isLocked: v.boolean(),
+  }).index("by_property_sort", ["propertyId", "sortOrder"]),
 });

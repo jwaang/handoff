@@ -1,0 +1,174 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: US-028
+- **Task Title**: Wizard step 3 — Add access info (vault items)
+- **Description**: As a creator, I want to add my door codes, WiFi password, and alarm code during setup so they're ready for sharing.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T02:01:40.181Z
+- **Ended At**: 2026-02-19T02:10:55.482Z
+- **Duration**: 9m 15s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+Now let me look at the existing wizard step files and vault item component:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/VaultItem.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step2Pets.tsx[0m
+Let me read a few more files for context:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/pets.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step1Home.tsx[0m
+Now I have a thorough understanding of the codebase. Let me implement US-028:
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  pets: defineTable({" → "  vaultItems: defineTable({
+    propertyId: v.id("..."
+[94m[TodoWrite][0m
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m "import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+
+const vaultItemType = v.union(
+  v.literal("door_code"),
+  v.lit... (2499 chars)"
+[94m[TodoWrite][0m
+[94m[Bash][0m Run Convex codegen to generate types for new vaultItems table $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[TodoWrite][0m
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m ""use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/a... (20077 chars)"
+Now update `WizardStepInner.tsx` to route to step 3:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m edit: "import Step1Home from "./Step1Home";
+import Step2P..." → "import Step1Home from "./Step1Home";
+import Step2P..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m edit: "      {step === 1 ? (
+        <Step1Home />
+      ..." → "      {step === 1 ? (
+        <Step1Home />
+      ..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run TypeScript type check $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+Typecheck and lint both pass (the 3 warnings are pre-existing, not in my code). Let me also run the build:
+[94m[Bash][0m Run Next.js production build $ pnpm build 2>&1
+Build passes. Now let me verify in the browser:
+[94m[TodoWrite][0m
+[94m[Skill][0m
+[94m[Bash][0m Start dev browser server in headless mode $ cd /Users/john/Coding/handoff/skills/dev-browser 2>/dev/null || cd /Users/john/.claude/skills/dev-br...
+[94m[Bash][0m Navigate to wizard step 3 and take screenshot $ EOF
+The initial state looks perfect. Now let me test the form interaction:
+[94m[Bash][0m Click Add an item and inspect the form $ EOF
+The form shows perfectly with all 7 type selector buttons and all fields. Let me test the type selection pre-filling and the show/hide toggle:
+[94m[Bash][0m Test type selector pre-fill and show/hide toggle $ EOF
+All interactions work correctly:
+- Selecting "WiFi" pre-fills label with "WiFi password"
+- Placeholder adapts to type ("e.g. MyWifiPassword123" for WiFi)
+- Show/hide toggle switches input from `password` to `text`
+
+Let me also verify the "Add another" and "Skip" flows:
+[94m[Bash][0m Test cancel and skip navigation $ EOF
+
+[91m[Error: Exit code 1
+Skip button present: true
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluateHandle: Error: Ref "e64" not found. Available refs: e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, e26, e27, e28, e29, e30, e31, e32, e33, e34, e35, e36, e37, e38, e39, e40, e41, e42, e43, e44, e45, e46, e47, e48, e49, e50, e51, e52, e53, e54, e55, e56, e57, e58, e59, e134, e135, e136, e137, e138
+    at eval (eval at evaluate (:290:30), <anonymous>:1:186)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at Object.selectSnapshotRef (/Users/john/.agents/skills/dev-browser/src/client.ts:430:40)
+    at async file:///Users/john/.agents/skills/dev-browser/[eval1]:27:21
+
+Node.js v24.13.1
+
+Skip button present: true
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluateHandle: Error: Ref "e64" not found. Available refs: e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24, e25, e26, e27, e28, e29, e30, e31, e32, e33, e34, e35, e36, e37, e38, e39, e40, e41, e42, e43, e44, e45, e46, e47, e48, e49, e50, e51, e52, e53, e54, e55, e56, e57, e58, e59, e134, e135, e136, e137, e138
+    at eval (eval at evaluate (:290:30), <anonymous>:1:186)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at Object.selectSnapshotRef (/Users/john/.agents/skills/dev-browser/src/client.ts:430:40)
+    at async file:///Users/john/.agents/skills/dev-browser/[eval1]:27:21
+
+Node.js v24.13.1][0m
+[94m[Bash][0m Get fresh snapshot after cancel $ EOF
+[94m[Bash][0m Test Skip navigation and Door type selection $ EOF
+
+[91m[Error: Exit code 1
+URL after skip: http://localhost:3000/wizard/4
+Skip navigates to step 4: true
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluateHandle: Error: No snapshot refs found. Call getAISnapshot first.
+    at eval (eval at evaluate (:290:30), <anonymous>:1:76)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at Object.selectSnapshotRef (/Users/john/.agents/skills/dev-browser/src/client.ts:430:40)
+    at async file:///Users/john/.agents/skills/dev-browser/[eval1]:19:16
+
+Node.js v24.13.1
+
+URL after skip: http://localhost:3000/wizard/4
+Skip navigates to step 4: true
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluateHandle: Error: No snapshot refs found. Call getAISnapshot first.
+    at eval (eval at evaluate (:290:30), <anonymous>:1:76)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at Object.selectSnapshotRef (/Users/john/.agents/skills/dev-browser/src/client.ts:430:40)
+    at async file:///Users/john/.agents/skills/dev-browser/[eval1]:19:16
+
+Node.js v24.13.1][0m
+Skip navigates to step 4 correctly. Let me do one final clean verification of the Door type pre-fill:
+[94m[Bash][0m Final verification of all acceptance criteria interactions $ EOF
+All acceptance criteria verified:
+1. ✅ Selecting "Door" pre-fills label with "Door code"
+2. ✅ Selecting "WiFi" pre-fills label with "WiFi password"  
+3. ✅ Show/hide toggle works on masked value input
+4. ✅ Skip navigates to step 4
+5. ✅ Form renders with all 7 type options
+[94m[TodoWrite][0m
+Now let me document the learnings:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "---
+
+## 2026-02-18 - US-027" → "---
+
+## 2026-02-18 - US-028
+- Implemented wizard s..."
+<promise>COMPLETE</promise>
+
+---
+
+US-028 is implemented. Here's a summary of what was built:
+
+**Backend (Convex)**
+- Added `vaultItems` table to schema with `type` as a 7-literal union (`door_code`, `alarm_code`, `wifi`, `gate_code`, `garage_code`, `safe_combination`, `custom`), plus `label`, `value`, `instructions`, `sortOrder`
+- Created `convex/vaultItems.ts` with `create`, `listByPropertyId`, `update`, `remove` following the established CRUD pattern
+
+**Frontend (`src/app/wizard/[step]/Step3Access.tsx`)**
+- **Icon-grid type selector**: 7 buttons (Door, Alarm, WiFi, Gate, Garage, Safe, Custom) with SVG icons; selecting a type pre-fills the label field
+- **Masked value input**: `type="password"` by default, with an eye icon toggle for show/hide
+- **Saved items**: compact cards showing type icon, label, masked value (with reveal toggle), and delete button in vault color theme
+- **Instructions field**: optional textarea
+- **"Add another" button**: dashed vault-colored border, consistent with the Step2Pets pattern
+- **Skip option**: navigates to step 4 without requiring any vault items
+
+All quality checks pass: `pnpm typecheck ✅`, `pnpm lint ✅` (0 errors), `pnpm build ✅`
