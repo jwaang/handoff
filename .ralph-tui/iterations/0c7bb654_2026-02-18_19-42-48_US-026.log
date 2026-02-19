@@ -1,0 +1,130 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: US-026
+- **Task Title**: Wizard step 1 — Add your home
+- **Description**: As a creator, I want to add my home's name, address, and photo so the manual has a property identity.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T01:42:48.481Z
+- **Ended At**: 2026-02-19T01:50:21.438Z
+- **Duration**: 7m 32s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/app/wizard/**/*[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/properties.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/dashboard/page.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/Input.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/Button.tsx[0m
+Now let me look at the WizardProgress component and auth context:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/WizardProgress.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/lib/authContext.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/signup/SignupForm.tsx[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/_generated/*.d.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/lib/utils.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/signup/page.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/auth.ts[0m
+Now I have a clear picture of the codebase. Let me set up todos and implement the wizard step 1.
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  properties: defineTable({
+    name: v.string(),
+..." → "  properties: defineTable({
+    name: v.string(),
+..."
+[94m[TodoWrite][0m
+Now update `convex/properties.ts` to reflect the optional address and add `createOrUpdate`:
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/properties.ts[0m "import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+
+const propertyObject = v.object({
+  _id: v.id("properties"),
+  _... (3227 chars)"
+[94m[TodoWrite][0m
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/storage.ts[0m "import { action, query } from "./_generated/server";
+import { v } from "convex/values";
+
+// Generate a short-lived URL for the client to upload a file directly to Convex storage.
+export const generate... (631 chars)"
+[94m[TodoWrite][0m
+[94m[Bash][0m Run Convex codegen to regenerate _generated/ files $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[TodoWrite][0m
+Now create the wizard pages:
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/page.tsx[0m "import { redirect } from "next/navigation";
+
+export default function WizardPage() {
+  redirect("/wizard/1");
+}
+"
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/page.tsx[0m "import type { Metadata } from "next";
+import { WizardStepClient } from "./WizardStepClient";
+
+export const metadata: Metadata = {
+  title: "Set up your home – Handoff",
+  description: "Build your home... (533 chars)"
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepClient.tsx[0m ""use client";
+
+import dynamic from "next/dynamic";
+
+// Prevent SSR: Convex hooks require the ConvexProvider which is client-only
+const WizardStepInner = dynamic(() => import("./WizardStepInner"), { ss... (379 chars)"
+Now create the inner wizard component that acts as the layout and routes to the right step:
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/WizardStepInner.tsx[0m ""use client";
+
+import Link from "next/link";
+import { WizardProgress } from "@/components/ui/WizardProgress";
+import Step1Home from "./Step1Home";
+
+interface WizardStepInnerProps {
+  step: number;
+}
+
+... (2198 chars)"
+Now create the Step1Home form:
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step1Home.tsx[0m ""use client";
+
+import { useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useAction } from "convex/react";
+import { api } from ... (9585 chars)"
+[94m[TodoWrite][0m
+[94m[Bash][0m Run TypeScript type check $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+TypeCheck and lint pass (only pre-existing warnings). Let me also run the build:
+[94m[Bash][0m Run production build $ pnpm build 2>&1
+Build passes. Now let me verify in the browser:
+[94m[TodoWrite][0m
+[94m[Skill][0m
+[94m[Bash][0m Start the dev browser server $ cd /Users/john/Coding/handoff/skills/dev-browser && ./server.sh & sleep 3 echo "Server started"
+[94m[Bash][0m Check dev-browser skill location $ ls /Users/john/.claude/skills/dev-browser/
+[94m[Bash][0m Start dev browser server $ cd /Users/john/.claude/skills/dev-browser && ./server.sh & sleep 3 echo "Server started"
+[94m[Bash][0m Navigate to wizard step 1 and take screenshot at 375px $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard-step1.png[0m
+The wizard looks great at 375px. Let me also verify the validation (clicking Next without a name) and the "Save & finish later" button:
+[94m[Bash][0m Test form validation and filled state $ EOF
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard-validation.png[0m
+Validation works. Let me check the filled state:
+[94m[Read][0m [95m/Users/john/.claude/skills/dev-browser/tmp/wizard-filled.png[0m
+All verification checks pass. Let me mark the last todo as complete and update the progress log:
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - Pre-existing lint error in `dashboard/page.tsx..." → "  - Pre-existing lint error in `dashboard/page.tsx..."
+All done. Here's what was implemented for US-026:
+
+**Wizard Step 1 — "Add your home"** at `/wizard/1`:
+
+- **Convex backend**: Made `address` optional in the `properties` schema; added `createOrUpdate` upsert mutation for partial saves; new `convex/storage.ts` with `generateUploadUrl` action + `getUrl` query for Convex file storage
+- **Wizard routing**: `/wizard` redirects to `/wizard/1`; `/wizard/[step]` is a dynamic server component following the `ssr:false` wrapper pattern
+- **Step 1 form**: Property name (required with validation), address (optional), photo upload with instant local preview thumbnail via `URL.createObjectURL`, Next → `/wizard/2`, Save & finish later → `/dashboard`
+- **WizardLayout**: Shared React component with Handoff wordmark + `WizardProgress` indicator showing step 1 active
+
+All checks pass: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm build` ✅, verified at 375px ✅
+
+<promise>COMPLETE</promise>

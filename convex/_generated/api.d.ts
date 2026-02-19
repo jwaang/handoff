@@ -18,6 +18,7 @@ import type * as authActions from "../authActions.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as instructions from "../instructions.js";
 import type * as locationCards from "../locationCards.js";
+import type * as pets from "../pets.js";
 import type * as properties from "../properties.js";
 import type * as sections from "../sections.js";
 import type * as storage from "../storage.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   healthCheck: typeof healthCheck;
   instructions: typeof instructions;
   locationCards: typeof locationCards;
+  pets: typeof pets;
   properties: typeof properties;
   sections: typeof sections;
   storage: typeof storage;

@@ -65,11 +65,12 @@
         "pnpm build passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to define the Pets table in convex/schema.ts. Use v.array(v.id('_storage')) for photos, v.array(v.object({ name: v.string(), dosage: v.string(), frequency: v.string(), time: v.string(), locationCardId: v.optional(v.id('locationCards')) })) for medications, and v.optional(v.string()) for all optional text fields. Add byPropertyId index on propertyId+sortOrder. Write getPetsByPropertyId query and typed createPet, updatePet, deletePet mutations in convex/pets.ts. Ensure the medications sub-object schema matches the UI shape needed in US-027 exactly so no casting is required in the mutation handlers.",
       "dependsOn": [
         "US-002"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-027",
@@ -294,6 +295,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-19T01:50:21.441Z"
+    "updatedAt": "2026-02-19T01:52:36.519Z"
   }
 }

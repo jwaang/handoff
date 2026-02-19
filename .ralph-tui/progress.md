@@ -524,3 +524,13 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - Photo preview uses `<img>` with `eslint-disable-next-line @next/next/no-img-element` since it's a local blob URL (no `next/image` optimization possible for blob URLs)
   - `params` in Next.js 16 App Router dynamic pages is a `Promise<{ step: string }>` — must `await params` in the server component
 ---
+
+## 2026-02-18 - US-030
+- Added `pets` table to `convex/schema.ts` with all required fields: propertyId, name, species, optional text fields (breed, age, feedingInstructions, vetName, vetPhone, personalityNotes, medicalConditions, behavioralQuirks, allergies, microchipNumber, insuranceInfo, walkingRoutine, groomingNeeds, comfortItems), photos array (`v.array(v.id("_storage"))`), medications array of objects, sortOrder; `by_property_sort` compound index on [propertyId, sortOrder]
+- Created `convex/pets.ts` with `create`, `getPetsByPropertyId`, `update`, `remove` mutations/queries following established CRUD pattern
+- Re-ran `node_modules/.bin/convex codegen --system-udfs --typecheck disable`
+- **Files changed:** `convex/schema.ts`, `convex/pets.ts`, `convex/_generated/*`
+- **Learnings:**
+  - Reusable validator constant (`const medicationObject = v.object({...})`) can be shared between `create` args, `update` args, and the `petObject` returns validator — avoids duplication and keeps the schema shape in sync
+  - For complex nested object arrays in Convex, define the sub-object validator as a `const` and reference it in all three places: schema definition, create args, and returns validator
+---
