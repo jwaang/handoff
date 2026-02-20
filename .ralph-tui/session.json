@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "sessionId": "3f3f324e-5e03-41c4-b17b-7143b5d0b858",
+  "sessionId": "31af335e-b055-46cd-9c6a-853472d2e614",
   "status": "running",
-  "startedAt": "2026-02-20T22:30:22.026Z",
-  "updatedAt": "2026-02-20T23:00:20.266Z",
-  "currentIteration": 2,
+  "startedAt": "2026-02-20T23:05:00.356Z",
+  "updatedAt": "2026-02-20T23:10:18.665Z",
+  "currentIteration": 0,
   "maxIterations": 10,
-  "tasksCompleted": 2,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -18,18 +18,18 @@
         "id": "US-076",
         "title": "Trip report data aggregation",
         "status": "completed",
-        "completedInSession": true
+        "completedInSession": false
       },
       {
         "id": "US-077",
         "title": "Trip report in-app view",
         "status": "completed",
-        "completedInSession": true
+        "completedInSession": false
       },
       {
         "id": "US-078",
         "title": "Trip report PDF export",
-        "status": "open",
+        "status": "completed",
         "completedInSession": false
       },
       {
@@ -40,28 +40,7 @@
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "completed",
-      "taskId": "US-076",
-      "taskTitle": "Trip report data aggregation",
-      "taskCompleted": true,
-      "durationMs": 333286,
-      "startedAt": "2026-02-20T22:31:26.724Z",
-      "endedAt": "2026-02-20T22:37:00.010Z"
-    },
-    {
-      "iteration": 2,
-      "status": "completed",
-      "taskId": "US-077",
-      "taskTitle": "Trip report in-app view",
-      "taskCompleted": true,
-      "durationMs": 652129,
-      "startedAt": "2026-02-20T22:37:00.194Z",
-      "endedAt": "2026-02-20T22:47:52.323Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "/Users/john/Coding/handoff",
   "activeTaskIds": [],

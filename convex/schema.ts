@@ -180,9 +180,11 @@ export default defineSchema({
     linkExpiry: v.optional(v.number()),
     pendingDigestAt: v.optional(v.number()), // Unix ms timestamp when a digest notification is scheduled
     tripEndingScheduledId: v.optional(v.id("_scheduled_functions")), // ID of the scheduled trip-ending-soon notification
+    reportShareLink: v.optional(v.string()), // Unique slug for public read-only report sharing
   })
     .index("by_property_status", ["propertyId", "status"])
-    .index("by_share_link", ["shareLink"]),
+    .index("by_share_link", ["shareLink"])
+    .index("by_report_share_link", ["reportShareLink"]),
 
   sitters: defineTable({
     tripId: v.id("trips"),

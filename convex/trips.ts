@@ -21,6 +21,7 @@ const tripObject = v.object({
   linkExpiry: v.optional(v.number()),
   pendingDigestAt: v.optional(v.number()),
   tripEndingScheduledId: v.optional(v.id("_scheduled_functions")),
+  reportShareLink: v.optional(v.string()),
 });
 
 export const create = mutation({
@@ -493,6 +494,38 @@ export const _clearLinkPassword = internalMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.tripId, { linkPassword: undefined });
+    return null;
+  },
+});
+
+// Generates a unique read-only report share link slug for a trip.
+// If a link already exists, returns the existing slug (idempotent).
+// The slug is stored as `reportShareLink` on the trip document.
+export const generateReportLink = mutation({
+  args: { tripId: v.id("trips") },
+  returns: v.string(),
+  handler: async (ctx, { tripId }) => {
+    const trip = await ctx.db.get(tripId);
+    if (!trip) throw new ConvexError({ code: "NOT_FOUND", message: "Trip not found" });
+    if (trip.reportShareLink) return trip.reportShareLink;
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let slug = "";
+    for (let i = 0; i < 16; i++) {
+      slug += chars[Math.floor(Math.random() * chars.length)];
+    }
+    await ctx.db.patch(tripId, { reportShareLink: slug });
+    return slug;
+  },
+});
+
+// Revokes the report share link by clearing the reportShareLink field.
+export const revokeReportLink = mutation({
+  args: { tripId: v.id("trips") },
+  returns: v.null(),
+  handler: async (ctx, { tripId }) => {
+    const trip = await ctx.db.get(tripId);
+    if (!trip) throw new ConvexError({ code: "NOT_FOUND", message: "Trip not found" });
+    await ctx.db.patch(tripId, { reportShareLink: undefined });
     return null;
   },
 });

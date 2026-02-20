@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useQuery, useAction, useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
-import type { Id } from "../../../../../../convex/_generated/dataModel";
-import { useAuth } from "@/lib/authContext";
-import { CreatorLayout } from "@/components/layouts/CreatorLayout";
-import { ActivityFeedItem, type ActivityType } from "@/components/ui/ActivityFeedItem";
+import { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import {
+  ActivityFeedItem,
+  type ActivityType,
+} from "@/components/ui/ActivityFeedItem";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 
@@ -72,24 +70,6 @@ function eventToAction(
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
-
-function ChevronLeftIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
 
 function LockIcon() {
   return (
@@ -195,104 +175,37 @@ function ProofPhotoGrid({ photos }: { photos: ProofPhoto[] }) {
   );
 }
 
-// ── Main Report View (inner — uses Convex hooks) ───────────────────────────────
+// ── Main Report Share View (inner — uses Convex hooks) ────────────────────────
 
-function TripReportViewInner({ tripId }: { tripId: string }) {
-  const router = useRouter();
-  const { user, isLoading } = useAuth();
-  const [isPdfLoading, setIsPdfLoading] = useState(false);
-  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-  const [isRevoking, setIsRevoking] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const generatePdf = useAction(api.reportActions.generateTripReportPdf);
-  const generateReportLink = useMutation(api.trips.generateReportLink);
-  const revokeReportLink = useMutation(api.trips.revokeReportLink);
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace("/login");
-    }
-  }, [user, isLoading, router]);
-
-  const report = useQuery(
-    api.reports.getTripReport,
-    user ? { tripId: tripId as Id<"trips"> } : "skip",
-  );
-
-  async function handleGenerateLink() {
-    setIsGeneratingLink(true);
-    try {
-      await generateReportLink({ tripId: tripId as Id<"trips"> });
-    } finally {
-      setIsGeneratingLink(false);
-    }
-  }
-
-  async function handleRevokeLink() {
-    setIsRevoking(true);
-    try {
-      await revokeReportLink({ tripId: tripId as Id<"trips"> });
-    } finally {
-      setIsRevoking(false);
-    }
-  }
-
-  async function handleCopyLink(shareUrl: string) {
-    await navigator.clipboard.writeText(shareUrl);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  }
-
-  async function handleDownloadPdf() {
-    setIsPdfLoading(true);
-    try {
-      const base64 = await generatePdf({ tripId: tripId as Id<"trips"> });
-      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `trip-report-${tripId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsPdfLoading(false);
-    }
-  }
-
-  if (!user || isLoading) {
-    return (
-      <div className="min-h-dvh bg-bg flex items-center justify-center">
-        <p className="font-body text-text-muted">Loading…</p>
-      </div>
-    );
-  }
+function ReportShareViewInner({
+  reportShareLink,
+}: {
+  reportShareLink: string;
+}) {
+  const report = useQuery(api.reports.getTripReportByShareLink, {
+    reportShareLink,
+  });
 
   if (report === undefined) {
     return (
-      <CreatorLayout activeNav="trips">
-        <div className="flex items-center justify-center py-16">
-          <p className="font-body text-text-muted">Loading report…</p>
-        </div>
-      </CreatorLayout>
+      <div className="min-h-dvh bg-bg flex items-center justify-center">
+        <p className="font-body text-text-muted">Loading report…</p>
+      </div>
     );
   }
 
   if (report === null) {
     return (
-      <CreatorLayout activeNav="trips">
-        <div className="flex flex-col gap-4 py-16 items-center text-center">
-          <p className="font-body text-text-primary">Trip not found.</p>
-          <Link
-            href="/dashboard"
-            className="font-body text-sm text-primary hover:text-primary-hover transition-colors duration-150"
-          >
-            Back to dashboard
-          </Link>
+      <div className="min-h-dvh bg-bg flex items-center justify-center">
+        <div className="text-center px-4">
+          <p className="font-body text-text-primary font-semibold mb-2">
+            Report not found
+          </p>
+          <p className="font-body text-sm text-text-muted">
+            This report link may have been revoked or does not exist.
+          </p>
         </div>
-      </CreatorLayout>
+      </div>
     );
   }
 
@@ -303,7 +216,6 @@ function TripReportViewInner({ tripId }: { tripId: string }) {
   const doneCount = allTasks.filter((t) => t.completions.length > 0).length;
   const totalCount = allTasks.length;
 
-  // Collect all proof photos from completions
   const proofPhotos: ProofPhoto[] = allTasks.flatMap((task) =>
     task.completions
       .filter((c) => !!c.proofPhotoUrl)
@@ -325,131 +237,22 @@ function TripReportViewInner({ tripId }: { tripId: string }) {
           : "Draft";
 
   return (
-    <CreatorLayout activeNav="trips">
-      <div className="flex flex-col gap-8 max-w-[640px]">
-        {/* Back link */}
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1 font-body text-sm text-text-muted hover:text-text-primary transition-colors duration-150 self-start"
-        >
-          <ChevronLeftIcon />
-          Dashboard
-        </Link>
+    <div className="min-h-dvh bg-bg">
+      {/* Simple header */}
+      <header className="bg-bg-raised border-b border-border-default px-4 sm:px-6 py-3">
+        <span className="font-display text-xl text-text-primary">Handoff</span>
+      </header>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="font-display text-4xl text-text-primary leading-tight">
-              Trip Report
-            </h1>
-            <p className="font-body text-sm text-text-secondary mt-1.5">
-              {trip.startDate} → {trip.endDate}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleDownloadPdf}
-            disabled={isPdfLoading}
-            className="btn btn-primary shrink-0 inline-flex items-center gap-2 bg-primary text-text-on-primary font-body text-sm font-semibold px-4 py-2.5 rounded-md disabled:opacity-40"
-          >
-            {isPdfLoading ? (
-              <>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="animate-spin"
-                  aria-hidden="true"
-                >
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                Generating…
-              </>
-            ) : (
-              <>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                Download PDF
-              </>
-            )}
-          </button>
+      <main className="max-w-[640px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8">
+        {/* Page header */}
+        <div>
+          <h1 className="font-display text-4xl text-text-primary leading-tight">
+            Trip Report
+          </h1>
+          <p className="font-body text-sm text-text-secondary mt-1.5">
+            {trip.startDate} → {trip.endDate}
+          </p>
         </div>
-
-        {/* Share Report panel */}
-        {(() => {
-          const shareUrl = trip.reportShareLink
-            ? `${typeof window !== "undefined" ? window.location.origin : ""}/report/${trip.reportShareLink}`
-            : null;
-          return (
-            <div
-              className="bg-bg-raised rounded-xl border border-border-default p-4 flex flex-col gap-3"
-              style={{ boxShadow: "var(--shadow-sm)" }}
-            >
-              <div className="flex items-center justify-between">
-                <p className="font-body text-sm font-semibold text-text-primary">
-                  Share Report
-                </p>
-                {shareUrl && (
-                  <button
-                    type="button"
-                    onClick={handleRevokeLink}
-                    disabled={isRevoking}
-                    className="font-body text-sm text-danger hover:text-[#b04444] transition-colors duration-150 disabled:opacity-40"
-                  >
-                    {isRevoking ? "Revoking…" : "Revoke link"}
-                  </button>
-                )}
-              </div>
-              {shareUrl ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-bg-sunken rounded-md border border-border-default px-3 py-2 font-body text-sm text-text-secondary truncate">
-                    {shareUrl}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyLink(shareUrl)}
-                    className="btn btn-primary shrink-0 inline-flex items-center gap-1.5 bg-primary text-text-on-primary font-body text-sm font-semibold px-3 py-2 rounded-md"
-                  >
-                    {isCopied ? "Copied!" : "Copy"}
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  <p className="font-body text-sm text-text-muted">
-                    Generate a read-only link to share with co-owners or
-                    insurance.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleGenerateLink}
-                    disabled={isGeneratingLink}
-                    className="btn btn-primary self-start inline-flex items-center gap-2 bg-primary text-text-on-primary font-body text-sm font-semibold px-4 py-2.5 rounded-md disabled:opacity-40"
-                  >
-                    {isGeneratingLink ? "Generating…" : "Share Report"}
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
 
         {/* 1. Summary card */}
         <section aria-labelledby="summary-heading">
@@ -641,14 +444,18 @@ function TripReportViewInner({ tripId }: { tripId: string }) {
             </div>
           </section>
         )}
-      </div>
-    </CreatorLayout>
+      </main>
+    </div>
   );
 }
 
 // ── Export (env guard) ────────────────────────────────────────────────────────
 
-export default function TripReportView({ tripId }: { tripId: string }) {
+export default function ReportShareView({
+  reportShareLink,
+}: {
+  reportShareLink: string;
+}) {
   if (!CONVEX_URL) {
     return (
       <div className="min-h-dvh bg-bg flex items-center justify-center">
@@ -656,5 +463,5 @@ export default function TripReportView({ tripId }: { tripId: string }) {
       </div>
     );
   }
-  return <TripReportViewInner tripId={tripId} />;
+  return <ReportShareViewInner reportShareLink={reportShareLink} />;
 }

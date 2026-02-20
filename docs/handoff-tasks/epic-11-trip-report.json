@@ -84,14 +84,15 @@
         "pnpm build passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to add a reportShareLink field to the Trips table and implement a generateReportLink mutation (separate from the trip shareLink) that creates a new random slug stored as Trips.reportShareLink. Write a getTripReportByShareLink public query (no auth required) that looks up by reportShareLink and returns the same data as getTripReport — this is deliberately public since it's a static audit report the owner chose to share. Write revokeReportLink mutation that nullifies Trips.reportShareLink. Load /nextjs-best-practices to set up src/app/report/[reportShareLink]/page.tsx as a public page (no auth check) that renders the trip report UI from US-077 in read-only mode without the CreatorLayout sidebar. Load /tailwind-design-system to add a 'Share Report' button on the trip report page (btn-primary) that calls generateReportLink, shows the link in a copy-able Input, and a 'Revoke link' text button (text-danger) to remove access.",
       "dependsOn": [
         "US-077"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T23:00:20.263Z"
+    "updatedAt": "2026-02-20T23:10:18.664Z"
   }
 }

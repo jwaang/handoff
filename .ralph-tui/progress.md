@@ -1333,3 +1333,17 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **`@react-pdf/renderer` style props**: Use expanded border properties (`borderBottomWidth`, `borderBottomColor`, `borderBottomStyle`) not shorthand. No `gap` support — use `marginRight`/`marginBottom` on children. Built-in fonts: `"Helvetica"`, `"Helvetica-Bold"`, `"Times-Bold"`, etc.
   - **`fixed` prop on View**: `el(View, { style: ..., fixed: true })` makes the element appear on every page — use for headers/footers. `render` prop on `Text` provides `{ pageNumber, totalPages }` for dynamic content.
 ---
+
+## 2026-02-20 - US-079
+- What was implemented: Trip report shareable link feature
+  - Created `src/app/report/[reportShareLink]/ReportShareView.tsx` — public read-only report view (no auth, no CreatorLayout, simple header with Handoff wordmark)
+  - Modified `src/app/dashboard/trips/[tripId]/report/TripReportView.tsx` — added Share Report panel with generate/copy/revoke flow
+  - Backend was already complete: `generateReportLink`, `revokeReportLink` mutations and `getTripReportByShareLink` public query all existed in convex/
+- Files changed:
+  - `src/app/report/[reportShareLink]/ReportShareView.tsx` (new)
+  - `src/app/dashboard/trips/[tripId]/report/TripReportView.tsx` (modified — added useMutation imports, state, handlers, share panel JSX)
+- **Learnings:**
+  - **IIFE in JSX for derived state**: Used `{(() => { const shareUrl = ...; return <JSX />; })()}` to compute `shareUrl` derived from report data inline in JSX without declaring a separate variable in the component scope. Useful when the derived value is only needed in one JSX block.
+  - **Public share page pattern**: Scaffold was already in place (`page.tsx` + `ReportSharePageClient.tsx` with `ssr:false` dynamic import) — only the terminal `ReportShareView.tsx` component was missing. The split pattern (server page → client wrapper → `ssr:false` dynamic component) enables SSR-safe env guard pattern.
+  - **`report.trip.reportShareLink` drives UI state**: Rather than local state for the generated link, the Convex query result (`report.trip.reportShareLink`) is the source of truth — when the mutation succeeds, Convex reactivity updates the query result automatically, which updates the copy UI. No need to manually sync state.
+---
