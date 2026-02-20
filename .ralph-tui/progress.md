@@ -1301,3 +1301,18 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Legacy activityLog documents**: Filter out entries where `eventType === undefined` (legacy docs used `event` field). Use `e.eventType!` after filtering for TypeScript safety.
   - **`useState(() => typeof window !== "undefined")` for SSR mount guard**: More correct than `useEffect(() => setMounted(true))` — avoids the `react-hooks/set-state-in-effect` lint error and still prevents SSR hydration mismatches.
 ---
+
+## 2026-02-20 - US-077
+- Implemented trip report in-app view as a scrollable page at `/dashboard/trips/[tripId]/report`
+- Added "Past trips" section to dashboard TripsSection showing completed/expired trips with "View report →" links
+- **Files changed:**
+  - `src/app/dashboard/trips/[tripId]/report/page.tsx` — Server component with metadata, async params pattern
+  - `src/app/dashboard/trips/[tripId]/report/TripReportPageClient.tsx` — Client wrapper with `dynamic(ssr:false)`
+  - `src/app/dashboard/trips/[tripId]/report/TripReportView.tsx` — Main report view: summary card, task list, proof photos grid, vault access log, activity timeline
+  - `src/app/dashboard/page.tsx` — Added `PastTripsInner` + `PastTrips` components before `TripsSection`; added `<PastTrips />` at bottom of `TripsSection`
+- **Learnings:**
+  - **Import depth for new nested routes**: `src/app/dashboard/trips/[tripId]/report/` is 6 dirs deep from project root — needs `../../../../../../convex/_generated/api`, not 5 levels. Count dirs: report→[tripId]→trips→dashboard→app→src→project root.
+  - **Past trips via `listByProperty`**: `getExistingTrip` only returns active/draft. Use `api.trips.listByProperty` + client-side `.filter(t => t.status === "completed" || t.status === "expired")` to get historical trips for the report links.
+  - **Proof photo grid pattern**: Build `ProofPhoto[]` by flattening `allTasks.flatMap(task => task.completions.filter(c => !!c.proofPhotoUrl).map(c => ...))`. Reuses the same full-screen viewer pattern from `ActivityFeedItem` (fixed inset overlay, close on backdrop click).
+  - **Vault access log styling**: Use `bg-vault-subtle` container with `border-b border-border-default` separators between rows (not on last row) for the access log list.
+---

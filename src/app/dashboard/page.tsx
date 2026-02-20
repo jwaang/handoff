@@ -1047,6 +1047,72 @@ function DashboardOverview({ email, onNavigateToTrips }: DashboardOverviewProps)
   );
 }
 
+// ── Past Trips (inner — uses Convex hooks) ───────────────────────────
+
+function PastTripsInner() {
+  const { user } = useAuth();
+
+  const sessionData = useQuery(
+    api.auth.validateSession,
+    user?.token ? { token: user.token } : "skip",
+  );
+  const userId = sessionData?.userId;
+
+  const properties = useQuery(
+    api.properties.listByOwner,
+    userId ? { ownerId: userId } : "skip",
+  );
+  const propertyId = properties?.[0]?._id;
+
+  const allTrips = useQuery(
+    api.trips.listByProperty,
+    propertyId ? { propertyId } : "skip",
+  );
+
+  const pastTrips = (allTrips ?? []).filter(
+    (t) => t.status === "completed" || t.status === "expired",
+  );
+
+  if (pastTrips.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="font-body text-sm font-semibold text-text-secondary uppercase tracking-wide">
+        Past trips
+      </h2>
+      {pastTrips.map((trip) => (
+        <div
+          key={trip._id}
+          className="bg-bg-raised rounded-lg border border-border-default px-4 py-3 flex items-center gap-4"
+          style={{ boxShadow: "var(--shadow-xs)" }}
+        >
+          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+            <p className="font-body text-sm font-semibold text-text-primary">
+              {trip.startDate} → {trip.endDate}
+            </p>
+            <p className="font-body text-xs text-text-muted capitalize">
+              {trip.status}
+            </p>
+          </div>
+          <Link
+            href={`/dashboard/trips/${trip._id}/report`}
+            className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors duration-150 shrink-0"
+          >
+            View report →
+          </Link>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Past Trips (outer — env guard) ───────────────────────────────────
+
+function PastTrips() {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL) return null;
+  return <PastTripsInner />;
+}
+
 // ── Trips Section ────────────────────────────────────────────────────
 
 function TripsSection() {
@@ -1113,6 +1179,9 @@ function TripsSection() {
           ))}
         </div>
       )}
+
+      {/* Past trips with report links */}
+      <PastTrips />
     </div>
   );
 }

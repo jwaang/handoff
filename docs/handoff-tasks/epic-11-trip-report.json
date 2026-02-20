@@ -41,12 +41,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to wire useQuery(api.reports.getTripReport, { tripId }) in the report page, which works for both active and completed trips. Load /nextjs-best-practices to set up src/app/dashboard/trips/[tripId]/report/page.tsx within CreatorLayout, linked from the trip detail card on the dashboard. Load /tailwind-design-system to structure the scrollable report: (1) Summary card — bg-bg-raised rounded-xl shadow-sm with trip dates, sitter names, and overall X/Y tasks done count; (2) Task completion list — each task as a rounded-lg card with a secondary/success dot (bg-secondary-light text-secondary) for done and danger dot (bg-danger-light text-danger) for not done, completion timestamp in text-text-muted; (3) Proof photos — a 2-column grid of 120px rounded-md thumbnails tappable to the full-screen viewer from US-039; (4) Vault access log — bg-vault-subtle rounded-lg list rows with sitter name, item label, and timestamp; (5) Activity timeline using ActivityFeedItem components (US-018). Use /dev-browser to verify: done tasks show green indicator with timestamp, not-done tasks show red indicator, proof photos open full-screen on tap, the vault log section shows the correct access events.",
       "dependsOn": [
         "US-076",
         "US-018"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-078",
@@ -90,6 +91,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T22:37:00.012Z"
+    "updatedAt": "2026-02-20T22:47:52.325Z"
   }
 }

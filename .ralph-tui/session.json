@@ -3,10 +3,10 @@
   "sessionId": "3f3f324e-5e03-41c4-b17b-7143b5d0b858",
   "status": "running",
   "startedAt": "2026-02-20T22:30:22.026Z",
-  "updatedAt": "2026-02-20T22:37:00.015Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-02-20T22:47:52.328Z",
+  "currentIteration": 1,
   "maxIterations": 10,
-  "tasksCompleted": 0,
+  "tasksCompleted": 1,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -17,8 +17,8 @@
       {
         "id": "US-076",
         "title": "Trip report data aggregation",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-077",
@@ -40,7 +40,18 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-076",
+      "taskTitle": "Trip report data aggregation",
+      "taskCompleted": true,
+      "durationMs": 333286,
+      "startedAt": "2026-02-20T22:31:26.724Z",
+      "endedAt": "2026-02-20T22:37:00.010Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "/Users/john/Coding/handoff",
   "activeTaskIds": [],
