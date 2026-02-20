@@ -1285,3 +1285,19 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Two-step insert+patch in createTrip**: Can't store `tripEndingScheduledId` in the initial `ctx.db.insert` call because we need the `tripId` first to pass to the scheduled function. Pattern: insert → get tripId → schedule with tripId → patch with scheduledId.
   - **Skip scheduling when end date < 24h away**: Guard with `if (notifyAt > Date.now())` to avoid scheduling a notification in the past (which would fire immediately, confusingly).
 ---
+
+## 2026-02-20 - US-076
+- Implemented `getTripReport` query in `convex/reports.ts` that aggregates all trip data into a structured report
+- Report is available during active trips (live progress) and after expiry/completion; returns null if tripId not found
+- **Files changed:**
+  - `convex/reports.ts` — New file: `getTripReport` query with typed validators for all return fields
+  - `convex/_generated/api.d.ts` — Added `import type * as reports from "../reports.js"` and `reports: typeof reports` to `fullApi`
+  - `src/components/ui/NotificationToast.tsx` — Fixed pre-existing lint error: replaced `useEffect(() => setMounted(true), [])` with `useState(() => typeof window !== "undefined")` lazy initializer
+- **Learnings:**
+  - **Recurring taskRef prefix pattern**: Recurring task completions use `"recurring:{instructionId}:{date}"` format. To collect all completions for a recurring instruction across all trip days, build a completionsByRef map keyed by taskRef, then iterate entries checking `taskRef.startsWith("recurring:{instructionId}:")`.
+  - **Overlay taskRef format**: Overlay item completions use `"overlay:{overlayItemId}"` format (no date in key). Multiple completions per overlay item (one per day for undated items) are disambiguated by the `date` field on the completion record.
+  - **Parallel data fetching pattern**: Fetch all trip-level data (sitters, completions, overlayItems, manualSections, vaultAccessLog, activityLog) in a single `Promise.all` block, then fetch section instructions in a second `Promise.all` for sections. This avoids N+1 queries.
+  - **Vault access log filtering**: Only include `verified=true && vaultItemId !== undefined` entries (actual item views). Exclude failed PIN attempts (verified=false) which are audit-only. Resolve item labels via parallel `Promise.all(entries.map(ctx.db.get))`.
+  - **Legacy activityLog documents**: Filter out entries where `eventType === undefined` (legacy docs used `event` field). Use `e.eventType!` after filtering for TypeScript safety.
+  - **`useState(() => typeof window !== "undefined")` for SSR mount guard**: More correct than `useEffect(() => setMounted(true))` — avoids the `react-hooks/set-state-in-effect` lint error and still prevents SSR hydration mismatches.
+---

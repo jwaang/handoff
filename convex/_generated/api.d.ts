@@ -23,6 +23,7 @@ import type * as pets from "../pets.js";
 import type * as phoneUtils from "../phoneUtils.js";
 import type * as proof from "../proof.js";
 import type * as properties from "../properties.js";
+import type * as reports from "../reports.js";
 import type * as search from "../search.js";
 import type * as sections from "../sections.js";
 import type * as shareActions from "../shareActions.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   phoneUtils: typeof phoneUtils;
   proof: typeof proof;
   properties: typeof properties;
+  reports: typeof reports;
   search: typeof search;
   sections: typeof sections;
   shareActions: typeof shareActions;

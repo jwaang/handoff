@@ -125,10 +125,8 @@ function NotificationToast({
 }: NotificationToastProps) {
   const [internalVisible, setInternalVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof window !== "undefined");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => setMounted(true), []);
 
   const isControlled = controlledVisible !== undefined;
   const visible = isControlled ? controlledVisible : internalVisible;

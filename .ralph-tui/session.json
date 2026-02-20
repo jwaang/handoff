@@ -1,141 +1,46 @@
 {
   "version": 1,
-  "sessionId": "9070c191-048a-4b6a-a247-cfe20585c46e",
+  "sessionId": "3f3f324e-5e03-41c4-b17b-7143b5d0b858",
   "status": "running",
-  "startedAt": "2026-02-20T15:57:01.355Z",
-  "updatedAt": "2026-02-20T18:09:30.124Z",
-  "currentIteration": 7,
+  "startedAt": "2026-02-20T22:30:22.026Z",
+  "updatedAt": "2026-02-20T22:37:00.015Z",
+  "currentIteration": 0,
   "maxIterations": 10,
-  "tasksCompleted": 7,
+  "tasksCompleted": 0,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
     "plugin": "json",
-    "prdPath": "./docs/handoff-tasks/epic-10-notifications.json",
-    "totalTasks": 8,
+    "prdPath": "./docs/handoff-tasks/epic-11-trip-report.json",
+    "totalTasks": 4,
     "tasks": [
       {
-        "id": "US-068",
-        "title": "Activity feed data model",
-        "status": "completed",
-        "completedInSession": true
+        "id": "US-076",
+        "title": "Trip report data aggregation",
+        "status": "open",
+        "completedInSession": false
       },
       {
-        "id": "US-069",
-        "title": "Activity feed display",
-        "status": "completed",
-        "completedInSession": true
+        "id": "US-077",
+        "title": "Trip report in-app view",
+        "status": "open",
+        "completedInSession": false
       },
       {
-        "id": "US-070",
-        "title": "Web push notification setup",
-        "status": "completed",
-        "completedInSession": true
+        "id": "US-078",
+        "title": "Trip report PDF export",
+        "status": "open",
+        "completedInSession": false
       },
       {
-        "id": "US-071",
-        "title": "Push notification — sitter opened link",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-072",
-        "title": "Push notification — task completed",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-073",
-        "title": "Push notification — vault accessed",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-074",
-        "title": "Push notification — trip ending soon",
-        "status": "completed",
-        "completedInSession": true
-      },
-      {
-        "id": "US-075",
-        "title": "Notification preferences",
+        "id": "US-079",
+        "title": "Trip report shareable link",
         "status": "open",
         "completedInSession": false
       }
     ]
   },
-  "iterations": [
-    {
-      "iteration": 1,
-      "status": "completed",
-      "taskId": "US-068",
-      "taskTitle": "Activity feed data model",
-      "taskCompleted": true,
-      "durationMs": 298917,
-      "startedAt": "2026-02-20T15:57:34.829Z",
-      "endedAt": "2026-02-20T16:02:33.746Z"
-    },
-    {
-      "iteration": 2,
-      "status": "completed",
-      "taskId": "US-069",
-      "taskTitle": "Activity feed display",
-      "taskCompleted": true,
-      "durationMs": 1683262,
-      "startedAt": "2026-02-20T16:02:33.885Z",
-      "endedAt": "2026-02-20T16:30:37.147Z"
-    },
-    {
-      "iteration": 3,
-      "status": "completed",
-      "taskId": "US-070",
-      "taskTitle": "Web push notification setup",
-      "taskCompleted": true,
-      "durationMs": 654647,
-      "startedAt": "2026-02-20T16:30:37.301Z",
-      "endedAt": "2026-02-20T16:41:31.948Z"
-    },
-    {
-      "iteration": 4,
-      "status": "completed",
-      "taskId": "US-071",
-      "taskTitle": "Push notification — sitter opened link",
-      "taskCompleted": true,
-      "durationMs": 312691,
-      "startedAt": "2026-02-20T16:41:32.079Z",
-      "endedAt": "2026-02-20T16:46:44.770Z"
-    },
-    {
-      "iteration": 5,
-      "status": "completed",
-      "taskId": "US-072",
-      "taskTitle": "Push notification — task completed",
-      "taskCompleted": true,
-      "durationMs": 459694,
-      "startedAt": "2026-02-20T16:46:44.896Z",
-      "endedAt": "2026-02-20T16:54:24.590Z"
-    },
-    {
-      "iteration": 6,
-      "status": "completed",
-      "taskId": "US-073",
-      "taskTitle": "Push notification — vault accessed",
-      "taskCompleted": true,
-      "durationMs": 1165805,
-      "startedAt": "2026-02-20T16:54:24.727Z",
-      "endedAt": "2026-02-20T17:13:50.532Z"
-    },
-    {
-      "iteration": 7,
-      "status": "completed",
-      "taskId": "US-074",
-      "taskTitle": "Push notification — trip ending soon",
-      "taskCompleted": true,
-      "durationMs": 233483,
-      "startedAt": "2026-02-20T17:13:50.792Z",
-      "endedAt": "2026-02-20T17:17:44.275Z"
-    }
-  ],
+  "iterations": [],
   "skippedTaskIds": [],
   "cwd": "/Users/john/Coding/handoff",
   "activeTaskIds": [],
