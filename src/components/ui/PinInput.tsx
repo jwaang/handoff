@@ -1,0 +1,100 @@
+"use client";
+
+import { useRef, type KeyboardEvent, type ClipboardEvent } from "react";
+import { cn } from "@/lib/utils";
+
+interface PinInputProps {
+  value: string; // up to 6 digit characters
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  error?: boolean;
+  autoFocus?: boolean;
+}
+
+function PinInput({ value, onChange, disabled, error, autoFocus }: PinInputProps) {
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? "");
+
+  function handleChange(index: number, inputValue: string) {
+    // Accept only the last digit typed (handles cases where the browser inserts multiple chars)
+    const digit = inputValue.replace(/\D/g, "").slice(-1);
+    const next = [...digits];
+    next[index] = digit;
+    onChange(next.join(""));
+    if (digit && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  }
+
+  function handleKeyDown(index: number, e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace") {
+      if (!digits[index] && index > 0) {
+        // Current box is empty — go back and clear previous
+        const next = [...digits];
+        next[index - 1] = "";
+        onChange(next.join(""));
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        const next = [...digits];
+        next[index] = "";
+        onChange(next.join(""));
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  }
+
+  function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    onChange(text);
+    // Focus the last filled box or the next empty one
+    const focusIdx = Math.min(text.length, 5);
+    inputRefs.current[focusIdx]?.focus();
+  }
+
+  function handleFocus(index: number) {
+    // On focus, select any existing content so the next keystroke replaces it
+    inputRefs.current[index]?.select();
+  }
+
+  return (
+    <div className="flex gap-2 justify-center" role="group" aria-label="6-digit verification code">
+      {digits.map((digit, i) => (
+        <input
+          key={i}
+          ref={(el) => {
+            inputRefs.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={2}
+          value={digit}
+          autoFocus={autoFocus && i === 0}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={() => handleFocus(i)}
+          disabled={disabled}
+          aria-label={`Digit ${i + 1} of 6`}
+          className={cn(
+            "w-11 h-14 text-center font-mono text-2xl font-bold rounded-md border-[1.5px] bg-bg-raised",
+            "outline-none transition-[border-color,box-shadow] duration-150 ease-out",
+            "focus:border-vault focus:shadow-[0_0_0_3px_var(--color-vault-light)]",
+            error
+              ? "border-danger text-danger focus:border-danger focus:shadow-[0_0_0_3px_var(--color-danger-light)]"
+              : digit
+                ? "border-vault text-text-primary"
+                : "border-border-default text-text-primary",
+            disabled && "opacity-40 cursor-not-allowed",
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+export { PinInput, type PinInputProps };

@@ -33,7 +33,7 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { randomBytes, createCipheriv, createDecipheriv } from "node:crypto";
+import { randomBytes, createCipheriv, createDecipheriv, createHash } from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const TAG_LENGTH = 16; // GCM auth tag is always 128 bits
@@ -149,14 +149,184 @@ export const updateVaultItemValue = action({
   },
 });
 
+// ── SMS PIN verification helpers ──────────────────────────────────────────────
+
+const PIN_TTL_MS = 10 * 60 * 1000; // 10 minutes — pending PIN validity
+const MAX_PIN_ATTEMPTS = 3;
+
+/** Normalize a US phone number to 10 digits only (strip formatting and leading 1). */
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+}
+
+/** Hash a PIN with a salt using SHA-256. */
+function hashPin(pin: string, salt: string): string {
+  return createHash("sha256").update(`${pin}${salt}`).digest("hex");
+}
+
 /**
- * Return a decrypted vault item value — only for authorized sitters.
+ * Send a 6-digit SMS PIN to the sitter for vault verification.
+ *
+ * Validates that the sitter is registered for the trip with vaultAccess=true,
+ * generates and stores a hashed PIN, then sends it via Twilio SMS.
+ * In development (no Twilio env vars), logs the PIN to the console instead.
+ */
+export const sendSmsPin = action({
+  args: {
+    tripId: v.id("trips"),
+    sitterPhone: v.string(),
+  },
+  returns: v.union(
+    v.object({ success: v.literal(true) }),
+    v.object({
+      success: v.literal(false),
+      error: v.union(
+        v.literal("TRIP_INACTIVE"),
+        v.literal("NOT_REGISTERED"),
+        v.literal("VAULT_ACCESS_DENIED"),
+      ),
+    }),
+  ),
+  handler: async (ctx, args): Promise<
+    | { success: true }
+    | { success: false; error: "TRIP_INACTIVE" | "NOT_REGISTERED" | "VAULT_ACCESS_DENIED" }
+  > => {
+    // 1. Validate trip is active
+    const trip = await ctx.runQuery(internal.trips._getById, { tripId: args.tripId });
+    if (!trip || trip.status !== "active") {
+      return { success: false as const, error: "TRIP_INACTIVE" as const };
+    }
+
+    // 2. Find sitter by normalized phone (handles formatting differences)
+    const normalizedInput = normalizePhone(args.sitterPhone);
+    const allSitters = await ctx.runQuery(internal.sitters._listByTrip, { tripId: args.tripId });
+    const sitter = allSitters.find(
+      (s) => s.phone !== undefined && normalizePhone(s.phone) === normalizedInput,
+    );
+    if (!sitter) {
+      return { success: false as const, error: "NOT_REGISTERED" as const };
+    }
+    if (!sitter.vaultAccess) {
+      return { success: false as const, error: "VAULT_ACCESS_DENIED" as const };
+    }
+
+    // 3. Generate and hash a 6-digit PIN
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const salt = randomBytes(16).toString("hex");
+    const hashedPin = hashPin(pin, salt);
+    const expiresAt = Date.now() + PIN_TTL_MS;
+
+    // 4. Store PIN with normalized phone (canonical form for consistent lookup)
+    await ctx.runMutation(internal.vaultPins._upsert, {
+      tripId: args.tripId,
+      sitterPhone: normalizedInput,
+      hashedPin,
+      salt,
+      expiresAt,
+    });
+
+    // 5. Send SMS via Twilio, or log PIN in development
+    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioFrom = process.env.TWILIO_PHONE_NUMBER;
+
+    if (twilioSid && twilioToken && twilioFrom) {
+      try {
+        // Use E.164 format for Twilio
+        const toPhone = normalizedInput.length === 10 ? `+1${normalizedInput}` : `+${normalizedInput}`;
+        const body = `Your Handoff vault code is: ${pin}. Valid for 10 minutes. Do not share this code.`;
+        const url = `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${twilioSid}:${twilioToken}`).toString("base64")}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({ To: toPhone, From: twilioFrom, Body: body }).toString(),
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("[Twilio] SMS send failed:", errText);
+          // PIN is stored — sitter can retry; don't expose Twilio errors to client
+        }
+      } catch (err) {
+        console.error("[Twilio] SMS send error:", err);
+      }
+    } else {
+      // Development fallback: log the PIN so the flow can be tested without Twilio
+      console.log(`[DEV] Vault PIN for ${sitter.phone ?? normalizedInput} (trip ${args.tripId}): ${pin}`);
+    }
+
+    return { success: true as const };
+  },
+});
+
+/**
+ * Verify a 6-digit SMS PIN for vault access.
+ *
+ * Checks expiry, attempt count, and hash match. On success, marks the record as a
+ * verified session (extends expiry to 24h, clears PIN hash).
+ */
+export const verifyPin = action({
+  args: {
+    tripId: v.id("trips"),
+    sitterPhone: v.string(),
+    pin: v.string(), // 6-digit PIN as string
+  },
+  returns: v.union(
+    v.object({ success: v.literal(true) }),
+    v.object({
+      success: v.literal(false),
+      error: v.union(
+        v.literal("NOT_FOUND"),
+        v.literal("EXPIRED"),
+        v.literal("MAX_ATTEMPTS"),
+        v.literal("INVALID_PIN"),
+      ),
+    }),
+  ),
+  handler: async (ctx, args): Promise<
+    | { success: true }
+    | { success: false; error: "NOT_FOUND" | "EXPIRED" | "MAX_ATTEMPTS" | "INVALID_PIN" }
+  > => {
+    const normalizedPhone = normalizePhone(args.sitterPhone);
+    const record = await ctx.runQuery(internal.vaultPins._getByTripAndPhone, {
+      tripId: args.tripId,
+      sitterPhone: normalizedPhone,
+    });
+
+    if (!record || record.verified) {
+      // No pending PIN (either never sent, or already verified/used)
+      return { success: false as const, error: "NOT_FOUND" as const };
+    }
+    if (Date.now() > record.expiresAt) {
+      await ctx.runMutation(internal.vaultPins._delete, { pinId: record._id });
+      return { success: false as const, error: "EXPIRED" as const };
+    }
+    if (record.attemptCount >= MAX_PIN_ATTEMPTS) {
+      return { success: false as const, error: "MAX_ATTEMPTS" as const };
+    }
+
+    const expectedHash = hashPin(args.pin, record.salt);
+    if (expectedHash !== record.hashedPin) {
+      await ctx.runMutation(internal.vaultPins._incrementAttempt, { pinId: record._id });
+      return { success: false as const, error: "INVALID_PIN" as const };
+    }
+
+    // Correct PIN — promote to verified session (24h)
+    await ctx.runMutation(internal.vaultPins._markVerified, { pinId: record._id });
+    return { success: true as const };
+  },
+});
+
+/**
+ * Return a decrypted vault item value — only for authorized, PIN-verified sitters.
  *
  * Access control (three-layer check):
  *  1. Trip must have status === 'active' for the vault item's property.
  *  2. Sitter phone must be registered for the trip with vaultAccess === true.
- *  3. TODO (US-050): SMS PIN verification must be completed for this session.
- *     Do not ship to production without implementing this check.
+ *  3. Sitter must have a valid, unexpired SMS PIN verification session.
  *
  * Returns a discriminated union so callers can show typed error messages
  * without leaking information about what specifically failed.
@@ -176,13 +346,24 @@ export const getDecryptedVaultItem = action({
         v.literal("TRIP_INACTIVE"),
         v.literal("NOT_REGISTERED"),
         v.literal("VAULT_ACCESS_DENIED"),
+        v.literal("NOT_VERIFIED"),
       ),
     }),
   ),
   handler: async (ctx, args): Promise<
     | { success: true; value: string }
-    | { success: false; error: "ITEM_NOT_FOUND" | "TRIP_INACTIVE" | "NOT_REGISTERED" | "VAULT_ACCESS_DENIED" }
+    | {
+        success: false;
+        error:
+          | "ITEM_NOT_FOUND"
+          | "TRIP_INACTIVE"
+          | "NOT_REGISTERED"
+          | "VAULT_ACCESS_DENIED"
+          | "NOT_VERIFIED";
+      }
   > => {
+    const normalizedPhone = normalizePhone(args.sitterPhone);
+
     // 1. Load the vault item (internal — includes encryptedValue)
     const item = await ctx.runQuery(internal.vaultItems._getById, {
       vaultItemId: args.vaultItemId,
@@ -195,19 +376,15 @@ export const getDecryptedVaultItem = action({
     const trip = await ctx.runQuery(internal.trips._getById, {
       tripId: args.tripId,
     });
-    if (
-      !trip ||
-      trip.propertyId !== item.propertyId ||
-      trip.status !== "active"
-    ) {
+    if (!trip || trip.propertyId !== item.propertyId || trip.status !== "active") {
       return { success: false as const, error: "TRIP_INACTIVE" as const };
     }
 
-    // 3. Verify the sitter is registered for this trip
-    const sitter = await ctx.runQuery(internal.sitters._getByTripAndPhone, {
-      tripId: args.tripId,
-      phone: args.sitterPhone,
-    });
+    // 3. Verify the sitter is registered for this trip with vault access
+    const allSitters = await ctx.runQuery(internal.sitters._listByTrip, { tripId: args.tripId });
+    const sitter = allSitters.find(
+      (s) => s.phone !== undefined && normalizePhone(s.phone) === normalizedPhone,
+    );
     if (!sitter) {
       return { success: false as const, error: "NOT_REGISTERED" as const };
     }
@@ -215,20 +392,21 @@ export const getDecryptedVaultItem = action({
       return { success: false as const, error: "VAULT_ACCESS_DENIED" as const };
     }
 
-    // TODO (US-050): Verify SMS PIN — check VaultPins table for a valid,
-    // non-expired, successful verification for this sitterPhone + tripId.
-    // Until US-050 is implemented, this check is intentionally omitted.
-    // Do not expose this action to unverified clients in production.
+    // 4. Verify SMS PIN session — must have a valid, non-expired verified session
+    const pinRecord = await ctx.runQuery(internal.vaultPins._getByTripAndPhone, {
+      tripId: args.tripId,
+      sitterPhone: normalizedPhone,
+    });
+    if (!pinRecord || !pinRecord.verified || Date.now() > pinRecord.expiresAt) {
+      return { success: false as const, error: "NOT_VERIFIED" as const };
+    }
 
-    // 4. Decrypt and return the value
+    // 5. Decrypt and return the value
     try {
       const value = decryptValue(item.encryptedValue);
       return { success: true as const, value };
     } catch {
-      // Decryption failure — corrupt data or key mismatch
-      throw new Error(
-        "Failed to decrypt vault item. Contact support if this persists.",
-      );
+      throw new Error("Failed to decrypt vault item. Contact support if this persists.");
     }
   },
 });

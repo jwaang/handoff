@@ -68,12 +68,13 @@
         "Access control verification — unauthorized users cannot access restricted data"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Security-sensitive: verify PIN expiration and attempt limiting. Load /convex-best-practices to implement the PIN flow: create a VaultPins table (tripId, sitterPhone, hashedPin, expiresAt, attemptCount) with an internal mutation for creation and validation. Write a sendSmsPin Convex action (convex/vaultActions.ts, 'use node') that generates a 6-digit random PIN, hashes it with SHA-256 + salt, stores in VaultPins with expiresAt = now + 10min, and sends via Twilio SMS using TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_PHONE_NUMBER env vars. Write a verifyPin action that checks: PIN not expired, attemptCount < 3, hash matches — increment attemptCount on failure, delete record on success. Store verification status in a short-lived Convex session record or signed cookie. Load /frontend-design to build the PIN entry UI: a 6-digit OTP input (6 separate single-digit inputs that auto-advance focus), a 'Send PIN' button, attempt counter ('2 attempts remaining'), and a 'Resend PIN' link after first send. Load /tailwind-design-system to render the verification gate using bg-bg-raised rounded-xl shadow-md, vault color for the lock icon, and danger-light for attempt limit errors. Use /dev-browser to verify: tapping vault tab shows the verification gate, SMS sends (check Twilio logs), entering a wrong PIN shows remaining attempts, 3 wrong attempts requires a new PIN, correct PIN reveals vault items for the session.",
       "dependsOn": [
         "US-043",
         "US-048"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-051",
@@ -210,6 +211,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T00:20:11.197Z"
+    "updatedAt": "2026-02-20T00:45:26.145Z"
   }
 }

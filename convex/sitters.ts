@@ -84,6 +84,17 @@ export const remove = mutation({
   },
 });
 
+// Internal: list all sitters for a trip — used by vaultActions to find sitter by normalized phone.
+export const _listByTrip = internalQuery({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("sitters")
+      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+      .collect();
+  },
+});
+
 // Internal: look up a sitter by trip + phone — used by vaultActions for access control.
 export const _getByTripAndPhone = internalQuery({
   args: { tripId: v.id("trips"), phone: v.string() },

@@ -35,6 +35,7 @@ import type * as trips from "../trips.js";
 import type * as users from "../users.js";
 import type * as vaultActions from "../vaultActions.js";
 import type * as vaultItems from "../vaultItems.js";
+import type * as vaultPins from "../vaultPins.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   vaultActions: typeof vaultActions;
   vaultItems: typeof vaultItems;
+  vaultPins: typeof vaultPins;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

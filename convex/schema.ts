@@ -199,4 +199,17 @@ export default defineSchema({
   })
     .index("by_trip", ["tripId"])
     .index("by_property", ["propertyId"]),
+
+  // Vault SMS PIN verification — pending PIN attempts and verified sessions.
+  // A record transitions from pending (attemptCount >= 0, verified=undefined) to
+  // verified (verified=true, expiresAt extended to 24h) on successful PIN entry.
+  vaultPins: defineTable({
+    tripId: v.id("trips"),
+    sitterPhone: v.string(), // normalized 10-digit US number (digits only)
+    hashedPin: v.string(), // SHA-256(pin + salt); cleared after verification
+    salt: v.string(), // random hex salt; cleared after verification
+    expiresAt: v.number(), // Unix ms: now+10min (pending) or now+24h (verified)
+    attemptCount: v.number(), // incremented on wrong PIN; max 3 before lockout
+    verified: v.optional(v.boolean()), // true after successful PIN verification
+  }).index("by_trip_phone", ["tripId", "sitterPhone"]),
 });

@@ -5,12 +5,14 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { SitterLayout } from "@/components/layouts/SitterLayout";
+import type { TabId } from "@/components/ui/BottomNav";
 import { TodayViewHeader } from "@/components/ui/TodayViewHeader";
 import { EmergencyContactBar } from "@/components/ui/EmergencyContactBar";
 import type { ContactRole } from "@/components/ui/EmergencyContactBar";
 import { TimeSlotDivider } from "@/components/ui/TimeSlotDivider";
 import type { TimeSlot } from "@/components/ui/TimeSlotDivider";
 import { TaskItem } from "@/components/ui/TaskItem";
+import { VaultTab } from "./VaultTab";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -294,6 +296,8 @@ function LoadingSkeleton() {
 // ── Main component ────────────────────────────────────────────────────
 
 export default function TodayPageInner({ tripId }: { tripId: string }) {
+  const [activeTab, setActiveTab] = useState<TabId>("today");
+
   // Compute today's date as YYYY-MM-DD in local timezone
   const today = new Date().toLocaleDateString("en-CA");
 
@@ -331,9 +335,10 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
   if (data === undefined) return <LoadingSkeleton />;
   if (data === null) return <TripNotFound />;
 
-  const { trip, sitters, emergencyContacts, recurringInstructions, todayOverlayItems, completions } =
+  const { trip, property, sitters, emergencyContacts, recurringInstructions, todayOverlayItems, completions } =
     data as {
       trip: { startDate: string; endDate: string };
+      property: { _id: Id<"properties"> } | null;
       sitters: Array<{ name: string }>;
       emergencyContacts: Array<{ name: string; role: string; phone: string; isLocked: boolean }>;
       recurringInstructions: Array<{ _id: string; text: string; timeSlot: string; proofRequired: boolean }>;
@@ -383,57 +388,81 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
   const hasTodayTasks = tasksToday > 0;
 
   return (
-    <SitterLayout activeTab="today">
-      {/* Negative margin so header bleeds to edges inside the padded layout */}
-      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 lg:-mx-6 lg:-mt-8">
-        <TodayViewHeader
-          sitterName={sitterName}
-          currentDay={currentDay}
-          totalDays={totalDays}
-          tasksToday={tasksToday}
-          completedTasks={completedTasks}
-          proofNeeded={proofNeeded}
+    <SitterLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      {/* ── Vault tab ─────────────────────────────────────────────── */}
+      {activeTab === "vault" && property && (
+        <VaultTab
+          tripId={tripId as Id<"trips">}
+          propertyId={property._id}
         />
-      </div>
-
-      {/* Emergency contact bar */}
-      {visibleContacts.length > 0 && (
-        <div className="mt-4">
-          <EmergencyContactBar contacts={visibleContacts} />
-        </div>
       )}
 
-      {/* Task list */}
-      <div className="mt-6 flex flex-col gap-6">
-        {!hasTodayTasks ? (
-          <EmptyTaskState />
-        ) : (
-          SLOT_ORDER.map((slot) => (
-            <SlotSection
-              key={slot}
-              slot={slot}
-              tasks={taskGroups[slot]}
-              completionMap={completionMap}
-              onToggle={handleToggle}
+      {/* ── Today tab ─────────────────────────────────────────────── */}
+      {activeTab === "today" && (
+        <>
+          {/* Negative margin so header bleeds to edges inside the padded layout */}
+          <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 lg:-mx-6 lg:-mt-8">
+            <TodayViewHeader
+              sitterName={sitterName}
+              currentDay={currentDay}
+              totalDays={totalDays}
+              tasksToday={tasksToday}
+              completedTasks={completedTasks}
+              proofNeeded={proofNeeded}
             />
-          ))
-        )}
-      </div>
+          </div>
 
-      {/* Tomorrow preview */}
-      <div className="mt-8">
-        <TomorrowPreview
-          recurringInstructions={SLOT_ORDER.flatMap((slot) =>
-            tomorrowGroups[slot].filter((t) => !t.isOverlay),
+          {/* Emergency contact bar */}
+          {visibleContacts.length > 0 && (
+            <div className="mt-4">
+              <EmergencyContactBar contacts={visibleContacts} />
+            </div>
           )}
-          overlayItems={SLOT_ORDER.flatMap((slot) =>
-            tomorrowGroups[slot].filter((t) => t.isOverlay),
-          )}
-        />
-      </div>
 
-      {/* Bottom spacer */}
-      <div className="h-4" />
+          {/* Task list */}
+          <div className="mt-6 flex flex-col gap-6">
+            {!hasTodayTasks ? (
+              <EmptyTaskState />
+            ) : (
+              SLOT_ORDER.map((slot) => (
+                <SlotSection
+                  key={slot}
+                  slot={slot}
+                  tasks={taskGroups[slot]}
+                  completionMap={completionMap}
+                  onToggle={handleToggle}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Tomorrow preview */}
+          <div className="mt-8">
+            <TomorrowPreview
+              recurringInstructions={SLOT_ORDER.flatMap((slot) =>
+                tomorrowGroups[slot].filter((t) => !t.isOverlay),
+              )}
+              overlayItems={SLOT_ORDER.flatMap((slot) =>
+                tomorrowGroups[slot].filter((t) => t.isOverlay),
+              )}
+            />
+          </div>
+
+          {/* Bottom spacer */}
+          <div className="h-4" />
+        </>
+      )}
+
+      {/* ── Manual / Contacts tabs ─────────────────────────────────── */}
+      {(activeTab === "manual" || activeTab === "contacts") && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <span className="text-3xl" aria-hidden="true">🚧</span>
+          <p className="font-body text-sm font-semibold text-text-primary">Coming soon</p>
+          <p className="font-body text-xs text-text-muted max-w-[220px]">
+            This section is being built. Check back soon.
+          </p>
+        </div>
+      )}
     </SitterLayout>
   );
 }

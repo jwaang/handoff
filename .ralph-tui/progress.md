@@ -886,3 +886,23 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **`JSX.Element` vs `ReactElement`**: Avoid `JSX.Element` return type annotations in strict TS projects — use `import { type ReactElement } from "react"` instead to avoid "Cannot find namespace 'JSX'" error.
   - **Value masking UX**: For the creator's vault list, masking with static •••••••• is sufficient — no inline reveal needed since values are encrypted server-side and the creator can see the value during edit (edit form starts empty with "leave blank" hint). This avoids needing a separate creator-decrypt action.
 ---
+
+## 2026-02-19 - US-050
+- Implemented SMS PIN verification flow for sitter vault access
+- **New files**:
+  - `convex/vaultPins.ts` — Internal mutations/queries for vaultPins table: `_upsert`, `_getByTripAndPhone`, `_incrementAttempt`, `_markVerified`, `_delete`
+  - `src/components/ui/PinInput.tsx` — 6-digit OTP input with auto-advance focus, backspace navigation, paste handling
+  - `src/app/t/[tripId]/VaultTab.tsx` — Full vault tab with verification gate (phone input → PIN entry → vault revealed), sessionStorage for session persistence
+- **Modified files**:
+  - `convex/schema.ts` — Added `vaultPins` table with `by_trip_phone` index; fields: tripId, sitterPhone (normalized 10-digit), hashedPin, salt, expiresAt, attemptCount, verified (optional)
+  - `convex/sitters.ts` — Added `_listByTrip` internal query (for normalized phone lookup in actions)
+  - `convex/vaultActions.ts` — Added `createHash` import; added `normalizePhone`, `hashPin` helpers, `PIN_TTL_MS`, `MAX_PIN_ATTEMPTS` constants; added `sendSmsPin` action (validates sitter, generates 6-digit PIN, hashes + stores, sends via Twilio or logs in dev); added `verifyPin` action (checks expiry/attempts/hash, marks verified on success); updated `getDecryptedVaultItem` to check vaultPins verified session (layer 3 security), added `NOT_VERIFIED` error variant
+  - `convex/_generated/api.d.ts` — Added `vaultPins` module import and declaration
+  - `src/app/t/[tripId]/TodayPageInner.tsx` — Added tab state management (`activeTab`/`setActiveTab`), imports VaultTab, passes tab props to SitterLayout, conditionally renders VaultTab for vault tab and placeholder for manual/contacts tabs; extracts `property._id` from todayView data for VaultTab
+- **Learnings:**
+  - **Phone normalization for SMS lookup**: Store normalized 10-digit US numbers in vaultPins for consistent lookup regardless of how the owner/sitter formatted the phone. Use `normalizePhone()` in all action handlers before DB operations. For Twilio, convert to E.164 (`+1xxxxxxxxxx`) at send time.
+  - **vaultPins dual-purpose record**: A single `vaultPins` doc transitions from "pending PIN" (hashedPin+salt set, verified=undefined) to "verified session" (verified=true, hashedPin/salt cleared, expiresAt extended 24h) on success. This avoids needing a separate `vaultSessions` table.
+  - **`react-hooks/set-state-in-effect` with async Promise chains**: The ESLint rule disallows calling setState synchronously inside effects (even via a function call that does it internally). Fix: use `Promise.all(...).then(results => { setState(...) })` pattern — setState inside `.then()` callbacks is allowed. Also: avoid early synchronous `setPhase()` returns inside the effect body; instead unify all setState calls inside the `.then()`.
+  - **Conditional `useQuery` with skip**: Use `useQuery(api.foo.bar, phase === "loading" ? { arg } : "skip")` to skip a Convex query until ready. In VaultTab, vault items list is always loaded (labels only, not sensitive) so no skip needed.
+  - **Sitter tab switching in TodayPageInner**: The entire sitter experience lives in TodayPageInner. To add vault/manual/contacts tabs, add `activeTab` state + pass to SitterLayout's `onTabChange`. Conditionally render content per tab. No new routes needed — it's SPA-style in-page tab switching.
+---
