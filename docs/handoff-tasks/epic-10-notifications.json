@@ -105,13 +105,14 @@
         "pnpm build passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to extend the completeTask mutation (US-060) and uploadProofPhoto action (US-061) to call sendTaskNotification internalAction after logging the ActivityLog event. The sendTaskNotification action reads the owner's notification preferences (US-075) from the users table: if 'all', send immediately; if 'proof-only', send only when proofPhotoUrl is present; if 'digest', schedule a Convex scheduled function (ctx.scheduler.runAt) for the top of the next hour that batches all completions since the last digest into one notification ('X tasks completed since [time]'); if 'off', skip entirely. Format the notification message: 'Sarah completed morning feeding' for no photo, 'Sarah completed morning feeding with photo' when proof is attached. Include a timestamp in 12-hour format.",
       "dependsOn": [
         "US-060",
         "US-068",
         "US-070"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-073",
@@ -176,6 +177,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T16:46:44.771Z"
+    "updatedAt": "2026-02-20T16:54:24.591Z"
   }
 }

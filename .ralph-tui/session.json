@@ -3,10 +3,10 @@
   "sessionId": "9070c191-048a-4b6a-a247-cfe20585c46e",
   "status": "running",
   "startedAt": "2026-02-20T15:57:01.355Z",
-  "updatedAt": "2026-02-20T16:46:44.772Z",
-  "currentIteration": 3,
+  "updatedAt": "2026-02-20T16:54:24.592Z",
+  "currentIteration": 4,
   "maxIterations": 10,
-  "tasksCompleted": 3,
+  "tasksCompleted": 4,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -35,8 +35,8 @@
       {
         "id": "US-071",
         "title": "Push notification — sitter opened link",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-072",
@@ -94,6 +94,16 @@
       "durationMs": 654647,
       "startedAt": "2026-02-20T16:30:37.301Z",
       "endedAt": "2026-02-20T16:41:31.948Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-071",
+      "taskTitle": "Push notification — sitter opened link",
+      "taskCompleted": true,
+      "durationMs": 312691,
+      "startedAt": "2026-02-20T16:41:32.079Z",
+      "endedAt": "2026-02-20T16:46:44.770Z"
     }
   ],
   "skippedTaskIds": [],

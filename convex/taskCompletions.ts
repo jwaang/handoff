@@ -1,11 +1,30 @@
-import { internalMutation, mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { ConvexError } from "convex/values";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import { internal } from "./_generated/api";
+import type { Id, DataModel } from "./_generated/dataModel";
+import type { DatabaseReader } from "./_generated/server";
 
 const taskTypeValidator = v.union(
   v.literal("recurring"),
   v.literal("overlay"),
 );
+
+/**
+ * Resolve a human-readable task title from a taskRef + taskType pair.
+ * Returns null if the referenced document no longer exists.
+ */
+async function resolveTaskTitle(
+  db: DatabaseReader,
+  taskRef: string,
+  taskType: DataModel["taskCompletions"]["document"]["taskType"],
+): Promise<string | null> {
+  if (taskType === "recurring") {
+    const instruction = await db.get(taskRef as Id<"instructions">);
+    return instruction?.text ?? null;
+  }
+  const overlayItem = await db.get(taskRef as Id<"overlayItems">);
+  return overlayItem?.text ?? null;
+}
 
 const taskCompletionObject = v.object({
   _id: v.id("taskCompletions"),
@@ -127,6 +146,17 @@ export const completeTask = mutation({
         sitterName: args.sitterName || undefined,
         createdAt: completedAt,
       });
+
+      // Resolve task title and schedule push notification
+      const taskTitle =
+        (await resolveTaskTitle(ctx.db, args.taskRef, args.taskType)) ??
+        "a task";
+      await ctx.scheduler.runAfter(0, internal.notifications.sendTaskNotification, {
+        tripId: args.tripId,
+        taskTitle,
+        sitterName: args.sitterName,
+        completedAt,
+      });
     }
     return completionId;
   },
@@ -173,6 +203,18 @@ export const completeTaskWithProof = mutation({
         proofPhotoUrl,
         createdAt: completedAt,
       });
+
+      // Resolve task title and schedule push notification (with proof)
+      const taskTitle =
+        (await resolveTaskTitle(ctx.db, args.taskRef, args.taskType)) ??
+        "a task";
+      await ctx.scheduler.runAfter(0, internal.notifications.sendTaskNotification, {
+        tripId: args.tripId,
+        taskTitle,
+        sitterName: args.sitterName,
+        proofPhotoUrl,
+        completedAt,
+      });
     }
     return completionId;
   },
@@ -207,7 +249,46 @@ export const _attachProof = internalMutation({
         sitterName: args.sitterName,
         createdAt: Date.now(),
       });
+
+      // Resolve task title from completion record for notification message
+      const completion = await ctx.db.get(args.taskCompletionId);
+      let taskTitle = "a task";
+      if (completion) {
+        const title = await resolveTaskTitle(ctx.db, completion.taskRef, completion.taskType);
+        if (title) taskTitle = title;
+      }
+
+      // Schedule task-completion notification with proof
+      await ctx.scheduler.runAfter(0, internal.notifications.sendTaskNotification, {
+        tripId: args.tripId,
+        taskTitle,
+        sitterName: args.sitterName ?? "",
+        proofPhotoUrl,
+        completedAt: Date.now(),
+      });
     }
     return null;
+  },
+});
+
+/**
+ * Count task completions for a trip within the given time window [windowStart, windowEnd).
+ * Used by the digest notification scheduler.
+ */
+export const _countInWindow = internalQuery({
+  args: {
+    tripId: v.id("trips"),
+    windowStart: v.number(),
+    windowEnd: v.number(),
+  },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    const completions = await ctx.db
+      .query("taskCompletions")
+      .withIndex("by_trip_taskref", (q) => q.eq("tripId", args.tripId))
+      .collect();
+    return completions.filter(
+      (c) => c.completedAt >= args.windowStart && c.completedAt < args.windowEnd,
+    ).length;
   },
 });

@@ -10,6 +10,14 @@ export default defineSchema({
     appleId: v.optional(v.string()),
     createdAt: v.number(),
     pushSubscription: v.optional(v.string()), // JSON-serialized PushSubscription for web push
+    notificationPreference: v.optional(
+      v.union(
+        v.literal("all"),
+        v.literal("proof-only"),
+        v.literal("digest"),
+        v.literal("off"),
+      ),
+    ), // Task completion notification preference; defaults to 'all' when absent
   })
     .index("by_email", ["email"])
     .index("by_google_id", ["googleId"])
@@ -157,6 +165,7 @@ export default defineSchema({
     shareLink: v.optional(v.string()),
     linkPassword: v.optional(v.string()),
     linkExpiry: v.optional(v.number()),
+    pendingDigestAt: v.optional(v.number()), // Unix ms timestamp when a digest notification is scheduled
   })
     .index("by_property_status", ["propertyId", "status"])
     .index("by_share_link", ["shareLink"]),

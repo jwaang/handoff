@@ -396,6 +396,34 @@ export const getSitterTripState = query({
   },
 });
 
+// Internal: atomically set pendingDigestAt on a trip.
+// Returns true if newly scheduled (caller should then schedule the action),
+// or false if a digest was already pending for the same hour (no-op).
+export const _schedulePendingDigest = internalMutation({
+  args: {
+    tripId: v.id("trips"),
+    nextHourStart: v.number(),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const trip = await ctx.db.get(args.tripId);
+    if (!trip) return false;
+    if (trip.pendingDigestAt === args.nextHourStart) return false;
+    await ctx.db.patch(args.tripId, { pendingDigestAt: args.nextHourStart });
+    return true;
+  },
+});
+
+// Internal: clear pendingDigestAt after a digest notification has been sent.
+export const _clearPendingDigestAt = internalMutation({
+  args: { tripId: v.id("trips") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.tripId, { pendingDigestAt: undefined });
+    return null;
+  },
+});
+
 // Internal: clear the linkPassword field on a trip.
 export const _clearLinkPassword = internalMutation({
   args: { tripId: v.id("trips") },

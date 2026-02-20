@@ -1244,3 +1244,19 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Property ownerId lookup chain**: `tripId → trip.propertyId → property.ownerId → userId for push`. Each step needs its own internal query since actions lack `ctx.db` access. Keep internal queries focused (return only what's needed).
   - **Best-effort error swallowing**: Wrap entire `recordFirstOpen` handler in try/catch so a notification failure never surfaces to the sitter's page load. Log to console for debugging.
 ---
+
+## 2026-02-20 - US-072
+- Implemented push notification for sitter task completion with notification preference support
+- Files changed:
+  - `convex/schema.ts` — Added `notificationPreference` optional union field to `users` table; added `pendingDigestAt` optional number to `trips` table for digest deduplication
+  - `convex/users.ts` — Added `getNotificationPreference` internalQuery (returns preference, defaults to 'all'); `updateNotificationPreference` public mutation; `getMyNotificationPreference` public query
+  - `convex/trips.ts` — Added `_schedulePendingDigest` internalMutation (atomically sets `pendingDigestAt`, returns bool for caller to conditionally schedule); `_clearPendingDigestAt` internalMutation (called after digest fires)
+  - `convex/notifications.ts` — Added `formatTime12h` helper; `sendTaskNotification` internalAction (reads pref, routes to immediate/proof-only/digest/off); `sendDigestNotification` internalAction (counts completions in window, sends batched message, clears pending flag)
+  - `convex/taskCompletions.ts` — Added `resolveTaskTitle` helper (looks up instruction/overlayItem text by polymorphic taskRef); added `_countInWindow` internalQuery; updated `completeTask`, `completeTaskWithProof`, `_attachProof` to schedule `sendTaskNotification` after logging activity
+- **Learnings:**
+  - **Digest deduplication pattern**: Use an atomically-checked field (`pendingDigestAt` on `trips`) + an internalMutation that returns bool. The action reads the bool and only calls `ctx.scheduler.runAt` when `true`. This prevents duplicate scheduled jobs when N tasks complete within one hour.
+  - **Polymorphic taskRef resolution in mutations**: `taskRef` is `v.string()` (not a typed Id) because it references either `instructions` or `overlayItems`. Cast as `taskRef as Id<"instructions">` / `Id<"overlayItems">` based on `taskType` discriminant. Import `Id` from `./_generated/dataModel`.
+  - **`DatabaseReader` type for helper functions**: When passing `ctx.db` to a helper outside the handler, type it as `DatabaseReader` imported from `./_generated/server`.
+  - **Scheduling actions from mutations**: Convex mutations support `ctx.scheduler.runAfter(0, internal.module.fn, args)` for fire-and-forget action dispatch. This is the correct pattern for triggering side effects (notifications) from mutations.
+  - **Digest window math**: Floor `completedAt` to hour boundary: `Math.floor(ms / 3_600_000) * 3_600_000`. Next hour = `+ 3_600_000`. Pass both bounds as args to the scheduled action for a self-contained, testable window.
+---

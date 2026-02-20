@@ -2,6 +2,7 @@ import {
   internalMutation,
   internalQuery,
   mutation,
+  query,
 } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -65,5 +66,57 @@ export const clearPushSubscription = internalMutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.userId, { pushSubscription: undefined });
     return null;
+  },
+});
+
+const notificationPreferenceValidator = v.union(
+  v.literal("all"),
+  v.literal("proof-only"),
+  v.literal("digest"),
+  v.literal("off"),
+);
+
+// Internal: get notification preference for a user (defaults to 'all')
+export const getNotificationPreference = internalQuery({
+  args: { userId: v.id("users") },
+  returns: notificationPreferenceValidator,
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    return user?.notificationPreference ?? "all";
+  },
+});
+
+// Public: update the authenticated user's notification preference
+export const updateNotificationPreference = mutation({
+  args: {
+    token: v.string(),
+    preference: notificationPreferenceValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!session || session.expiresAt < Date.now()) return null;
+    await ctx.db.patch(session.userId, {
+      notificationPreference: args.preference,
+    });
+    return null;
+  },
+});
+
+// Public: get the authenticated user's notification preference
+export const getMyNotificationPreference = query({
+  args: { token: v.string() },
+  returns: v.union(notificationPreferenceValidator, v.null()),
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!session || session.expiresAt < Date.now()) return null;
+    const user = await ctx.db.get(session.userId);
+    return user?.notificationPreference ?? "all";
   },
 });
