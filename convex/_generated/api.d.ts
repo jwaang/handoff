@@ -33,6 +33,7 @@ import type * as taskCompletions from "../taskCompletions.js";
 import type * as todayView from "../todayView.js";
 import type * as trips from "../trips.js";
 import type * as users from "../users.js";
+import type * as vaultAccessLog from "../vaultAccessLog.js";
 import type * as vaultActions from "../vaultActions.js";
 import type * as vaultItems from "../vaultItems.js";
 import type * as vaultPins from "../vaultPins.js";
@@ -66,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   todayView: typeof todayView;
   trips: typeof trips;
   users: typeof users;
+  vaultAccessLog: typeof vaultAccessLog;
   vaultActions: typeof vaultActions;
   vaultItems: typeof vaultItems;
   vaultPins: typeof vaultPins;

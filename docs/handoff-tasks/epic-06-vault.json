@@ -116,11 +116,12 @@
         "Audit logging — confirm access events are logged with correct timestamps"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to define the VaultAccessLog table in convex/schema.ts with an index on tripId+accessedAt for the owner audit view. Write an internal logVaultAccess mutation that is called from: (1) the getDecryptedVaultItems action on each successful decryption (verified: true), (2) the verifyPin action on each failed attempt (verified: false, vaultItemId: null). Make logVaultAccess an internalMutation so it cannot be called directly from the client. Confirm the accessedAt field uses Date.now() server-side (not client-provided) to prevent timestamp spoofing. Write a getVaultAccessLog query restricted to the property owner (verify ctx.auth userId matches property ownerId) for the trip report and activity feed.",
       "dependsOn": [
         "US-050"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-053",
@@ -212,6 +213,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T00:58:11.041Z"
+    "updatedAt": "2026-02-20T01:04:15.422Z"
   }
 }

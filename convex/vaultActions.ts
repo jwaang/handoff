@@ -311,6 +311,12 @@ export const verifyPin = action({
     const expectedHash = hashPin(args.pin, record.salt);
     if (expectedHash !== record.hashedPin) {
       await ctx.runMutation(internal.vaultPins._incrementAttempt, { pinId: record._id });
+      // Log the failed verification attempt (verified: false, no vaultItemId)
+      await ctx.runMutation(internal.vaultAccessLog.logVaultAccess, {
+        tripId: args.tripId,
+        sitterPhone: normalizedPhone,
+        verified: false,
+      });
       return { success: false as const, error: "INVALID_PIN" as const };
     }
 
@@ -472,7 +478,20 @@ export const getDecryptedVaultItems = action({
       }),
     );
 
-    // 5. Log vault access to the activity log
+    // 5. Log each item access to the vault access log (one entry per item viewed)
+    await Promise.all(
+      rawItems.map((item) =>
+        ctx.runMutation(internal.vaultAccessLog.logVaultAccess, {
+          tripId: args.tripId,
+          vaultItemId: item._id,
+          sitterPhone: normalizedPhone,
+          sitterName: sitter.name,
+          verified: true,
+        }),
+      ),
+    );
+
+    // Also log a summary event to the general activity log
     await ctx.runMutation(internal.vaultItems._logVaultAccess, {
       tripId: args.tripId,
       propertyId: args.propertyId,
@@ -563,12 +582,20 @@ export const getDecryptedVaultItem = action({
       return { success: false as const, error: "NOT_VERIFIED" as const };
     }
 
-    // 5. Decrypt and return the value
+    // 5. Decrypt and log the access
+    let value: string;
     try {
-      const value = decryptValue(item.encryptedValue);
-      return { success: true as const, value };
+      value = decryptValue(item.encryptedValue);
     } catch {
       throw new Error("Failed to decrypt vault item. Contact support if this persists.");
     }
+    await ctx.runMutation(internal.vaultAccessLog.logVaultAccess, {
+      tripId: args.tripId,
+      vaultItemId: args.vaultItemId,
+      sitterPhone: normalizedPhone,
+      sitterName: sitter.name,
+      verified: true,
+    });
+    return { success: true as const, value };
   },
 });

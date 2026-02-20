@@ -923,3 +923,18 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Access-denied phase in VaultTab**: Added `access_denied` as a Phase enum value with a `accessDeniedReason` string state. When `getDecryptedVaultItems` returns `TRIP_INACTIVE` or `NOT_REGISTERED`/`VAULT_ACCESS_DENIED`, set both states and render the `AccessDeniedState` component with the vault lock icon and specific message.
   - **internalQuery in api.d.ts**: New internal functions (internalQuery/internalMutation) on existing modules are automatically typed via the `typeof locationCards` / `typeof vaultItems` pattern in `api.d.ts` — no manual api.d.ts update needed for functions on existing modules.
 ---
+
+## 2026-02-19 - US-052
+- Implemented vault access logging with a dedicated `vaultAccessLog` table for per-item audit trail and failed PIN tracking
+- **Files changed:**
+  - `convex/schema.ts` — Added `vaultAccessLog` table with fields: `tripId`, `vaultItemId` (optional, null for failed PINs), `sitterPhone`, `sitterName` (optional), `accessedAt` (server-side Date.now()), `verified` (boolean); index: `by_trip_accessed` on `[tripId, accessedAt]`
+  - `convex/vaultAccessLog.ts` — New module: `logVaultAccess` internalMutation (inserts per-item or per-failed-attempt log entry, accessedAt always server-side); `getVaultAccessLog` query (owner-restricted via userId + trip.propertyId.ownerId ownership check, returns desc by accessedAt)
+  - `convex/vaultActions.ts` — `getDecryptedVaultItems`: added `Promise.all(rawItems.map(...))` to log each item individually to `vaultAccessLog` (verified: true), kept existing `_logVaultAccess` for general activityLog; `getDecryptedVaultItem`: added single-item log after successful decryption; `verifyPin`: added log entry on INVALID_PIN (verified: false, no vaultItemId)
+  - `convex/_generated/api.d.ts` — Added `vaultAccessLog` module import and declaration in `fullApi`
+- **Learnings:**
+  - **Separate audit table vs generic activityLog**: When you need per-item granularity (which specific vault item was accessed), create a dedicated audit table with a typed `vaultItemId` field instead of adding freeform strings to a generic event log. The generic `activityLog` can still hold summary events for the activity feed.
+  - **Server-side timestamps in Convex**: Always use `Date.now()` inside the internalMutation handler for audit timestamps — never accept client-provided timestamps. This prevents sitters from spoofing accessedAt values by altering their request payload.
+  - **Owner auth pattern in Convex queries (custom auth)**: Since the app uses custom token auth (not Convex built-in auth), owner-restricted queries accept `userId: v.id("users")` as an arg, then verify `property.ownerId === args.userId` server-side. Match pattern from `properties.listByOwner`.
+  - **Per-item logging with Promise.all**: When logging N items in parallel, use `await Promise.all(rawItems.map((item) => ctx.runMutation(internal.vaultAccessLog.logVaultAccess, {...})))` — this creates N concurrent mutation calls which Convex handles efficiently.
+  - **New Convex module in api.d.ts**: Add both the import (`import type * as vaultAccessLog from "../vaultAccessLog.js"`) and the `fullApi` entry (`vaultAccessLog: typeof vaultAccessLog`) in alphabetical order relative to other vault modules.
+---

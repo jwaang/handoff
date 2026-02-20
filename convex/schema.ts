@@ -200,6 +200,18 @@ export default defineSchema({
     .index("by_trip", ["tripId"])
     .index("by_property", ["propertyId"]),
 
+  // Per-item vault access log — one entry per item viewed (verified: true) or per failed
+  // PIN attempt (verified: false, vaultItemId: undefined). accessedAt is always set
+  // server-side (Date.now()) to prevent timestamp spoofing.
+  vaultAccessLog: defineTable({
+    tripId: v.id("trips"),
+    vaultItemId: v.optional(v.id("vaultItems")), // undefined for failed PIN attempts
+    sitterPhone: v.string(),
+    sitterName: v.optional(v.string()),
+    accessedAt: v.number(), // Date.now() set server-side
+    verified: v.boolean(), // true = successful item view, false = failed PIN attempt
+  }).index("by_trip_accessed", ["tripId", "accessedAt"]),
+
   // Vault SMS PIN verification — pending PIN attempts and verified sessions.
   // A record transitions from pending (attemptCount >= 0, verified=undefined) to
   // verified (verified=true, expiresAt extended to 24h) on successful PIN entry.
