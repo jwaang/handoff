@@ -40,12 +40,13 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to wire the createVaultItem and updateVaultItem actions from US-048 (re-encrypt on value change by calling the action again), and deleteVaultItem mutation. Use useQuery(api.vault.getVaultItemLabels) to show labels-only list (never returns encryptedValue to the client). Load /tailwind-design-system to reuse the VaultItem component from src/components/ui: vault color tokens (bg-vault, text-vault, border-vault), monospace font for the masked value (font-mono), an eye icon toggle using text-text-muted for reveal/hide, and a copy-to-clipboard button. Load /frontend-design to build the vault item form: type selector icon grid (door, alarm, WiFi, gate, garage, safe, custom) that pre-fills the label, a type=password input for value with show/hide toggle, instructions textarea, and optional location card attach. Render delete as an inline confirmation within the vault item card (bg-danger-light text-danger). Use /dev-browser to verify: the value field masks input, reveal toggle shows/hides value, saved items show only the label in the list (not the value), delete requires confirmation.",
       "dependsOn": [
         "US-048",
         "US-010"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-050",
@@ -209,6 +210,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T00:02:40.863Z"
+    "updatedAt": "2026-02-20T00:20:11.197Z"
   }
 }

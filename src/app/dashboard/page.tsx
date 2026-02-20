@@ -392,6 +392,12 @@ function DashboardOverview({ email, onNavigateToTrips }: DashboardOverviewProps)
             >
               Sections →
             </Link>
+            <Link
+              href="/dashboard/property/vault"
+              className="font-body text-xs font-semibold text-vault hover:text-vault-hover transition-colors duration-150"
+            >
+              Vault →
+            </Link>
           </div>
         </div>
         <EmptyStateCard

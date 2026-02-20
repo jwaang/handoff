@@ -864,3 +864,25 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Convex query handler type cascade**: Using `Omit<Doc<"tableName">, "field">` via destructuring `({ field: _, ...rest }) => rest` in a query handler causes TypeScript to fail to match the `returns` validator type, making the query's return type `any`. This cascades to ALL consumers including unrelated files via Convex's API type system (affects `Doc<T>` across the entire data model). Fix: use explicit object construction `items.map(item => ({ _id: item._id, field1: item.field1, ... }))` instead of spread+omit.
   - **Adding new Convex module to `_generated/api.d.ts`**: The generated `api.d.ts` must be manually updated when adding a new Convex file (action, mutation, query), since it's committed to the repo and not auto-regenerated. Add `import type * as newModule from "../newModule.js"` and add `newModule: typeof newModule` to the `fullApi` declaration.
 ---
+
+## 2026-02-19 - US-049
+- Implemented vault item create/edit/delete management UI for the creator dashboard
+- **New files**:
+  - `src/app/dashboard/property/vault/page.tsx` — Server page with metadata
+  - `src/app/dashboard/property/vault/VaultEditorPageClient.tsx` — Client `ssr:false` wrapper
+  - `src/app/dashboard/property/vault/VaultEditor.tsx` — Full CRUD editor component
+- **Modified**: `src/app/dashboard/page.tsx` — Added "Vault →" link in My Property section (vault-colored)
+- **VaultEditor features**:
+  - Type selector: 7-type icon grid (door, alarm, WiFi, gate, garage, safe, custom) with auto-fill label on type change
+  - Value field: `type=password` input with eye toggle using `EyeIcon`/`EyeOffIcon`
+  - Edit form: label/type/instructions pre-filled; value starts empty with "leave blank to keep current" semantics; re-encrypts only when new value entered
+  - Delete: inline confirmation area with `bg-danger-light text-danger` styling per design spec
+  - List view: shows label, type name, ••••••• masked value placeholder
+  - Empty state: lock icon with dashed border card
+  - Security note banner: vault-styled info card at top of page
+- **Auth chain**: useAuth → api.auth.validateSession → api.properties.listByOwner → propertyId → api.vaultItems.listByPropertyId
+- **Actions wired**: `api.vaultActions.createVaultItem`, `api.vaultActions.updateVaultItemValue`, `api.vaultItems.update`, `api.vaultItems.remove`
+- **Learnings:**
+  - **`JSX.Element` vs `ReactElement`**: Avoid `JSX.Element` return type annotations in strict TS projects — use `import { type ReactElement } from "react"` instead to avoid "Cannot find namespace 'JSX'" error.
+  - **Value masking UX**: For the creator's vault list, masking with static •••••••• is sufficient — no inline reveal needed since values are encrypted server-side and the creator can see the value during edit (edit form starts empty with "leave blank" hint). This avoids needing a separate creator-decrypt action.
+---

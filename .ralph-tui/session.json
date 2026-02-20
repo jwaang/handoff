@@ -3,10 +3,10 @@
   "sessionId": "913330bb-95b7-486e-abb8-ad70e88a5dbf",
   "status": "running",
   "startedAt": "2026-02-19T23:44:47.854Z",
-  "updatedAt": "2026-02-20T00:02:40.865Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-02-20T00:20:11.200Z",
+  "currentIteration": 1,
   "maxIterations": 10,
-  "tasksCompleted": 0,
+  "tasksCompleted": 1,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -17,8 +17,8 @@
       {
         "id": "US-048",
         "title": "Vault data model and encryption",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-049",
@@ -70,9 +70,20 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-048",
+      "taskTitle": "Vault data model and encryption",
+      "taskCompleted": true,
+      "durationMs": 1071810,
+      "startedAt": "2026-02-19T23:44:49.052Z",
+      "endedAt": "2026-02-20T00:02:40.862Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "/Users/john/Coding/handoff",
   "activeTaskIds": [],
-  "subagentPanelVisible": false
+  "subagentPanelVisible": true
 }

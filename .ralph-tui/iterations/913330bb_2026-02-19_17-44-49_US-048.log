@@ -1,0 +1,279 @@
+# Iteration 1 Log
+
+## Metadata
+
+- **Task ID**: US-048
+- **Task Title**: Vault data model and encryption
+- **Description**: As a developer, I need vault items stored with encryption at rest so sensitive credentials are protected.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T23:44:49.052Z
+- **Ended At**: 2026-02-20T00:02:40.862Z
+- **Duration**: 17m 51s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/**/*[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/docs/handoff-tasks/epic-06-vault.json[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/vaultActions.ts[0m
+Let me look at existing action patterns in the codebase:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/authActions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/auth.ts[0m
+Let me check for any frontend references to vault item fields:
+[94m[Grep][0m [95m/Users/john/Coding/handoff/src[0m pattern: [96mvaultItem|vault_item|\.value|\.type[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/**/*.{ts,tsx}[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/components/ui/VaultItem.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/sitters.ts[0m
+Let me check the generated types to understand what I need to work with:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/_generated/dataModel.d.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/_generated/api.d.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/_generated/api.js[0m
+Now I have a full picture. Let me set up my todos and start implementing:
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  vaultItems: defineTable({
+    propertyId: v.id("..." → "  vaultItems: defineTable({
+    propertyId: v.id("..."
+[94m[TodoWrite][0m
+Now rewrite vaultItems.ts:
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m "import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+
+const vaultItemType = ... (4064 chars)"
+[94m[TodoWrite][0m
+Now add internal queries to trips.ts and sitters.ts:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "import { mutation, query, internalMutation } from ..." → "import { mutation, query, internalMutation, intern..."
+
+[91m[Error: <tool_use_error>File has not been read yet. Read it first before writing to it.</tool_use_error>][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "import { mutation, query, internalMutation } from ..." → "import { mutation, query, internalMutation, intern..."
+
+[91m[Error: <tool_use_error>File has not been read yet. Read it first before writing to it.</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "import { mutation, query, internalMutation } from ..." → "import { mutation, query, internalMutation, intern..."
+Now add the internal query at the end of trips.ts:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "// Internal: daily batch job — find all active tri..." → "// Internal: fetch a trip by ID — used by vaultAct..."
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/sitters.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/sitters.ts[0m edit: "import { mutation, query } from "./_generated/serv..." → "import { mutation, query, internalQuery } from "./..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/sitters.ts[0m edit: "export const remove = mutation({
+  args: { sitterI..." → "export const remove = mutation({
+  args: { sitterI..."
+[94m[TodoWrite][0m
+Now create the vault actions with AES-256-GCM encryption:
+[94m[Write][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m ""use node";
+
+/**
+ * Vault encryption actions — runs in Node.js runtime for access to crypto APIs.
+ *
+ * KEY MANAGEMENT STRATEGY
+ * ========================
+ * One symmetric AES-256-GCM key per Convex ... (8017 chars)"
+[94m[TodoWrite][0m
+Now update api.d.ts to include vaultActions:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/_generated/api.d.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/_generated/api.d.ts[0m edit: "import type * as users from "../users.js";
+import ..." → "import type * as users from "../users.js";
+import ..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/_generated/api.d.ts[0m edit: "  users: typeof users;
+  vaultItems: typeof vaultI..." → "  users: typeof users;
+  vaultActions: typeof vaul..."
+[94m[TodoWrite][0m
+Now update Step3Access.tsx to use the new action and field names:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "import { useState } from "react";
+import { useRout..." → "import { useState } from "react";
+import { useRout..."
+Now update VaultFormValues to use `itemType` instead of `type`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "interface VaultFormValues {
+  type: VaultItemType ..." → "interface VaultFormValues {
+  itemType: VaultItemT..."
+Now update SavedVaultItem to use `itemType` instead of `type` and remove the value display (encrypted, not available):
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "function SavedVaultItem({
+  item,
+  onRemove,
+}: {..." → "// Doc<"vaultItems"> via listByPropertyId omits en..."
+Now update the VaultForm to use `itemType` instead of `type`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "  const selectType = (type: VaultItemType) => {
+  ..." → "  const selectType = (type: VaultItemType) => {
+  ..."
+Now update the type selector UI in the form to use `itemType`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "          <div className="grid grid-cols-4 gap-2">..." → "          <div className="grid grid-cols-4 gap-2">..."
+Now update the main Step3Access component to use `useAction` and the new `createVaultItem` action:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "  const createVaultItem = useMutation(api.vaultIte..." → "  const createVaultItem = useAction(api.vaultActio..."
+Now update the handleSave to use `itemType`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "    if (!data.type) return;
+
+    setIsSaving(true)..." → "    if (!data.itemType) return;
+
+    setIsSaving(t..."
+Now update the placeholder in the MaskedInput that references `formData.type`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m edit: "          placeholder={
+            formData.type ..." → "          placeholder={
+            formData.itemT..."
+Now let me also check if `EyeIcon` and `EyeOffIcon` are still used after removing the reveal toggle from SavedVaultItem:
+[94m[Grep][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m pattern: [96mEyeIcon|EyeOffIcon[0m
+[94m[TodoWrite][0m
+[94m[Bash][0m Run TypeScript type check $ pnpm typecheck 2>&1
+
+[91m[Error: Exit code 2
+
+> handoff@0.1.0 typecheck /Users/john/Coding/handoff
+> tsc --noEmit
+
+convex/vaultActions.ts(106,14): error TS7022: 'createVaultItem' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+convex/vaultActions.ts(117,3): error TS7023: 'handler' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/app/dashboard/property/pets/PetsEditor.tsx(1010,27): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/dashboard/property/pets/PetsEditor.tsx(1010,32): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(395,29): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(395,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(612,34): error TS7006: Parameter 'instruction' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(612,47): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(773,59): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(774,47): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(774,52): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(885,34): error TS7006: Parameter 'section' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(885,43): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/trip/[tripId]/overlay/OverlayStepInner.tsx(488,27): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/trip/[tripId]/proof/ProofStepInner.tsx(145,45): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/app/trip/[tripId]/proof/ProofStepInner.tsx(151,44): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/app/trip/[tripId]/sitters/SittersStepInner.tsx(575,29): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step2Pets.tsx(753,23): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/wizard/[step]/Step3Access.tsx(536,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(429,8): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(429,13): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(479,26): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(479,35): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(343,29): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(343,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(452,34): error TS7006: Parameter 'instruction' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(452,47): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(592,54): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(598,47): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(598,52): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(607,39): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(734,34): error TS7006: Parameter 'section' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(89,38): error TS7006: Parameter 'inst' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(164,40): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(200,24): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(228,28): error TS7006: Parameter 'section' implicitly has an 'any' type.
+ ELIFECYCLE  Command failed with exit code 2.
+
+
+> handoff@0.1.0 typecheck /Users/john/Coding/handoff
+> tsc --noEmit
+
+convex/vaultActions.ts(106,14): error TS7022: 'createVaultItem' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+convex/vaultActions.ts(117,3): error TS7023: 'handler' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/app/dashboard/property/pets/PetsEditor.tsx(1010,27): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/dashboard/property/pets/PetsEditor.tsx(1010,32): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(395,29): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(395,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(612,34): error TS7006: Parameter 'instruction' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(612,47): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(773,59): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(774,47): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(774,52): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(885,34): error TS7006: Parameter 'section' implicitly has an 'any' type.
+src/app/dashboard/property/sections/SectionsEditor.tsx(885,43): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/trip/[tripId]/overlay/OverlayStepInner.tsx(488,27): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/trip/[tripId]/proof/ProofStepInner.tsx(145,45): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/app/trip/[tripId]/proof/ProofStepInner.tsx(151,44): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/app/trip/[tripId]/sitters/SittersStepInner.tsx(575,29): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step2Pets.tsx(753,23): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/wizard/[step]/Step3Access.tsx(536,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(429,8): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(429,13): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(479,26): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/app/wizard/[step]/Step4Contacts.tsx(479,35): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(343,29): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(343,34): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(452,34): error TS7006: Parameter 'instruction' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(452,47): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(592,54): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(598,47): error TS7006: Parameter 'max' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(598,52): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(607,39): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/wizard/[step]/Step5Sections.tsx(734,34): error TS7006: Parameter 'section' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(89,38): error TS7006: Parameter 'inst' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(164,40): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(200,24): error TS7006: Parameter 'pet' implicitly has an 'any' type.
+src/app/wizard/[step]/Step6Review.tsx(228,28): error TS7006: Parameter 'section' implicitly has an 'any' type.
+ ELIFECYCLE  Command failed with exit code 2.][0m
+Let me look at the two files that need fixing - the vaultActions.ts issue (circular reference) and Step3Access.tsx line ~536:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/wizard/[step]/Step3Access.tsx[0m
+The circular reference error in vaultActions.ts is caused by TypeScript not being able to infer the handler return type. I need to add explicit return type annotations. Let me also check if the Step3Access error is new by looking at what the pre-existing errors were:
+[94m[Bash][0m Check pre-existing typecheck errors before my changes $ git stash && pnpm typecheck 2>&1 | head -20
+I only got the first 20 lines of the stash output. Let me restore my changes and get the full picture:
+[94m[Bash][0m Restore my changes from stash $ git stash pop 2>&1
+Let me check the tsconfig.json and also verify if the TS7006 errors are pre-existing:
+[94m[Bash][0m Check if TS7006 errors are pre-existing by temporarily reverting tracked files $ git stash pop
+The TS7006 errors are introduced by my changes (count was 0 before). Let me read the affected files to understand the cascade:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/dashboard/property/pets/PetsEditor.tsx[0m
+The cascade is likely caused by the `Omit` destructuring pattern in `listByPropertyId` confusing TypeScript's type inference. Let me fix both issues - use explicit object construction instead, and add return type annotations to vaultActions.ts:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultItems.ts[0m edit: "    // Strip encryptedValue — clients should never..." → "    // Explicitly construct label objects — encryp..."
+Now fix the circular reference in vaultActions.ts by adding explicit return type annotations to the handlers:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "import { action } from "./_generated/server";
+impo..." → "import { action } from "./_generated/server";
+impo..."
+Now add explicit return type annotations to the three handlers:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "  returns: v.id("vaultItems"),
+  handler: async (c..." → "  returns: v.id("vaultItems"),
+  handler: async (c..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "  returns: v.null(),
+  handler: async (ctx, args) ..." → "  returns: v.null(),
+  handler: async (ctx, args):..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "  handler: async (ctx, args) => {
+    // 1. Load t..." → "  handler: async (ctx, args): Promise<
+    | { suc..."
+Now run typecheck again:
+[94m[Bash][0m Run TypeScript type check after fixes $ pnpm typecheck 2>&1
+Typecheck passes. Now run lint:
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+Lint passes (only a pre-existing warning). Now run build:
+[94m[Bash][0m Run production build $ pnpm build 2>&1
+All three quality checks pass. Let me update the todo list and then document the work:
+[94m[TodoWrite][0m
+Now document learnings in progress.md:
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (29006 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m Count lines in progress.md $ wc -l /Users/john/Coding/handoff/.ralph-tui/progress.md
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - **`useCallback` + stable computed values**: `t..." → "  - **`useCallback` + stable computed values**: `t..."
+Also update the Codebase Patterns section with the key new patterns:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "- **Convex `"use node"` TypeScript inference**: Ac..." → "- **Convex `"use node"` TypeScript inference**: Ac..."
+All done. Let me do a final verification:
+[94m[Bash][0m Final verification of all quality checks $ pnpm typecheck 2>&1 && echo "✓ typecheck" && pnpm lint 2>&1 | tail -3 && echo "✓ lint" && pnpm build...
+All three checks pass. Here's a summary of what was implemented for US-048:
+
+**Schema** (`convex/schema.ts`): `vaultItems` table updated — `type` → `itemType`, `value` → `encryptedValue` (stores AES-256-GCM ciphertext+IV as base64 JSON), added `locationCardId`.
+
+**`convex/vaultActions.ts`** (new): Node.js action file with AES-256-GCM encryption using `node:crypto`. Three actions:
+- `createVaultItem` — encrypts plaintext before storing via internal mutation
+- `updateVaultItemValue` — re-encrypts on value change  
+- `getDecryptedVaultItem` — three-layer access check (item exists → trip active → sitter registered with vaultAccess) before decrypting; TODO placeholder for US-050 SMS PIN check
+
+**`convex/vaultItems.ts`**: Removed public `create` mutation. Added `_insert`, `_patchEncrypted` internalMutations and `_getById` internalQuery (callable from actions only). `listByPropertyId` returns labels-only — never sends `encryptedValue` to the client.
+
+**Key management**: Documented in `vaultActions.ts` header — single AES-256-GCM key per deployment stored as `VAULT_ENCRYPTION_KEY` Convex env var (base64-encoded 32 bytes), with a rotation procedure using `VAULT_ENCRYPTION_KEY_PREVIOUS`.
+
+<promise>COMPLETE</promise>
