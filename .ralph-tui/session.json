@@ -3,10 +3,10 @@
   "sessionId": "913330bb-95b7-486e-abb8-ad70e88a5dbf",
   "status": "running",
   "startedAt": "2026-02-19T23:44:47.854Z",
-  "updatedAt": "2026-02-20T01:19:25.230Z",
-  "currentIteration": 6,
+  "updatedAt": "2026-02-20T01:25:20.794Z",
+  "currentIteration": 7,
   "maxIterations": 10,
-  "tasksCompleted": 6,
+  "tasksCompleted": 7,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -53,8 +53,8 @@
       {
         "id": "US-054",
         "title": "Vault auto-expiration on trip end",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-055",
@@ -130,6 +130,16 @@
       "durationMs": 696588,
       "startedAt": "2026-02-20T01:04:15.548Z",
       "endedAt": "2026-02-20T01:15:52.136Z"
+    },
+    {
+      "iteration": 7,
+      "status": "completed",
+      "taskId": "US-054",
+      "taskTitle": "Vault auto-expiration on trip end",
+      "taskCompleted": true,
+      "durationMs": 212941,
+      "startedAt": "2026-02-20T01:15:52.283Z",
+      "endedAt": "2026-02-20T01:19:25.224Z"
     }
   ],
   "skippedTaskIds": [],

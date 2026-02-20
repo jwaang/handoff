@@ -971,3 +971,16 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **String date comparison for YYYY-MM-DD works correctly**: `trip.endDate < today` where both are ISO date strings in `YYYY-MM-DD` format does correct chronological comparison (lexicographic = chronological for this format). Don't use `Date.now()` directly — compare string-to-string.
   - **Most US-054 acceptance criteria were satisfied by prior stories**: The actual implementation gap was only the inline `endDate < today` check in actions. Checking `trip.status !== "active"` alone wouldn't catch the cron gap. Checking `endDate` bridges this window.
 ---
+
+## 2026-02-19 - US-055
+- Implemented one-click vault access revocation for trip owners
+- **Files changed:**
+  - `convex/sitters.ts` — Added `revokeSitterVaultAccess` mutation: looks up sitter, sets `vaultAccess = false`, deletes any active VaultPin session for the sitter (normalizes phone number to 10 digits, queries `vaultPins` by `by_trip_phone` index)
+  - `src/app/trip/[tripId]/sitters/SittersStepInner.tsx` — Added `onRevoke` prop to `SitterCard`, inline `confirmRevoke` state + `bg-danger-light` confirmation banner with "Revoke vault access for [name]?" text, "Revoke Access" button (shown only when `vaultAccess === true`), `revokeVaultAccess` mutation call in `SittersStep`, `toastSitterName` state for success toast, fixed-position `NotificationToast` on successful revocation
+  - `src/app/t/[tripId]/VaultTab.tsx` — Added `"VAULT_ACCESS_REVOKED"` to `AccessDeniedReason` type, updated `AccessDeniedState` to show "Your access has been revoked" + "The homeowner has revoked your vault access" detail, updated `getDecryptedVaultItems` `useEffect` to map `VAULT_ACCESS_DENIED` error → `VAULT_ACCESS_REVOKED` reason + clear sessionStorage, updated `sendSmsPin` error handling to show "Your access has been revoked" message
+- **Learnings:**
+  - **Convex mutations can directly query/delete cross-table**: A `mutation` handler can use `ctx.db.query("vaultPins")` and `ctx.db.delete()` directly without needing an internal helper — no need to promote to an action just to clean up related records.
+  - **VaultPin phone normalization at revoke time**: The sitter's stored phone may have formatting (+1, dashes, parens) while VaultPins store the normalized 10-digit form. Normalize inline in the mutation using the same `replace(/\D/g, "")` + `startsWith("1") ? slice(1) : digits` pattern from `vaultActions.ts`.
+  - **Differentiate `VAULT_ACCESS_DENIED` from `NOT_REGISTERED`**: The Convex action returns `VAULT_ACCESS_DENIED` when `sitter.vaultAccess === false` and `NOT_REGISTERED` when sitter not found. These warrant different UI messages — "access revoked" vs "not registered." Map them to separate `AccessDeniedReason` values in the client.
+  - **Clear sessionStorage on access_denied**: When a sitter's vault access is revoked while they have an active session, `getDecryptedVaultItems` returns `VAULT_ACCESS_DENIED`. Clear `sessionStorage` (vault_verified key) at that point so the sitter doesn't get stuck in an infinite `loading_items` loop on next render.
+---

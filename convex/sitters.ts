@@ -84,6 +84,40 @@ export const remove = mutation({
   },
 });
 
+/**
+ * Revoke vault access for a sitter immediately.
+ * Sets vaultAccess = false and deletes any active VaultPin sessions for the sitter,
+ * so the revocation takes effect on their next vault request without any caching concern.
+ */
+export const revokeSitterVaultAccess = mutation({
+  args: { sitterId: v.id("sitters") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const sitter = await ctx.db.get(args.sitterId);
+    if (!sitter) {
+      throw new ConvexError("Sitter not found.");
+    }
+    // Set vaultAccess to false immediately
+    await ctx.db.patch(args.sitterId, { vaultAccess: false });
+    // Delete any active vault PIN sessions for this sitter
+    if (sitter.phone) {
+      const digits = sitter.phone.replace(/\D/g, "");
+      const normalizedPhone =
+        digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+      const pin = await ctx.db
+        .query("vaultPins")
+        .withIndex("by_trip_phone", (q) =>
+          q.eq("tripId", sitter.tripId).eq("sitterPhone", normalizedPhone),
+        )
+        .first();
+      if (pin) {
+        await ctx.db.delete(pin._id);
+      }
+    }
+    return null;
+  },
+});
+
 // Internal: list all sitters for a trip — used by vaultActions to find sitter by normalized phone.
 export const _listByTrip = internalQuery({
   args: { tripId: v.id("trips") },

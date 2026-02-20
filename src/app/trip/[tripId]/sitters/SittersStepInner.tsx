@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -204,68 +205,110 @@ interface SitterCardProps {
   };
   onEdit: (id: Id<"sitters">) => void;
   onRemove: (id: Id<"sitters">) => void;
+  onRevoke: (id: Id<"sitters">, name: string) => void;
 }
 
-function SitterCard({ sitter, onEdit, onRemove }: SitterCardProps) {
+function SitterCard({ sitter, onEdit, onRemove, onRevoke }: SitterCardProps) {
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   return (
-    <div className="bg-bg-raised rounded-lg border border-border-default p-4 flex items-center gap-4">
-      {/* Vault icon */}
-      <div className={sitter.vaultAccess ? "text-vault" : "text-text-muted"}>
-        {sitter.vaultAccess ? <LockIcon /> : <LockOpenIcon />}
+    <div className="bg-bg-raised rounded-lg border border-border-default p-4 flex flex-col gap-3">
+      <div className="flex items-center gap-4">
+        {/* Vault icon */}
+        <div className={sitter.vaultAccess ? "text-vault" : "text-text-muted"}>
+          {sitter.vaultAccess ? <LockIcon /> : <LockOpenIcon />}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-body text-sm font-semibold text-text-primary truncate">
+            {sitter.name}
+          </p>
+          <p className="font-body text-xs text-text-secondary">
+            {sitter.phone ?? "No phone"}&nbsp;·&nbsp;
+            {sitter.vaultAccess ? (
+              <span className="text-vault font-semibold">Vault access on</span>
+            ) : (
+              <span className="text-text-muted">No vault access</span>
+            )}
+          </p>
+        </div>
+
+        {/* Actions */}
+        {confirmRemove ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="font-body text-xs text-text-muted">Remove?</span>
+            <button
+              onClick={() => onRemove(sitter._id)}
+              className="font-body text-xs font-semibold text-danger hover:underline"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => setConfirmRemove(false)}
+              className="font-body text-xs font-semibold text-text-muted hover:underline"
+            >
+              No
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => onEdit(sitter._id)}
+              className="text-text-muted hover:text-primary transition-colors duration-150"
+              aria-label="Edit sitter"
+            >
+              <PencilIcon />
+            </button>
+            <button
+              onClick={() => setConfirmRemove(true)}
+              className="text-text-muted hover:text-danger transition-colors duration-150"
+              aria-label="Remove sitter"
+            >
+              <TrashIcon />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="font-body text-sm font-semibold text-text-primary truncate">
-          {sitter.name}
-        </p>
-        <p className="font-body text-xs text-text-secondary">
-          {sitter.phone ?? "No phone"}&nbsp;·&nbsp;
-          {sitter.vaultAccess ? (
-            <span className="text-vault font-semibold">Vault access on</span>
-          ) : (
-            <span className="text-text-muted">No vault access</span>
-          )}
-        </p>
-      </div>
-
-      {/* Actions */}
-      {confirmRemove ? (
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="font-body text-xs text-text-muted">Remove?</span>
+      {/* Revoke access confirmation */}
+      {confirmRevoke ? (
+        <div className="bg-danger-light rounded-lg px-3 py-2.5 flex flex-col gap-2">
+          <p className="font-body text-xs font-semibold text-danger">
+            Revoke vault access for {sitter.name}?
+          </p>
+          <p className="font-body text-xs text-danger" style={{ opacity: 0.8 }}>
+            They won&apos;t be able to view secure codes. This takes effect immediately.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setConfirmRevoke(false);
+                onRevoke(sitter._id, sitter.name);
+              }}
+              className="font-body text-xs font-semibold text-danger hover:underline"
+            >
+              Yes, revoke access
+            </button>
+            <button
+              onClick={() => setConfirmRevoke(false)}
+              className="font-body text-xs font-semibold text-text-muted hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : sitter.vaultAccess ? (
+        <div className="flex justify-end">
           <button
-            onClick={() => onRemove(sitter._id)}
-            className="font-body text-xs font-semibold text-danger hover:underline"
+            onClick={() => setConfirmRevoke(true)}
+            className="font-body text-xs font-semibold text-danger hover:text-danger underline transition-colors duration-150"
           >
-            Yes
-          </button>
-          <button
-            onClick={() => setConfirmRemove(false)}
-            className="font-body text-xs font-semibold text-text-muted hover:underline"
-          >
-            No
+            Revoke Access
           </button>
         </div>
-      ) : (
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => onEdit(sitter._id)}
-            className="text-text-muted hover:text-primary transition-colors duration-150"
-            aria-label="Edit sitter"
-          >
-            <PencilIcon />
-          </button>
-          <button
-            onClick={() => setConfirmRemove(true)}
-            className="text-text-muted hover:text-danger transition-colors duration-150"
-            aria-label="Remove sitter"
-          >
-            <TrashIcon />
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -499,12 +542,19 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
   const router = useRouter();
   const sitters = useQuery(api.sitters.listByTrip, { tripId });
   const removeSitter = useMutation(api.sitters.remove);
+  const revokeVaultAccess = useMutation(api.sitters.revokeSitterVaultAccess);
 
   const [editingId, setEditingId] = useState<Id<"sitters"> | null>(null);
+  const [toastSitterName, setToastSitterName] = useState<string | null>(null);
 
   async function handleRemove(id: Id<"sitters">) {
     await removeSitter({ sitterId: id });
     if (editingId === id) setEditingId(null);
+  }
+
+  async function handleRevoke(id: Id<"sitters">, name: string) {
+    await revokeVaultAccess({ sitterId: id });
+    setToastSitterName(name);
   }
 
   function handleContinue() {
@@ -585,6 +635,7 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
                     sitter={s}
                     onEdit={(id) => setEditingId(id)}
                     onRemove={handleRemove}
+                    onRevoke={handleRevoke}
                   />
                 ),
               )}
@@ -612,6 +663,19 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
           </div>
         </div>
       </main>
+
+      {/* Revoke access confirmation toast */}
+      {toastSitterName && (
+        <div className="fixed bottom-6 right-4 z-50">
+          <NotificationToast
+            variant="success"
+            title="Vault access revoked"
+            message={`${toastSitterName} can no longer view secure codes.`}
+            autoDismissMs={4000}
+            onDismiss={() => setToastSitterName(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }

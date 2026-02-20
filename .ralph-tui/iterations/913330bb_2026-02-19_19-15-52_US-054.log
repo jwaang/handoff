@@ -1,0 +1,74 @@
+# Iteration 7 Log
+
+## Metadata
+
+- **Task ID**: US-054
+- **Task Title**: Vault auto-expiration on trip end
+- **Description**: As a system, I need vault access to automatically expire when the trip ends so codes aren't accessible indefinitely.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T01:15:52.283Z
+- **Ended At**: 2026-02-20T01:19:25.224Z
+- **Duration**: 3m 32s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (34195 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/vault*.ts[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/vault*.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/trips*.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+Now let me check the VaultTab to see how it handles the `TRIP_INACTIVE` error:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/VaultTab.tsx[0m
+Now I have a clear picture of what's needed. Let me implement the inline expiration check in `vaultActions.ts`:
+[94m[TodoWrite][0m
+I need to add an inline expiration check to three handlers in `vaultActions.ts`. The check handles the window between when a trip's `endDate` passes and when the daily cron runs.
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "    // 1. Validate trip is active
+    const trip =..." → "    // 1. Validate trip is active
+    const trip =..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "    // 1. Verify trip is active and belongs to the..." → "    // 1. Verify trip is active and belongs to the..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/vaultActions.ts[0m edit: "    // 2. Verify the trip is active and belongs to..." → "    // 2. Verify the trip is active and belongs to..."
+Now let me run typecheck and lint to verify:
+[94m[Bash][0m Run TypeScript typecheck $ pnpm typecheck 2>&1 | tail -20
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1 | tail -20
+Typecheck passes. Lint shows only a pre-existing warning (not from my changes). Let me run the build:
+[94m[Bash][0m Run production build $ pnpm build 2>&1 | tail -30
+All checks pass. Now let me update progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m edit: "  - **ActivityFeedSection env-guard pattern**: New..." → "  - **ActivityFeedSection env-guard pattern**: New..."
+[94m[TodoWrite][0m
+US-054 is complete. Here's a summary of what was implemented:
+
+**What already existed (from US-045/051):**
+- All three vault actions (`sendSmsPin`, `getDecryptedVaultItems`, `getDecryptedVaultItem`) already checked `trip.status !== "active"` → `TRIP_INACTIVE`
+- VaultTab already displays "This handoff is not currently active" + "The trip has ended or hasn't started yet" for `TRIP_INACTIVE`
+- Daily cron expires trips at midnight UTC
+
+**What was missing and added:**
+
+In all three vault action handlers, after the `status !== "active"` check passes, I added an inline lazy expiration check:
+```typescript
+const today = new Date().toISOString().split("T")[0];
+if (trip.endDate < today) {
+  await ctx.runMutation(internal.trips.expireTripInternal, { tripId: args.tripId });
+  return { success: false, error: "TRIP_INACTIVE" };
+}
+```
+
+This handles the window between when `endDate` passes and when the midnight cron runs. Actions (unlike queries) can call `ctx.runMutation`, so they can actually trigger the expiration rather than just returning null.
+
+All checks pass: `pnpm typecheck` ✅, `pnpm lint` ✅ (pre-existing warning only), `pnpm build` ✅
+
+<promise>COMPLETE</promise>

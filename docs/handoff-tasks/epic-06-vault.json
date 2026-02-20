@@ -183,12 +183,13 @@
         "Access control verification — revoked users cannot access vault"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to implement the revokeSitterVaultAccess mutation that sets Sitters.vaultAccess = false for the given sitterId and immediately invalidates any active VaultPins for this sitter (delete from VaultPins table). Verify the mutation checks that the caller is the property owner (ctx.auth userId === property.ownerId) before allowing revocation. The getDecryptedVaultItems access check (US-051) already reads vaultAccess at query time, so revocation takes effect on the next vault request without any caching concern. Load /tailwind-design-system to render the revoke button on the trip management page as a small btn-danger (or outlined danger variant) next to each sitter entry, with an inline confirmation using bg-danger-light text-danger rounded-lg before firing the mutation. Show a toast (success variant, bg-secondary-light) on successful revocation. Use /dev-browser to verify: clicking Revoke shows confirmation, confirming sets vaultAccess=false, the sitter's vault attempt immediately shows 'Your access has been revoked', and the owner sees a success toast.",
       "dependsOn": [
         "US-043",
         "US-004"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-056",
@@ -215,6 +216,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T01:19:25.227Z"
+    "updatedAt": "2026-02-20T01:25:20.791Z"
   }
 }

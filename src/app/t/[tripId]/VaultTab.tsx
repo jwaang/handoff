@@ -20,7 +20,7 @@ type Phase =
   | "revealed"      // Vault items visible
   | "access_denied"; // Trip inactive or sitter not registered
 
-type AccessDeniedReason = "TRIP_INACTIVE" | "NOT_REGISTERED" | "VAULT_ACCESS_DENIED";
+type AccessDeniedReason = "TRIP_INACTIVE" | "NOT_REGISTERED" | "VAULT_ACCESS_REVOKED";
 
 interface DecryptedVaultItem {
   id: string;
@@ -84,11 +84,15 @@ function AccessDeniedState({ reason }: { reason: AccessDeniedReason }) {
   const message =
     reason === "TRIP_INACTIVE"
       ? "This handoff is not currently active"
-      : "You don't have access to secure items";
+      : reason === "VAULT_ACCESS_REVOKED"
+        ? "Your access has been revoked"
+        : "You don't have access to secure items";
   const detail =
     reason === "TRIP_INACTIVE"
       ? "The trip has ended or hasn't started yet. Vault access is only available during active trips."
-      : "Your phone number isn't registered for vault access on this trip. Check with your homeowner.";
+      : reason === "VAULT_ACCESS_REVOKED"
+        ? "The homeowner has revoked your vault access. Contact them if you believe this is a mistake."
+        : "Your phone number isn't registered for vault access on this trip. Check with your homeowner.";
 
   return (
     <div className="bg-bg-raised rounded-xl p-8 flex flex-col items-center text-center gap-4">
@@ -154,11 +158,11 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
         setPhase("revealed");
       } else {
         // Access denied — show typed empty state
-        if (
-          result.error === "TRIP_INACTIVE" ||
-          result.error === "NOT_REGISTERED" ||
-          result.error === "VAULT_ACCESS_DENIED"
-        ) {
+        if (result.error === "VAULT_ACCESS_DENIED") {
+          sessionStorage.removeItem(sessionKey);
+          setAccessDeniedReason("VAULT_ACCESS_REVOKED");
+          setPhase("access_denied");
+        } else if (result.error === "TRIP_INACTIVE" || result.error === "NOT_REGISTERED") {
           setAccessDeniedReason(
             result.error === "TRIP_INACTIVE" ? "TRIP_INACTIVE" : "NOT_REGISTERED",
           );
@@ -197,7 +201,7 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
         if (result.error === "NOT_REGISTERED") {
           setError("You don't have access to secure items. Check with your homeowner.");
         } else if (result.error === "VAULT_ACCESS_DENIED") {
-          setError("You don't have vault access for this trip.");
+          setError("Your access has been revoked. Contact your homeowner if this is a mistake.");
         } else {
           setError("This handoff is not currently active.");
         }
