@@ -984,3 +984,17 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Differentiate `VAULT_ACCESS_DENIED` from `NOT_REGISTERED`**: The Convex action returns `VAULT_ACCESS_DENIED` when `sitter.vaultAccess === false` and `NOT_REGISTERED` when sitter not found. These warrant different UI messages — "access revoked" vs "not registered." Map them to separate `AccessDeniedReason` values in the client.
   - **Clear sessionStorage on access_denied**: When a sitter's vault access is revoked while they have an active session, `getDecryptedVaultItems` returns `VAULT_ACCESS_DENIED`. Clear `sessionStorage` (vault_verified key) at that point so the sitter doesn't get stuck in an infinite `loading_items` loop on next render.
 ---
+
+## 2026-02-19 - US-056
+- Implemented vault hidden state for unregistered viewers
+- **Files changed:**
+  - `src/app/t/[tripId]/VaultTab.tsx` — Removed `useQuery(api.vaultItems.listByPropertyId)` entirely (the main security fix — item labels must never reach unregistered viewers); added `ownerName: string` prop; added `"initial"` phase as default state showing "[propertyName] shared secure info with you — verify your phone number to view" + primary "Verify Phone Number" CTA button; added `notRegisteredNote` state for when phone isn't found; changed `handleSendPin` NOT_REGISTERED path to set `notRegisteredNote` and return to "initial" phase (instead of form error); removed `vaultItemsList` dependency from `useEffect` for loading items; added "Cancel" link in gate phase to return to "initial"
+  - `src/app/t/[tripId]/TodayPageInner.tsx` — Updated property type cast to include `name: string`; passed `ownerName={property.name}` to VaultTab
+  - `src/components/ui/BottomNav.tsx` — Added lock badge indicator on the Vault tab: small `bg-vault` circle with a mini lock SVG in the top-right of the vault icon; shows regardless of registration status or item count
+- **Learnings:**
+  - **Security: never call `listByPropertyId` for unregistered viewers**: The vault labels query was running for ALL sitters (registered or not) before this fix. Remove it entirely from VaultTab — decrypted items come back through `getDecryptedVaultItems` action (which does all access checks) and labels are never needed in the UI separately.
+  - **"initial" phase as security gate**: Adding `"initial"` as the default vault phase (before the phone input form) provides a UX and security improvement: unregistered viewers see a friendly prompt rather than a phone form, and no vault data is fetched until identity is established.
+  - **NOT_REGISTERED → back to initial (not form error)**: When a phone number isn't registered, returning to the "initial" phase with a `notRegisteredNote` is cleaner UX than showing an error inside the form. The sitter can try a different number or contact the homeowner.
+  - **Property name as "owner name"**: The `users` table has no `name` field (only `email`). Use `property.name` as the "owner identifier" in the vault message — e.g., "My Home shared secure info with you". This is available in `todayView.getTodayTasks` return data via `property.name`.
+  - **Lock badge on vault tab**: Use `absolute -top-0.5 -right-0.5` positioning on a `relative` span wrapper around the icon to overlay a small badge. `bg-vault border border-bg-raised` creates a bordered dot that stands out on both light/dark backgrounds.
+---

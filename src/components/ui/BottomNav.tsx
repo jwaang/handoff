@@ -137,8 +137,26 @@ function BottomNav({
             aria-current={isActive ? "page" : undefined}
             onClick={() => handleTap(tab.id)}
           >
-            <span className="flex items-center justify-center w-6 h-6" aria-hidden="true">
+            <span className="relative flex items-center justify-center w-6 h-6" aria-hidden="true">
               {tab.icon}
+              {tab.id === "vault" && (
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-vault border border-bg-raised">
+                  <svg
+                    width="7"
+                    height="7"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-text-on-vault"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+              )}
             </span>
             <span className="font-body text-xs font-medium leading-none">
               {tab.label}

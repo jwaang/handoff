@@ -207,15 +207,16 @@
         "Access control verification — unregistered viewers see zero vault data"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to ensure the vault queries return zero data (not even item count or labels) for unregistered phones — the getVaultForSitter query should check sitter registration first and return { status: 'NOT_REGISTERED' } before touching the VaultItems table. Never return item labels or counts to unregistered users. Load /tailwind-design-system to render the not-registered empty state: a centered vault lock icon in text-vault, the message '[Owner name] shared secure info with you — verify your phone number to view' in font-body text-text-primary, a 'Verify Phone Number' CTA button (btn-primary) that triggers the SMS PIN flow (US-050), all within a bg-bg-raised rounded-xl p-8 container. The Vault tab in the bottom nav should show a lock badge icon (not a count) regardless of registration status to indicate content exists without revealing how much. Use /dev-browser to verify: accessing the vault tab with an unregistered phone shows only the lock message and CTA with no item labels or blurred content, the vault tab badge shows a lock icon, and a registered-but-unverified sitter sees the PIN prompt instead.",
       "dependsOn": [
         "US-010",
         "US-050"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T01:25:20.791Z"
+    "updatedAt": "2026-02-20T01:34:15.646Z"
   }
 }

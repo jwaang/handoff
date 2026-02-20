@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { VaultItem, LockIcon, type VaultItemLocationCard } from "@/components/ui/VaultItem";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 // ── Types ─────────────────────────────────────────────────────────────
 
 type Phase =
+  | "initial"       // Default: shows "[ownerName] shared secure info" CTA — NO vault data exposed
   | "gate"          // Phone input — enter number to request PIN
   | "sending"       // Waiting for sendSmsPin action
   | "pin_entry"     // PIN input — enter 6-digit code
@@ -34,6 +35,8 @@ interface DecryptedVaultItem {
 interface VaultTabProps {
   tripId: Id<"trips">;
   propertyId: Id<"properties">;
+  /** Property name shown in the unregistered-viewer prompt */
+  ownerName: string;
 }
 
 // ── Lock icon for the header ───────────────────────────────────────────
@@ -107,14 +110,15 @@ function AccessDeniedState({ reason }: { reason: AccessDeniedReason }) {
 
 // ── Main VaultTab component ────────────────────────────────────────────
 
-export function VaultTab({ tripId, propertyId }: VaultTabProps) {
+export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
   const sessionKey = `vault_verified_${tripId}`;
   const phoneKey = `vault_phone_${tripId}`;
 
-  // Derive initial state from sessionStorage (SSR-safe)
+  // Derive initial state from sessionStorage (SSR-safe).
+  // Default to "initial" — no vault data is fetched until the sitter identifies themselves.
   const [phase, setPhase] = useState<Phase>(() => {
-    if (typeof window === "undefined") return "gate";
-    return sessionStorage.getItem(sessionKey) === "1" ? "loading_items" : "gate";
+    if (typeof window === "undefined") return "initial";
+    return sessionStorage.getItem(sessionKey) === "1" ? "loading_items" : "initial";
   });
   const [phone, setPhone] = useState<string>(() => {
     if (typeof window === "undefined") return "";
@@ -122,25 +126,23 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
   });
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notRegisteredNote, setNotRegisteredNote] = useState<string | null>(null);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
   const [pinSent, setPinSent] = useState(false); // tracks if we've ever sent a PIN this session
   const [decryptedItems, setDecryptedItems] = useState<DecryptedVaultItem[]>([]);
   const [accessDeniedReason, setAccessDeniedReason] = useState<AccessDeniedReason | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Vault items list — always loaded (just labels, no sensitive data)
-  const vaultItemsList = useQuery(api.vaultItems.listByPropertyId, { propertyId });
-
-  // Actions
+  // Actions — NOTE: we do NOT query vaultItems.listByPropertyId here.
+  // Item labels and counts must never be sent to unregistered viewers.
   const sendPinAction = useAction(api.vaultActions.sendSmsPin);
   const verifyPinAction = useAction(api.vaultActions.verifyPin);
   const getDecryptedItemsAction = useAction(api.vaultActions.getDecryptedVaultItems);
 
-  // Auto-load decrypted items when phase is loading_items and list is ready.
+  // Auto-load decrypted items when phase is loading_items.
   // setState is called inside .then() callbacks, which is the allowed ESLint pattern.
   useEffect(() => {
     if (phase !== "loading_items") return;
-    if (vaultItemsList === undefined) return; // still loading from Convex
 
     let cancelled = false;
     const currentPhone = phone;
@@ -162,11 +164,16 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
           sessionStorage.removeItem(sessionKey);
           setAccessDeniedReason("VAULT_ACCESS_REVOKED");
           setPhase("access_denied");
-        } else if (result.error === "TRIP_INACTIVE" || result.error === "NOT_REGISTERED") {
-          setAccessDeniedReason(
-            result.error === "TRIP_INACTIVE" ? "TRIP_INACTIVE" : "NOT_REGISTERED",
-          );
+        } else if (result.error === "TRIP_INACTIVE") {
+          setAccessDeniedReason("TRIP_INACTIVE");
           setPhase("access_denied");
+        } else if (result.error === "NOT_REGISTERED") {
+          // Unregistered phone (e.g. forwarded link) — send back to initial state
+          sessionStorage.removeItem(sessionKey);
+          setNotRegisteredNote(
+            "This phone number isn't registered for vault access on this trip. Contact your homeowner.",
+          );
+          setPhase("initial");
         } else {
           // NOT_VERIFIED — session expired; send back to gate
           sessionStorage.removeItem(sessionKey);
@@ -179,7 +186,7 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
     return () => {
       cancelled = true;
     };
-  }, [phase, vaultItemsList, tripId, propertyId, phone, getDecryptedItemsAction, sessionKey]);
+  }, [phase, tripId, propertyId, phone, getDecryptedItemsAction, sessionKey]);
 
   async function handleSendPin() {
     if (!phone.trim()) {
@@ -197,13 +204,19 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
         setPinSent(true);
         setPhase("pin_entry");
       } else {
-        setPhase("gate");
         if (result.error === "NOT_REGISTERED") {
-          setError("You don't have access to secure items. Check with your homeowner.");
+          // Phone not in sitter list — go back to initial state with a note
+          setNotRegisteredNote(
+            "This phone number isn't registered for vault access. Check with your homeowner.",
+          );
+          setPhase("initial");
         } else if (result.error === "VAULT_ACCESS_DENIED") {
-          setError("Your access has been revoked. Contact your homeowner if this is a mistake.");
+          setAccessDeniedReason("VAULT_ACCESS_REVOKED");
+          setPhase("access_denied");
         } else {
-          setError("This handoff is not currently active.");
+          // TRIP_INACTIVE
+          setAccessDeniedReason("TRIP_INACTIVE");
+          setPhase("access_denied");
         }
       }
     } catch {
@@ -323,9 +336,7 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
           </p>
         </div>
 
-        {vaultItemsList === undefined || isLoadingItems ? (
-          <VaultSkeleton />
-        ) : decryptedItems.length === 0 ? (
+        {decryptedItems.length === 0 ? (
           <div className="bg-bg-raised rounded-xl border border-dashed border-border-strong p-8 flex flex-col items-center text-center gap-3">
             <span className="text-3xl" aria-hidden="true">
               🔐
@@ -370,7 +381,44 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
     );
   }
 
-  // ── Verification gate ──────────────────────────────────────────────
+  // ── Initial state: unregistered-viewer gate ────────────────────────
+  // Shown to ALL viewers who haven't verified their phone yet.
+  // No vault item labels, counts, or blurred content is ever shown here.
+
+  if (phase === "initial") {
+    return (
+      <div className="bg-bg-raised rounded-xl p-8 flex flex-col items-center text-center gap-6 shadow-sm">
+        <VaultLockIcon />
+        <div className="flex flex-col gap-2">
+          <p className="font-body text-base font-semibold text-text-primary">
+            {ownerName} shared secure info with you
+          </p>
+          <p className="font-body text-sm text-text-muted max-w-[280px]">
+            Verify your phone number to view
+          </p>
+          {notRegisteredNote && (
+            <p className="font-body text-sm text-warning mt-1" role="alert">
+              {notRegisteredNote}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={() => {
+            setNotRegisteredNote(null);
+            setError(null);
+            setPhase("gate");
+          }}
+          className="w-full"
+        >
+          Verify Phone Number
+        </Button>
+      </div>
+    );
+  }
+
+  // ── Verification gate (phone input / PIN entry) ────────────────────
 
   return (
     <div className="flex flex-col gap-6">
@@ -415,6 +463,17 @@ export function VaultTab({ tripId, propertyId }: VaultTabProps) {
             >
               {isSending ? "Sending…" : "Send verification code"}
             </Button>
+            <button
+              type="button"
+              className="font-body text-xs text-text-muted underline cursor-pointer bg-transparent border-none p-0 text-center"
+              onClick={() => {
+                setPhone("");
+                setError(null);
+                setPhase("initial");
+              }}
+            >
+              Cancel
+            </button>
           </>
         ) : (
           /* PIN input */

@@ -338,7 +338,7 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
   const { trip, property, sitters, emergencyContacts, recurringInstructions, todayOverlayItems, completions } =
     data as {
       trip: { startDate: string; endDate: string };
-      property: { _id: Id<"properties"> } | null;
+      property: { _id: Id<"properties">; name: string } | null;
       sitters: Array<{ name: string }>;
       emergencyContacts: Array<{ name: string; role: string; phone: string; isLocked: boolean }>;
       recurringInstructions: Array<{ _id: string; text: string; timeSlot: string; proofRequired: boolean }>;
@@ -394,6 +394,7 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
         <VaultTab
           tripId={tripId as Id<"trips">}
           propertyId={property._id}
+          ownerName={property.name}
         />
       )}
 
