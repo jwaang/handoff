@@ -106,6 +106,24 @@ export const listByProperty = query({
   },
 });
 
+// Public: returns whether a trip is currently active (for the sitter vault gate).
+// Only exposes status — no sensitive trip details.
+export const getTripStatus = query({
+  args: { tripId: v.id("trips") },
+  returns: v.union(
+    v.object({ active: v.literal(true) }),
+    v.object({ active: v.literal(false) }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    const trip = await ctx.db.get(args.tripId);
+    if (!trip) return null;
+    const today = new Date().toISOString().split("T")[0];
+    const active = trip.status === "active" && trip.endDate >= today;
+    return { active: active as true | false };
+  },
+});
+
 export const getActiveTripForProperty = query({
   args: { propertyId: v.id("properties") },
   returns: v.union(tripObject, v.null()),

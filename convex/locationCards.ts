@@ -61,15 +61,28 @@ export const listByParent = query({
       videoUrl: v.optional(v.string()),
       caption: v.optional(v.string()),
       roomTag: v.optional(v.string()),
+      resolvedPhotoUrl: v.union(v.string(), v.null()),
+      resolvedVideoUrl: v.union(v.string(), v.null()),
     }),
   ),
   handler: async (ctx, args) => {
-    return await ctx.db
+    const cards = await ctx.db
       .query("locationCards")
       .withIndex("by_parent", (q) =>
         q.eq("parentId", args.parentId).eq("parentType", args.parentType),
       )
       .collect();
+    return await Promise.all(
+      cards.map(async (card) => ({
+        ...card,
+        resolvedPhotoUrl: card.storageId
+          ? await ctx.storage.getUrl(card.storageId)
+          : (card.photoUrl ?? null),
+        resolvedVideoUrl: card.videoStorageId
+          ? await ctx.storage.getUrl(card.videoStorageId)
+          : (card.videoUrl ?? null),
+      })),
+    );
   },
 });
 
@@ -128,6 +141,8 @@ export const remove = mutation({
       throw new ConvexError({ code: "NOT_FOUND", message: "Location card not found" });
     }
     await ctx.db.delete(args.cardId);
+    if (card.storageId) await ctx.storage.delete(card.storageId);
+    if (card.videoStorageId) await ctx.storage.delete(card.videoStorageId);
     return null;
   },
 });

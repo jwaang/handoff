@@ -563,7 +563,7 @@ export default function ManualView({ propertyId }: ManualViewProps) {
                                     src={card.photoUrl}
                                     caption={card.caption}
                                     room={card.roomTag}
-                                    tilt={TILT_VARIANTS[idx % 3]}
+                                    tilt="neutral"
                                     className="shrink-0 w-[200px]"
                                     videoSrc={card.resolvedVideoUrl ?? undefined}
                                   />

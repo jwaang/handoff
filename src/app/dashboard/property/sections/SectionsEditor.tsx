@@ -9,6 +9,7 @@ import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { useAuth } from "@/lib/authContext";
 import { CreatorLayout } from "@/components/layouts/CreatorLayout";
 import { Button } from "@/components/ui/Button";
+import { LocationCard } from "@/components/ui/LocationCard";
 import { LocationCardUploader } from "@/components/ui/LocationCardUploader";
 import { LocationCardVideoUploader } from "@/components/ui/LocationCardVideoUploader";
 
@@ -198,9 +199,15 @@ function InstructionRow({
   onRemove,
 }: InstructionRowProps) {
   const updateInstruction = useMutation(api.instructions.update);
+  const removeLocationCard = useMutation(api.locationCards.remove);
   const [text, setText] = useState(instruction.text);
   const [showUploader, setShowUploader] = useState(false);
   const [showVideoUploader, setShowVideoUploader] = useState(false);
+
+  const locationCards = useQuery(api.locationCards.listByParent, {
+    parentId: instruction._id as string,
+    parentType: "instruction",
+  });
 
   const handleTextBlur = () => {
     const trimmed = text.trim();
@@ -311,6 +318,36 @@ function InstructionRow({
           </button>
         </div>
       </div>
+
+      {/* Location cards display */}
+      {locationCards && locationCards.length > 0 && (
+        <div className="px-3 pb-3 pt-3 overflow-x-auto">
+          <div className="flex gap-3 pb-1">
+            {locationCards.map((card) => (
+              <div key={card._id} className="relative shrink-0 group">
+                <LocationCard
+                  src={card.resolvedPhotoUrl ?? undefined}
+                  caption={card.caption ?? ""}
+                  room={card.roomTag}
+                  videoSrc={card.resolvedVideoUrl ?? undefined}
+                  tilt="neutral"
+                  className="w-[200px]"
+                />
+                <button
+                  type="button"
+                  onClick={() => void removeLocationCard({ cardId: card._id })}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-round bg-danger text-white flex items-center justify-center hover:bg-red-700 transition-[opacity,background-color] duration-150 shadow-sm z-10 opacity-0 group-hover:opacity-100"
+                  aria-label="Remove location card"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showUploader && (
         <LocationCardUploader

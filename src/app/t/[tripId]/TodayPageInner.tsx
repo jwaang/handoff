@@ -356,12 +356,16 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
   const todayTasks = buildTaskList(recurringInstructions, todayOverlayItems, today);
   const taskGroups = groupBySlot(todayTasks);
 
-  // Build tomorrow's task list for preview
-  const tomorrowTasks = buildTaskList(
-    (data as { tomorrowRecurringInstructions: typeof recurringInstructions }).tomorrowRecurringInstructions,
-    (data as { tomorrowOverlayItems: typeof todayOverlayItems }).tomorrowOverlayItems,
-    (data as { tomorrow: string }).tomorrow,
-  );
+  // Build tomorrow's task list for preview — only if tomorrow is still within the trip window
+  const tomorrowDate = (data as { tomorrow: string }).tomorrow;
+  const showTomorrow = tomorrowDate <= trip.endDate;
+  const tomorrowTasks = showTomorrow
+    ? buildTaskList(
+        (data as { tomorrowRecurringInstructions: typeof recurringInstructions }).tomorrowRecurringInstructions,
+        (data as { tomorrowOverlayItems: typeof todayOverlayItems }).tomorrowOverlayItems,
+        tomorrowDate,
+      )
+    : [];
   const tomorrowGroups = groupBySlot(tomorrowTasks);
 
   // Build a map of taskRef → completion ID for O(1) lookup
@@ -437,17 +441,19 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
             )}
           </div>
 
-          {/* Tomorrow preview */}
-          <div className="mt-8">
-            <TomorrowPreview
-              recurringInstructions={SLOT_ORDER.flatMap((slot) =>
-                tomorrowGroups[slot].filter((t) => !t.isOverlay),
-              )}
-              overlayItems={SLOT_ORDER.flatMap((slot) =>
-                tomorrowGroups[slot].filter((t) => t.isOverlay),
-              )}
-            />
-          </div>
+          {/* Tomorrow preview — hidden on the last day of the trip */}
+          {showTomorrow && (
+            <div className="mt-8">
+              <TomorrowPreview
+                recurringInstructions={SLOT_ORDER.flatMap((slot) =>
+                  tomorrowGroups[slot].filter((t) => !t.isOverlay),
+                )}
+                overlayItems={SLOT_ORDER.flatMap((slot) =>
+                  tomorrowGroups[slot].filter((t) => t.isOverlay),
+                )}
+              />
+            </div>
+          )}
 
           {/* Bottom spacer */}
           <div className="h-4" />

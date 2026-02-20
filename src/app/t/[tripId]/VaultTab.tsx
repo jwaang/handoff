@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { VaultItem, LockIcon, type VaultItemLocationCard } from "@/components/ui/VaultItem";
@@ -132,6 +132,10 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
   const [decryptedItems, setDecryptedItems] = useState<DecryptedVaultItem[]>([]);
   const [accessDeniedReason, setAccessDeniedReason] = useState<AccessDeniedReason | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Upfront trip status check — if the trip is not active we show access denied
+  // immediately without requiring the user to attempt verification.
+  const tripStatus = useQuery(api.trips.getTripStatus, { tripId });
 
   // Actions — NOTE: we do NOT query vaultItems.listByPropertyId here.
   // Item labels and counts must never be sent to unregistered viewers.
@@ -300,6 +304,18 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
   const isVerifying = phase === "verifying";
   const isLoadingItems = phase === "loading_items";
 
+  // ── Upfront trip inactive check ────────────────────────────────────
+  // Show before any user interaction so the sitter sees the right state
+  // immediately without having to attempt phone verification first.
+
+  if (tripStatus !== undefined && tripStatus !== null && !tripStatus.active && phase !== "revealed") {
+    return (
+      <div className="flex flex-col gap-4">
+        <AccessDeniedState reason="TRIP_INACTIVE" />
+      </div>
+    );
+  }
+
   // ── Access denied state ────────────────────────────────────────────
 
   if (phase === "access_denied" && accessDeniedReason) {
@@ -393,12 +409,32 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
           <p className="font-body text-base font-semibold text-text-primary">
             {ownerName} shared secure info with you
           </p>
-          <p className="font-body text-sm text-text-muted max-w-[280px]">
-            Verify your phone number to view
-          </p>
-          {notRegisteredNote && (
-            <p className="font-body text-sm text-warning mt-1" role="alert">
-              {notRegisteredNote}
+          {notRegisteredNote ? (
+            <div
+              role="alert"
+              className="mt-1 flex items-start gap-2.5 bg-warning-light text-warning rounded-lg px-4 py-3 text-left"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0 mt-0.5"
+                aria-hidden="true"
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <p className="font-body text-sm">{notRegisteredNote}</p>
+            </div>
+          ) : (
+            <p className="font-body text-sm text-text-muted max-w-[280px]">
+              Verify your phone number to view
             </p>
           )}
         </div>
@@ -408,11 +444,12 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
           onClick={() => {
             setNotRegisteredNote(null);
             setError(null);
+            setPhone("");
             setPhase("gate");
           }}
           className="w-full"
         >
-          Verify Phone Number
+          {notRegisteredNote ? "Try a different number" : "Verify Phone Number"}
         </Button>
       </div>
     );
