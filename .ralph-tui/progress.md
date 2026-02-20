@@ -1316,3 +1316,20 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Proof photo grid pattern**: Build `ProofPhoto[]` by flattening `allTasks.flatMap(task => task.completions.filter(c => !!c.proofPhotoUrl).map(c => ...))`. Reuses the same full-screen viewer pattern from `ActivityFeedItem` (fixed inset overlay, close on backdrop click).
   - **Vault access log styling**: Use `bg-vault-subtle` container with `border-b border-border-default` separators between rows (not on last row) for the access log list.
 ---
+
+## 2026-02-20 - US-078
+- Implemented trip report PDF export: "Download PDF" button on report page calls a Convex "use node" action that generates a PDF using `@react-pdf/renderer` and returns it as a base64 string for client-side download
+- **Files changed:**
+  - `package.json` / `pnpm-lock.yaml` — Added `@react-pdf/renderer@4.3.2`
+  - `convex/reportActions.ts` — New file: `generateTripReportPdf` public action (`"use node"`); calls `api.reports.getTripReport` via `ctx.runQuery`, builds a styled PDF document using `React.createElement` (no JSX), returns base64 string via `renderToBuffer`
+  - `convex/_generated/api.d.ts` — Manually added `reportActions` import and `fullApi` entry
+  - `src/app/dashboard/trips/[tripId]/report/TripReportView.tsx` — Added `useAction` import; `isPdfLoading` state; `handleDownloadPdf` async handler (calls action → base64 → Blob → `URL.createObjectURL` → `<a>` click); Download PDF button with loading spinner in report header
+- **Learnings:**
+  - **`@react-pdf/renderer` Node.js API**: Use `renderToBuffer(doc)` (returns `Promise<Buffer>`) for Convex "use node" actions. `pdf(doc).toBuffer()` returns `Promise<NodeJS.ReadableStream>` which is less convenient. `renderToBuffer` is marked deprecated but works and is simpler.
+  - **React.createElement in `.ts` Convex files**: Use `React.createElement` instead of JSX to avoid needing `.tsx` extension for Convex action files. Alias as `const el = React.createElement` if writing many elements. No JSX bundler configuration needed.
+  - **`React.createElement` returns `ReactElement<unknown>`**: TypeScript infers `ReactElement<unknown>` from `createElement`, but `renderToBuffer` expects `ReactElement<DocumentProps>`. Fix: `doc as Parameters<typeof renderToBuffer>[0]` — uses the function's own parameter type to avoid importing the namespace type.
+  - **`SourceObject` type includes `string`**: `@react-pdf/types` defines `SourceObject = Source | SourceFactory | ...` where `Source` includes `SourceURL = string`. So you can pass a string URL directly to `Image`'s `src` prop without type issues.
+  - **PDF download via Blob URL**: Prefer `URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }))` over data URLs for large files — avoids browser limits on data URL length. Decode base64 with `Uint8Array.from(atob(base64), c => c.charCodeAt(0))`.
+  - **`@react-pdf/renderer` style props**: Use expanded border properties (`borderBottomWidth`, `borderBottomColor`, `borderBottomStyle`) not shorthand. No `gap` support — use `marginRight`/`marginBottom` on children. Built-in fonts: `"Helvetica"`, `"Helvetica-Bold"`, `"Times-Bold"`, etc.
+  - **`fixed` prop on View**: `el(View, { style: ..., fixed: true })` makes the element appear on every page — use for headers/footers. `render` prop on `Text` provides `{ pageNumber, totalPages }` for dynamic content.
+---

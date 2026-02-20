@@ -63,11 +63,12 @@
         "pnpm build passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to write a generateTripReportPdf Convex action (convex/reportActions.ts, 'use node') that calls getTripReport internally, uses the @react-pdf/renderer or puppeteer npm package to generate a PDF, and returns the PDF as a base64 string or uploads it to Convex file storage and returns a download URL. Use @react-pdf/renderer if adding a new dependency, as it works in Node.js without a browser runtime. The PDF should include: a Handoff wordmark header, trip summary section, task list with ✓/✗ symbols and timestamps, proof photos scaled to fit (compress to max 800px wide using sharp or canvas before embedding), and vault access log. The 'Download PDF' button in the trip report page calls this action, shows a loading spinner while generating, then triggers a browser download via an <a href='[dataUrl]' download='trip-report.pdf'> click.",
       "dependsOn": [
         "US-077"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-079",
@@ -91,6 +92,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T22:47:52.325Z"
+    "updatedAt": "2026-02-20T23:00:20.263Z"
   }
 }

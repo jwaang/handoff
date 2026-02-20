@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@prelude.so/sdk": "^0.10.0",
+    "@react-pdf/renderer": "^4.3.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.31.7",

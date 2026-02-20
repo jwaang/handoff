@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { useAuth } from "@/lib/authContext";
@@ -200,6 +200,8 @@ function ProofPhotoGrid({ photos }: { photos: ProofPhoto[] }) {
 function TripReportViewInner({ tripId }: { tripId: string }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const generatePdf = useAction(api.reportActions.generateTripReportPdf);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -211,6 +213,25 @@ function TripReportViewInner({ tripId }: { tripId: string }) {
     api.reports.getTripReport,
     user ? { tripId: tripId as Id<"trips"> } : "skip",
   );
+
+  async function handleDownloadPdf() {
+    setIsPdfLoading(true);
+    try {
+      const base64 = await generatePdf({ tripId: tripId as Id<"trips"> });
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trip-report-${tripId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsPdfLoading(false);
+    }
+  }
 
   if (!user || isLoading) {
     return (
@@ -287,13 +308,60 @@ function TripReportViewInner({ tripId }: { tripId: string }) {
         </Link>
 
         {/* Header */}
-        <div>
-          <h1 className="font-display text-4xl text-text-primary leading-tight">
-            Trip Report
-          </h1>
-          <p className="font-body text-sm text-text-secondary mt-1.5">
-            {trip.startDate} → {trip.endDate}
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-4xl text-text-primary leading-tight">
+              Trip Report
+            </h1>
+            <p className="font-body text-sm text-text-secondary mt-1.5">
+              {trip.startDate} → {trip.endDate}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={isPdfLoading}
+            className="btn btn-primary shrink-0 inline-flex items-center gap-2 bg-primary text-text-on-primary font-body text-sm font-semibold px-4 py-2.5 rounded-md disabled:opacity-40"
+          >
+            {isPdfLoading ? (
+              <>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="animate-spin"
+                  aria-hidden="true"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                Generating…
+              </>
+            ) : (
+              <>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download PDF
+              </>
+            )}
+          </button>
         </div>
 
         {/* 1. Summary card */}

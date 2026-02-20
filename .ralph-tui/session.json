@@ -3,10 +3,10 @@
   "sessionId": "3f3f324e-5e03-41c4-b17b-7143b5d0b858",
   "status": "running",
   "startedAt": "2026-02-20T22:30:22.026Z",
-  "updatedAt": "2026-02-20T22:47:52.328Z",
-  "currentIteration": 1,
+  "updatedAt": "2026-02-20T23:00:20.266Z",
+  "currentIteration": 2,
   "maxIterations": 10,
-  "tasksCompleted": 1,
+  "tasksCompleted": 2,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -23,8 +23,8 @@
       {
         "id": "US-077",
         "title": "Trip report in-app view",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-078",
@@ -50,6 +50,16 @@
       "durationMs": 333286,
       "startedAt": "2026-02-20T22:31:26.724Z",
       "endedAt": "2026-02-20T22:37:00.010Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "US-077",
+      "taskTitle": "Trip report in-app view",
+      "taskCompleted": true,
+      "durationMs": 652129,
+      "startedAt": "2026-02-20T22:37:00.194Z",
+      "endedAt": "2026-02-20T22:47:52.323Z"
     }
   ],
   "skippedTaskIds": [],
