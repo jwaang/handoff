@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
 
@@ -81,5 +81,17 @@ export const remove = mutation({
     }
     await ctx.db.delete(args.sitterId);
     return null;
+  },
+});
+
+// Internal: look up a sitter by trip + phone — used by vaultActions for access control.
+export const _getByTripAndPhone = internalQuery({
+  args: { tripId: v.id("trips"), phone: v.string() },
+  handler: async (ctx, args) => {
+    const sitters = await ctx.db
+      .query("sitters")
+      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+      .collect();
+    return sitters.find((s) => s.phone === args.phone) ?? null;
   },
 });

@@ -76,7 +76,7 @@ export default defineSchema({
 
   vaultItems: defineTable({
     propertyId: v.id("properties"),
-    type: v.union(
+    itemType: v.union(
       v.literal("door_code"),
       v.literal("alarm_code"),
       v.literal("wifi"),
@@ -86,8 +86,10 @@ export default defineSchema({
       v.literal("custom"),
     ),
     label: v.string(),
-    value: v.string(),
+    // AES-256-GCM ciphertext + IV stored as base64 JSON: { iv, ciphertext }
+    encryptedValue: v.string(),
     instructions: v.optional(v.string()),
+    locationCardId: v.optional(v.id("locationCards")),
     sortOrder: v.number(),
   }).index("by_property_sort", ["propertyId", "sortOrder"]),
 

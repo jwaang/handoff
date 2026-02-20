@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Doc } from "../../../../convex/_generated/dataModel";
 import { useAuth } from "@/lib/authContext";
@@ -22,14 +22,14 @@ type VaultItemType =
   | "custom";
 
 interface VaultFormValues {
-  type: VaultItemType | null;
+  itemType: VaultItemType | null;
   label: string;
   value: string;
   instructions: string;
 }
 
 const EMPTY_FORM: VaultFormValues = {
-  type: null,
+  itemType: null,
   label: "",
   value: "",
   instructions: "",
@@ -179,15 +179,17 @@ const VAULT_TYPES: VaultTypeConfig[] = [
 
 // ── Saved vault item card ─────────────────────────────────────────────────────
 
+// Doc<"vaultItems"> via listByPropertyId omits encryptedValue — labels only.
+type VaultItemLabel = Omit<Doc<"vaultItems">, "encryptedValue">;
+
 function SavedVaultItem({
   item,
   onRemove,
 }: {
-  item: Doc<"vaultItems">;
+  item: VaultItemLabel;
   onRemove: () => void;
 }) {
-  const [showValue, setShowValue] = useState(false);
-  const typeConfig = VAULT_TYPES.find((t) => t.value === item.type);
+  const typeConfig = VAULT_TYPES.find((t) => t.value === item.itemType);
 
   return (
     <div className="flex items-center gap-3 py-3 px-4 rounded-lg border border-vault-light bg-vault-subtle">
@@ -198,11 +200,8 @@ function SavedVaultItem({
         <p className="font-body text-sm font-semibold text-text-primary">
           {item.label}
         </p>
-        <p
-          className="font-mono text-xs text-vault tracking-[0.1em] mt-0.5"
-          aria-label={showValue ? item.value : "Hidden value"}
-        >
-          {showValue ? item.value : "•".repeat(Math.min(item.value.length, 10))}
+        <p className="font-mono text-xs text-vault tracking-[0.1em] mt-0.5" aria-label="Stored securely">
+          {"••••••••••"}
         </p>
         {item.instructions && (
           <p className="font-body text-xs text-text-muted mt-0.5 truncate">
@@ -211,14 +210,6 @@ function SavedVaultItem({
         )}
       </div>
       <div className="flex items-center gap-0.5 shrink-0">
-        <button
-          type="button"
-          onClick={() => setShowValue((v) => !v)}
-          className="p-1.5 text-text-muted hover:text-vault transition-colors duration-150 rounded"
-          aria-label={showValue ? "Hide value" : "Show value"}
-        >
-          {showValue ? <EyeOffIcon /> : <EyeIcon />}
-        </button>
         <button
           type="button"
           onClick={onRemove}
@@ -298,19 +289,19 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
   const selectType = (type: VaultItemType) => {
     setFormData((prev) => ({
       ...prev,
-      type,
+      itemType: type,
       // Pre-fill label only if it's currently empty or matches another type's default
       label:
         prev.label === "" || Object.values(TYPE_DEFAULT_LABELS).includes(prev.label)
           ? TYPE_DEFAULT_LABELS[type]
           : prev.label,
     }));
-    if (errors.type) setErrors((prev) => ({ ...prev, type: "" }));
+    if (errors.itemType) setErrors((prev) => ({ ...prev, itemType: "" }));
   };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.type) newErrors.type = "Please select a type";
+    if (!formData.itemType) newErrors.itemType = "Please select a type";
     if (!formData.label.trim()) newErrors.label = "Label is required";
     if (!formData.value.trim()) newErrors.value = "Code or password is required";
     setErrors(newErrors);
@@ -347,7 +338,7 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
           </p>
           <div className="grid grid-cols-4 gap-2">
             {VAULT_TYPES.map((t) => {
-              const isSelected = formData.type === t.value;
+              const isSelected = formData.itemType === t.value;
               return (
                 <button
                   key={t.value}
@@ -370,8 +361,8 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
               );
             })}
           </div>
-          {errors.type && (
-            <span className="font-body text-xs text-danger">{errors.type}</span>
+          {errors.itemType && (
+            <span className="font-body text-xs text-danger">{errors.itemType}</span>
           )}
         </div>
 
@@ -397,9 +388,9 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
             if (errors.value) setErrors((prev) => ({ ...prev, value: "" }));
           }}
           placeholder={
-            formData.type === "wifi"
+            formData.itemType === "wifi"
               ? "e.g. MyWifiPassword123"
-              : formData.type === "safe_combination"
+              : formData.itemType === "safe_combination"
               ? "e.g. 32-16-8"
               : "e.g. 1234"
           }
@@ -467,7 +458,7 @@ export default function Step3Access() {
     propertyId ? { propertyId } : "skip",
   );
 
-  const createVaultItem = useMutation(api.vaultItems.create);
+  const createVaultItem = useAction(api.vaultActions.createVaultItem);
   const removeVaultItem = useMutation(api.vaultItems.remove);
 
   const [showForm, setShowForm] = useState(false);
@@ -479,7 +470,7 @@ export default function Step3Access() {
       setGeneralError("Property not found. Please complete step 1 first.");
       return;
     }
-    if (!data.type) return;
+    if (!data.itemType) return;
 
     setIsSaving(true);
     setGeneralError(null);
@@ -487,7 +478,7 @@ export default function Step3Access() {
     try {
       await createVaultItem({
         propertyId,
-        type: data.type,
+        itemType: data.itemType,
         label: data.label.trim(),
         value: data.value.trim(),
         instructions: data.instructions.trim() || undefined,

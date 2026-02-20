@@ -1,4 +1,4 @@
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 
 const tripStatusValidator = v.union(
@@ -184,6 +184,14 @@ export const expireTripInternal = internalMutation({
       createdAt: Date.now(),
     });
     return null;
+  },
+});
+
+// Internal: fetch a trip by ID — used by vaultActions for access control checks.
+export const _getById = internalQuery({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.tripId);
   },
 });
 

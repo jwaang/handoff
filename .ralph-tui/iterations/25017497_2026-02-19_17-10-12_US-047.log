@@ -1,0 +1,181 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: US-047
+- **Task Title**: Daily task reset logic
+- **Description**: As a system, I need tasks to reset each day so the sitter sees a fresh checklist every morning.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-19T23:10:12.503Z
+- **Ended At**: 2026-02-19T23:17:34.353Z
+- **Duration**: 7m 21s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Task][0m Explore codebase structure
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (28456 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/docs/handoff-tasks/epic-05-trip-today.json[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Bash][0m List all files in convex directory $ find /Users/john/Coding/handoff/convex -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | head...
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (28456 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/docs/handoff-tasks/epic-05-trip-today.json[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m List files in convex directory $ ls -la /Users/john/Coding/handoff/convex/
+[94m[Bash][0m Read first 100 lines of schema.ts $ head -100 /Users/john/Coding/handoff/convex/schema.ts
+[94m[Read][0m [95m/Users/john/Coding/handoff/docs/handoff-tasks/epic-05-trip-today.json[0m
+[94m[Bash][0m Count lines in schema.ts $ wc -l /Users/john/Coding/handoff/convex/schema.ts
+[94m[Bash][0m Read last 100 lines of schema.ts $ tail -100 /Users/john/Coding/handoff/convex/schema.ts
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/taskCompletions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/todayView.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[Bash][0m Search for task completion related notes in progress file $ grep -n "taskCompletions\|task completion\|US-047" /Users/john/Coding/handoff/.ralph-tui/progress.md...
+[94m[Bash][0m Read section around taskCompletions from progress file $ sed -n '740,850p' /Users/john/Coding/handoff/.ralph-tui/progress.md
+Let me read the key files before implementing:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/taskCompletions.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/todayView.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageInner.tsx[0m
+[94m[Read][0m [95m/Users/john/.ralph-tui/progress.md[0m
+
+[91m[Error: File does not exist.][0m
+[94m[Bash][0m List ralph-tui directories $ ls /Users/john/Coding/handoff/.ralph-tui/ 2>/dev/null && ls /Users/john/.ralph-tui/ 2>/dev/null || e...
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/package.json[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/tsconfig.json[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/eslint.config.mjs[0m
+Now I have a clear picture. Let me set up the todo list and implement:
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m edit: "  taskCompletions: defineTable({
+    tripId: v.id(..." → "  taskCompletions: defineTable({
+    tripId: v.id(..."
+[94m[TodoWrite][0m
+Now update `taskCompletions.ts` to add the `date` field:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/taskCompletions.ts[0m edit: "const taskCompletionObject = v.object({
+  _id: v.i..." → "const taskCompletionObject = v.object({
+  _id: v.i..."
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/taskCompletions.ts[0m edit: "export const create = mutation({
+  args: {
+    tri..." → "export const create = mutation({
+  args: {
+    tri..."
+[94m[TodoWrite][0m
+Now update `todayView.ts` to filter completions by today's date using the new index:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/todayView.ts[0m edit: "        // Fetch all completions; client filters b..." → "        // Fetch only today's completions — new da..."
+[94m[TodoWrite][0m
+Now update `TodayPageInner.tsx` to pass `date: today` when creating a completion:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageInner.tsx[0m edit: "        const sitterName = data?.sitters?.[0]?.nam..." → "        const sitterName = data?.sitters?.[0]?.nam..."
+[94m[TodoWrite][0m
+Now write the unit test. I'll use a plain TypeScript approach that doesn't require a test runner:
+[94m[Bash][0m Create tests directory $ mkdir -p /Users/john/Coding/handoff/src/__tests__
+[94m[Write][0m [95m/Users/john/Coding/handoff/src/__tests__/taskReset.test.ts[0m "/**
+ * Unit tests for US-047: Daily task reset logic.
+ *
+ * Tests the pure filtering functions that drive implicit daily reset:
+ *   - Completions are scoped to a date field; new day = no completions ... (4571 chars)"
+[94m[TodoWrite][0m
+Now run codegen and validate:
+[94m[Bash][0m Run Convex codegen to regenerate types $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[Bash][0m Run TypeScript type checking $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+The `today` dependency warning is from my change. Let me fix it by adding `today` to the `useCallback` dependency array:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageInner.tsx[0m edit: "  }, [data, tripId, createCompletion, removeComple..." → "  }, [data, today, tripId, createCompletion, remov..."
+
+[91m[Error: <tool_use_error>String to replace not found in file.
+String:   }, [data, tripId, createCompletion, removeCompletion]);</tool_use_error>][0m
+[94m[Grep][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageInner.tsx[0m pattern: [96mcreateCompletion, removeCompletion[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageInner.tsx[0m edit: "    [data, tripId, createCompletion, removeComplet..." → "    [data, today, tripId, createCompletion, remove..."
+[94m[Bash][0m Re-run ESLint after fix $ pnpm lint 2>&1
+The remaining warning is pre-existing and unrelated to this story. Now run the build:
+[94m[Bash][0m Run Next.js production build $ pnpm build 2>&1
+All checks pass. Let me mark the final task complete:
+[94m[TodoWrite][0m
+Now append to the progress file:
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m Check end of progress file $ tail -5 /Users/john/Coding/handoff/.ralph-tui/progress.md
+[94m[Bash][0m Append US-047 learnings to progress.md $ added `today` to `useCallback` dependency array - Added `src/__tests__/taskReset.test.ts`: plain Typ...
+All done. Here's a summary of what was implemented:
+
+**US-047 - Daily task reset logic**
+
+The reset is implemented purely through query design — no cron jobs or delete mutations needed:
+
+1. **`convex/schema.ts`** — Added `date: v.string()` (YYYY-MM-DD) to `taskCompletions` + a new `by_trip_date` index on `["tripId", "date"]`
+
+2. **`convex/taskCompletions.ts`** — Added `date` field to the object validator and `create` mutation args
+
+3. **`convex/todayView.ts`** — Changed the completions query from "all trip completions" to "today's completions only" using the `by_trip_date` index: `.withIndex("by_trip_date", q => q.eq("tripId", tripId).eq("date", today))`
+
+4. **`src/app/t/[tripId]/TodayPageInner.tsx`** — Passes `date: today` when creating a completion; added `today` to the `useCallback` dependency array
+
+5. **`src/__tests__/taskReset.test.ts`** — Pure TypeScript unit tests (no test runner required) covering: yesterday's completions excluded, yesterday's overlay items excluded, today's completions returned, and the `taskRef` date-scoping mechanism
+
+The daily reset is fully implicit: when a new calendar day starts, `today` changes → the query returns zero completions → all tasks appear unchecked. Previous completions are preserved in the DB for trip reports.
+
+<promise>COMPLETE</promise>
+
+--- SUBAGENT TRACE ---
+{
+  "events": [
+    {
+      "id": "subagent_1771542624890_njmx4co",
+      "type": "spawn",
+      "timestamp": "2026-02-19T23:10:24.890Z",
+      "agentType": "Explore",
+      "description": "Explore codebase structure",
+      "prompt": "Explore the following files and directories in /Users/john/Coding/handoff and return their contents:\n\n1. Read .ralph-tui/progress.md (the full file)\n2. Read convex/schema.ts\n3. List all files in convex/ directory\n4. Read docs/handoff-tasks/epic-05-trip-today.json\n5. Look for any existing task completion related files in convex/\n\nReturn the full contents of each file found."
+    },
+    {
+      "id": "subagent_1771542624890_njmx4co",
+      "type": "complete",
+      "timestamp": "2026-02-19T23:17:33.980Z",
+      "agentType": "Explore",
+      "description": "Explore codebase structure",
+      "exitStatus": "success",
+      "durationMs": 429090
+    }
+  ],
+  "hierarchy": [
+    {
+      "state": {
+        "id": "subagent_1771542624890_njmx4co",
+        "agentType": "Explore",
+        "description": "Explore codebase structure",
+        "status": "completed",
+        "childIds": [],
+        "spawnedAt": "2026-02-19T23:10:24.890Z",
+        "prompt": "Explore the following files and directories in /Users/john/Coding/handoff and return their contents:\n\n1. Read .ralph-tui/progress.md (the full file)\n2. Read convex/schema.ts\n3. List all files in convex/ directory\n4. Read docs/handoff-tasks/epic-05-trip-today.json\n5. Look for any existing task completion related files in convex/\n\nReturn the full contents of each file found.",
+        "endedAt": "2026-02-19T23:17:33.980Z",
+        "durationMs": 429090
+      },
+      "children": []
+    }
+  ],
+  "stats": {
+    "totalSubagents": 1,
+    "byType": {
+      "Explore": 1
+    },
+    "totalDurationMs": 429090,
+    "failureCount": 0,
+    "maxDepth": 1
+  }
+}
