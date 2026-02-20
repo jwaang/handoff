@@ -167,8 +167,39 @@ function TodayPageResolver({ shareLink }: { shareLink: string }) {
     return <TodayPageInner tripId={trip._id} />;
   }
 
-  // Not a shareLink — treat the param as a direct Convex trip ID (backward compat)
-  return <TodayPageInner tripId={shareLink} />;
+  // Link not found — either revoked (regenerated) or never existed.
+  return (
+    <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
+      <div
+        className="bg-bg-raised rounded-xl p-8 flex flex-col items-center gap-4 w-full max-w-sm text-center"
+        style={{ boxShadow: "var(--shadow-md)" }}
+      >
+        <div className="w-12 h-12 rounded-round bg-bg-sunken flex items-center justify-center">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-text-muted"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+          </svg>
+        </div>
+        <h1 className="font-display text-2xl text-text-primary">
+          This link is no longer valid
+        </h1>
+        <p className="font-body text-sm text-text-muted">
+          This link has been revoked. Please ask the homeowner for a new link.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // ── Client shell ──────────────────────────────────────────────────────

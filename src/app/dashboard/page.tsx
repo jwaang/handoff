@@ -171,6 +171,11 @@ function ShareLinkPanel({ tripId, initialSlug, initialHasPassword = false }: Sha
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
 
+  // Reset link state
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showResharePrompt, setShowResharePrompt] = useState(false);
+
   // Password protection state
   const [hasPassword, setHasPassword] = useState(initialHasPassword);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -179,6 +184,7 @@ function ShareLinkPanel({ tripId, initialSlug, initialHasPassword = false }: Sha
   const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   const generateShareLink = useAction(api.shareActions.generateShareLink);
+  const regenerateShareLink = useAction(api.shareActions.regenerateShareLink);
   const setLinkPassword = useAction(api.shareActions.setLinkPassword);
 
   useEffect(() => {
@@ -197,6 +203,21 @@ function ShareLinkPanel({ tripId, initialSlug, initialHasPassword = false }: Sha
       // stay enabled
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleReset() {
+    setIsResetting(true);
+    try {
+      const slug = await regenerateShareLink({ tripId: tripId as Parameters<typeof regenerateShareLink>[0]["tripId"] });
+      setShareSlug(slug);
+      setShowResetConfirm(false);
+      setShowResharePrompt(true);
+      setCopied(false);
+    } catch {
+      // stay enabled so user can retry
+    } finally {
+      setIsResetting(false);
     }
   }
 
@@ -271,6 +292,14 @@ function ShareLinkPanel({ tripId, initialSlug, initialHasPassword = false }: Sha
               aria-label="Share link URL"
               onClick={(e) => (e.target as HTMLInputElement).select()}
             />
+
+            {/* Re-share prompt shown after link reset */}
+            {showResharePrompt && (
+              <p className="font-body text-xs text-secondary font-semibold">
+                New link generated — share it with your sitter again.
+              </p>
+            )}
+
             <div className="flex items-center gap-2">
               <Button
                 variant="primary"
@@ -292,6 +321,53 @@ function ShareLinkPanel({ tripId, initialSlug, initialHasPassword = false }: Sha
                 </Button>
               )}
             </div>
+
+            {/* Reset link */}
+            {!showResetConfirm ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResetConfirm(true);
+                  setShowResharePrompt(false);
+                }}
+                className="btn btn-no-shadow font-body text-sm text-danger flex items-center gap-1.5 self-start px-0 py-1 hover:text-[#b04444] transition-colors duration-150"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M23 4v6h-6" />
+                  <path d="M1 20v-6h6" />
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+                Reset link
+              </button>
+            ) : (
+              <div className="bg-warning-light text-warning rounded-lg p-4 flex flex-col gap-3">
+                <p className="font-body text-sm font-semibold">
+                  This will revoke access for anyone with the current link
+                </p>
+                <p className="font-body text-xs">
+                  A new unique URL will be generated. The old link will stop working immediately.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleReset}
+                    disabled={isResetting}
+                    className="flex-1"
+                  >
+                    {isResetting ? "Resetting…" : "Confirm reset"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowResetConfirm(false)}
+                    disabled={isResetting}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <Button variant="soft" size="sm" onClick={handleGenerate} disabled={isGenerating}>

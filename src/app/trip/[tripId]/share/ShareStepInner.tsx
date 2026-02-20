@@ -102,9 +102,13 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
   const [canShare, setCanShare] = useState(false);
   const [expiryError, setExpiryError] = useState("");
   const [isSavingExpiry, setIsSavingExpiry] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showResharePrompt, setShowResharePrompt] = useState(false);
 
   const trip = useQuery(api.trips.get, { tripId });
   const generateShareLink = useAction(api.shareActions.generateShareLink);
+  const regenerateShareLink = useAction(api.shareActions.regenerateShareLink);
   const updateTrip = useMutation(api.trips.update);
   const setLinkExpiry = useMutation(api.trips.setLinkExpiry);
 
@@ -124,6 +128,21 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
       // stay enabled so user can retry
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleReset() {
+    setIsResetting(true);
+    try {
+      const slug = await regenerateShareLink({ tripId });
+      setShareSlug(slug);
+      setShowResetConfirm(false);
+      setShowResharePrompt(true);
+      setCopied(false);
+    } catch {
+      // stay enabled so user can retry
+    } finally {
+      setIsResetting(false);
     }
   }
 
@@ -247,7 +266,14 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
 
-                {/* Action buttons */}
+                {/* Re-share prompt shown after link reset */}
+                {showResharePrompt && (
+                  <p className="font-body text-xs text-secondary font-semibold">
+                    New link generated — share it with your sitter again.
+                  </p>
+                )}
+
+                {/* Copy / Share action buttons */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Button
                     variant="primary"
@@ -270,16 +296,54 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
                       Share
                     </Button>
                   )}
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                  >
-                    Regenerate
-                  </Button>
                 </div>
+
+                {/* Reset link */}
+                {!showResetConfirm ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowResetConfirm(true);
+                      setShowResharePrompt(false);
+                    }}
+                    className="btn btn-no-shadow font-body text-sm text-danger flex items-center gap-1.5 self-start px-0 py-1 hover:text-[#b04444] transition-colors duration-150"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M23 4v6h-6" />
+                      <path d="M1 20v-6h6" />
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                    Reset link
+                  </button>
+                ) : (
+                  <div className="bg-warning-light text-warning rounded-lg p-4 flex flex-col gap-3">
+                    <p className="font-body text-sm font-semibold">
+                      This will revoke access for anyone with the current link
+                    </p>
+                    <p className="font-body text-xs">
+                      A new unique URL will be generated. The old link will stop working immediately.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleReset}
+                        disabled={isResetting}
+                        className="flex-1"
+                      >
+                        {isResetting ? "Resetting…" : "Confirm reset"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowResetConfirm(false)}
+                        disabled={isResetting}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Button

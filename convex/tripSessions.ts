@@ -55,3 +55,19 @@ export const _getByToken = internalQuery({
       .first();
   },
 });
+
+// Internal: delete all sessions for a trip — called when a share link is regenerated.
+export const _deleteByTripId = internalMutation({
+  args: { tripId: v.id("trips") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const sessions = await ctx.db
+      .query("tripSessions")
+      .withIndex("by_trip", (q) => q.eq("tripId", args.tripId))
+      .collect();
+    for (const session of sessions) {
+      await ctx.db.delete(session._id);
+    }
+    return null;
+  },
+});

@@ -89,11 +89,12 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to implement regenerateShareLink mutation that calls the same slug generation action from US-063 to produce a new shareLink, overwrites Trips.shareLink, and also invalidates all active TripSessions for this trip (delete from TripSessions table where tripId matches). The old slug is no longer in the database so getTripByShareLink returns null for the old URL. Load /tailwind-design-system to render the 'Reset Link' action on the trip management page as a text button using btn-no-shadow text-danger font-body text-sm with a refresh icon, with an inline confirmation card (bg-warning-light text-warning rounded-lg p-4) showing 'This will revoke access for anyone with the current link' and Confirm/Cancel buttons before firing the mutation. After regeneration, display the new link immediately in the share panel with a prompt to re-share. Use /dev-browser to verify: clicking Reset Link shows the warning confirmation, confirming generates a new URL (verify the old URL returns 'no longer valid'), and the new URL is displayed in the share panel.",
       "dependsOn": [
         "US-063"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-067",
@@ -124,6 +125,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T15:33:34.822Z"
+    "updatedAt": "2026-02-20T15:42:16.654Z"
   }
 }

@@ -1,0 +1,113 @@
+# Iteration 3 Log
+
+## Metadata
+
+- **Task ID**: US-065
+- **Task Title**: Link expiration
+- **Description**: As a creator, I want the link to automatically expire when the trip ends so old links don't grant indefinite access.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-20T14:31:00.237Z
+- **Ended At**: 2026-02-20T15:33:34.820Z
+- **Duration**: 1h 2m 34s
+- **Agent**: claude
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+
+[91m[Error: File content (41945 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content.][0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/*.ts[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96mconvex/*.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/shareActions.ts[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/app/t/**/*.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/schema.ts[0m
+Now let me look at the sitter route and share panel:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/page.tsx[0m
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/app/t/[shareLink]/**[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageClient.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/PasswordGate.tsx[0m
+Let me find the share panel component:
+[94m[Grep][0m pattern: [96mSharePanel|sharePanel|share-panel|ShareLink|generateShareLink[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m
+Let me check for existing password protection UI and the trip query for the share panel:
+[94m[Glob][0m [95m/Users/john/Coding/handoff[0m pattern: [96msrc/app/trip/**/*.tsx[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+Now let me look at the generated API types to understand what needs updating:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/_generated/api.d.ts[0m
+Now I have a clear picture of what needs to be done. Let me implement US-065:
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+Now let me update `trips.ts` with all required changes:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "// Look up a trip by its shareLink slug (used by t..." → "// Look up a trip by its shareLink slug (used by t..."
+Now update `createTrip` to auto-set `linkExpiry` from `endDate`:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "    return await ctx.db.insert("trips", {
+      pr..." → "    // Auto-set linkExpiry to end of endDate day (..."
+Now add the `get` query and `setLinkExpiry` mutation. I'll add them after the `update` mutation:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m edit: "export const remove = mutation({" → "// Public: get a single trip by ID (used by creato..."
+[94m[TodoWrite][0m
+Now update `TodayPageClient.tsx` to handle the expired state:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/t/[tripId]/TodayPageClient.tsx[0m edit: "// ── ShareLink resolver — looks up trip by shareL..." → "// ── Expired state ──────────────────────────────..."
+[94m[TodoWrite][0m
+Now update `ShareStepInner.tsx` to add the expiry date display and picker. I need to add a query for the trip and mutation for setting expiry:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m edit: ""use client";
+
+import { useState, useEffect } from..." → ""use client";
+
+import { useState, useEffect } from..."
+Now add the expiry section to the `ShareStep` component. I'll add it after the share link card and before the activate trip card:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m edit: "function ShareStep({ tripId }: { tripId: Id<"trips..." → "// ── Helpers ────────────────────────────────────..."
+Now I need to remove the duplicate `// ── Main share step ────────────────────────────────────────────────────────────` comment that was already there, and add the expiry handler. Let me read the updated file first:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m
+I need to remove the old duplicate comment:
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m edit: "// ── Main share step ────────────────────────────..." → "// ── Helpers ────────────────────────────────────..."
+Now add the `handleExpiryChange` handler and the expiry section in the UI. Let me find where to add the handler:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m edit: "  async function handleActivate() {
+    setIsActiv..." → "  async function handleExpiryChange(e: React.Chang..."
+Now add the expiry card in the UI, between the share link card and the activate card:
+[94m[Read][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m
+[94m[Edit][0m [95m/Users/john/Coding/handoff/src/app/trip/[tripId]/share/ShareStepInner.tsx[0m edit: "          {/* Activate trip */}
+          <div
+   ..." → "          {/* Link expiry */}
+          {trip && (..."
+Now run typecheck and lint to validate:
+[94m[TodoWrite][0m
+[94m[Bash][0m Regenerate Convex types after schema changes $ node_modules/.bin/convex codegen --system-udfs --typecheck disable 2>&1
+[94m[Bash][0m Run TypeScript typecheck $ pnpm typecheck 2>&1
+[94m[Bash][0m Run ESLint $ pnpm lint 2>&1
+Typecheck and lint both pass (only pre-existing warnings). Let me also run the build:
+[94m[Bash][0m Run production build $ pnpm build 2>&1
+Build passes. Let me verify the key files look correct:
+[94m[Read][0m [95m/Users/john/Coding/handoff/convex/trips.ts[0m
+All changes look correct. Let me update the progress file and mark completion:
+All checks pass. Let me update the progress log and mark complete:
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/Users/john/Coding/handoff/.ralph-tui/progress.md[0m
+[94m[Bash][0m Find the end of progress.md to append new entry $ tail -5 /Users/john/Coding/handoff/.ralph-tui/progress.md
+[94m[Bash][0m Append US-065 progress entry to progress.md $ added `setLinkExpiry` mutation call via `handleExpiryChange` - **Learnings:**   - **Discriminated un...
+<promise>COMPLETE</promise>
+
+Here's a summary of what was implemented for US-065:
+
+**Backend (`convex/trips.ts`)**:
+- `getByShareLink` now returns `{ status: "EXPIRED" }` when `trip.status === "expired"` or `trip.linkExpiry < Date.now()`, providing a clean discriminant for the sitter view
+- `createTrip` auto-sets `linkExpiry` to end-of-day UTC on the trip's `endDate` (as Unix ms timestamp)
+- New `get` query for fetching a trip by ID (used by the share panel)
+- New `setLinkExpiry` mutation that validates the new expiry is ≤ trip's `endDate` before saving
+
+**Sitter view (`TodayPageClient.tsx`)**:
+- Added `ExpiredState` component: centered card with a muted clock icon, "This handoff has expired" in `font-display`, and a brief message in `font-body text-text-muted`
+- `TodayPageResolver` checks `!('_id' in trip)` to detect the expired discriminant and shows the expired state instead of any trip content
+
+**Creator share panel (`ShareStepInner.tsx`)**:
+- Queries the trip via `api.trips.get` to read current `endDate` and `linkExpiry`
+- Shows an "Adjust expiry" `<input type="date">` capped at `trip.endDate` via the `max` attribute
+- Calls `setLinkExpiry` on change to save the new expiry

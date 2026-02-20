@@ -1152,3 +1152,18 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **`type="date"` input with `max` cap**: Setting `max={trip.endDate}` on a `<input type="date">` natively prevents selecting dates after the trip end — no custom validation needed in the browser.
   - **`defaultValue` vs `value` for date input**: Used `defaultValue` (uncontrolled) for the date picker since changes are saved server-side via mutation on `onChange` — avoids needing a local state copy that would require re-render on server response.
 ---
+
+## 2026-02-20 - US-066
+- Implemented "Reset Link" (regenerate/revoke) feature for shareable trip links
+- **Files changed:**
+  - `convex/tripSessions.ts` — Added `_deleteByTripId` internal mutation: queries by `by_trip` index, deletes all sessions for the trip
+  - `convex/shareActions.ts` — Added `regenerateShareLink` action: generates new slug, updates `trips.shareLink`, then calls `internal.tripSessions._deleteByTripId` to invalidate all password-verified sessions
+  - `src/app/dashboard/page.tsx` — Updated `ShareLinkPanel`: added `regenerateShareLink` action; added `showResetConfirm`, `isResetting`, `showResharePrompt` state; added "Reset link" text button (`text-danger`, refresh icon, `btn-no-shadow`); inline confirmation card (`bg-warning-light text-warning rounded-lg p-4`) with "This will revoke access for anyone with the current link" message + Confirm/Cancel buttons; "New link generated — share it with your sitter again" prompt after reset
+  - `src/app/trip/[tripId]/share/ShareStepInner.tsx` — Same pattern as dashboard: added reset state, `handleReset` function, replaced old "Regenerate" ghost button with new "Reset link" text button + inline confirmation card
+  - `src/app/t/[tripId]/TodayPageClient.tsx` — Replaced backward-compat tripId fallback (null case) with "This link is no longer valid" card (centered, slash-circle icon, `font-display` heading, muted message)
+- **Learnings:**
+  - **Session invalidation on link regeneration**: Delete all `tripSessions` for the trip via `by_trip` index when regenerating the link. This forces password-verified sitters to re-authenticate with the new link's slug (session cookie key `hoff_trip_${shareLink}` uses the slug, so old cookies are naturally invalidated too — but deleting DB records ensures no valid sessions remain).
+  - **Inline confirmation card pattern**: Use `showResetConfirm` boolean state to toggle between the action button and the confirmation card. The card renders inline (no modal) using `bg-warning-light text-warning rounded-lg p-4` — consistent with the design system warning pattern.
+  - **Re-share prompt after regeneration**: Set `showResharePrompt = true` after successful reset to show a `text-secondary font-semibold` hint that the new link needs to be shared again. Reset it when user enters the confirmation flow.
+  - **Null case in TodayPageResolver**: The backward-compat fallback `<TodayPageInner tripId={shareLink} />` was replaced with a proper "no longer valid" state. When `getByShareLink` returns null (old slug no longer in DB), sitters now see a clean "This link is no longer valid" message instead of hitting the error boundary via an invalid trip ID.
+---

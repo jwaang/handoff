@@ -27,6 +27,26 @@ export const generateShareLink = action({
   },
 });
 
+// Regenerates the share link for a trip, invalidating the old slug and all active sessions.
+// Returns the new 12-char slug.
+export const regenerateShareLink = action({
+  args: { tripId: v.id("trips") },
+  returns: v.string(),
+  handler: async (ctx, args): Promise<string> => {
+    const slug = generateSlug();
+    await ctx.runMutation(api.trips.update, {
+      tripId: args.tripId,
+      shareLink: slug,
+    });
+    // Invalidate all active TripSessions for this trip so password-verified sitters
+    // must re-enter the password with the new link.
+    await ctx.runMutation(internal.tripSessions._deleteByTripId, {
+      tripId: args.tripId,
+    });
+    return slug;
+  },
+});
+
 // Sets or clears a link password for a trip.
 // If password is provided: hash with pbkdf2Sync and store as "salt:hash".
 // If password is absent or empty string: clear the password.

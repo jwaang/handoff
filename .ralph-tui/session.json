@@ -3,10 +3,10 @@
   "sessionId": "85c90de5-9eff-48e1-a9da-ba95574f6700",
   "status": "running",
   "startedAt": "2026-02-20T14:02:53.729Z",
-  "updatedAt": "2026-02-20T15:33:34.824Z",
-  "currentIteration": 2,
+  "updatedAt": "2026-02-20T15:42:16.656Z",
+  "currentIteration": 3,
   "maxIterations": 10,
-  "tasksCompleted": 2,
+  "tasksCompleted": 3,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -29,8 +29,8 @@
       {
         "id": "US-065",
         "title": "Link expiration",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-066",
@@ -66,6 +66,16 @@
       "durationMs": 966686,
       "startedAt": "2026-02-20T14:14:53.399Z",
       "endedAt": "2026-02-20T14:31:00.085Z"
+    },
+    {
+      "iteration": 3,
+      "status": "completed",
+      "taskId": "US-065",
+      "taskTitle": "Link expiration",
+      "taskCompleted": true,
+      "durationMs": 3754583,
+      "startedAt": "2026-02-20T14:31:00.237Z",
+      "endedAt": "2026-02-20T15:33:34.820Z"
     }
   ],
   "skippedTaskIds": [],
