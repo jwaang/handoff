@@ -82,7 +82,7 @@ export const _logVaultAccess = internalMutation({
     await ctx.db.insert("activityLog", {
       tripId: args.tripId,
       propertyId: args.propertyId,
-      event: "vault_accessed",
+      eventType: "vault_accessed",
       createdAt: Date.now(),
     });
     return null;

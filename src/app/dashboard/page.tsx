@@ -873,9 +873,9 @@ function ActivityFeedSectionInner() {
           {events.map((event, index) => (
             <ActivityFeedItem
               key={event._id}
-              type={eventToActivityType(event.event)}
+              type={eventToActivityType(event.eventType)}
               name={event.sitterName ?? "Sitter"}
-              action={eventToAction(event.event, event.vaultItemLabel)}
+              action={eventToAction(event.eventType, event.vaultItemLabel)}
               timestamp={formatActivityTimestamp(event.createdAt)}
               hideBorder={index === events.length - 1}
               proofPhotoUrl={event.proofPhotoUrl}

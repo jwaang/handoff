@@ -258,7 +258,7 @@ export const expireTripInternal = internalMutation({
     await ctx.db.insert("activityLog", {
       tripId: args.tripId,
       propertyId: trip.propertyId,
-      event: "trip_expired",
+      eventType: "trip_expired",
       createdAt: Date.now(),
     });
     return null;
@@ -434,7 +434,7 @@ export const expireTripsDaily = internalMutation({
       await ctx.db.insert("activityLog", {
         tripId: trip._id,
         propertyId: trip.propertyId,
-        event: "trip_expired",
+        eventType: "trip_expired",
         createdAt: Date.now(),
       });
     }

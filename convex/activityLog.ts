@@ -1,22 +1,127 @@
-import { query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
+
+// Discriminated union of all event types for the activity feed.
+const eventTypeValidator = v.union(
+  v.literal("link_opened"),
+  v.literal("task_completed"),
+  v.literal("proof_uploaded"),
+  v.literal("vault_accessed"),
+  v.literal("trip_started"),
+  v.literal("trip_expired"),
+);
 
 const activityLogEntryValidator = v.object({
   _id: v.id("activityLog"),
   _creationTime: v.number(),
   tripId: v.id("trips"),
   propertyId: v.id("properties"),
-  event: v.string(),
+  eventType: eventTypeValidator,
   sitterName: v.optional(v.string()),
+  sitterPhone: v.optional(v.string()),
+  metadata: v.optional(v.any()),
   vaultItemId: v.optional(v.id("vaultItems")),
   vaultItemLabel: v.optional(v.string()),
   proofPhotoUrl: v.optional(v.string()),
   createdAt: v.number(),
 });
 
-// Get the activity feed for a property — newest events first.
-// Returns the most recent events (default 20) across all trips for the property.
-// Optional eventType filter: 'task_completed' | 'proof_uploaded' | undefined (all).
+/**
+ * Internal mutation — log a sitter interaction event to the activity feed.
+ * Must be called from other mutations/actions; never directly from the client
+ * to prevent injection of fake events.
+ */
+export const logEvent = internalMutation({
+  args: {
+    tripId: v.id("trips"),
+    propertyId: v.id("properties"),
+    eventType: eventTypeValidator,
+    sitterName: v.optional(v.string()),
+    sitterPhone: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+    vaultItemId: v.optional(v.id("vaultItems")),
+    vaultItemLabel: v.optional(v.string()),
+    proofPhotoUrl: v.optional(v.string()),
+  },
+  returns: v.id("activityLog"),
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("activityLog", {
+      tripId: args.tripId,
+      propertyId: args.propertyId,
+      eventType: args.eventType,
+      sitterName: args.sitterName,
+      sitterPhone: args.sitterPhone,
+      metadata: args.metadata,
+      vaultItemId: args.vaultItemId,
+      vaultItemLabel: args.vaultItemLabel,
+      proofPhotoUrl: args.proofPhotoUrl,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Get the activity feed for a specific trip — newest events first.
+ * Supports optional eventType filtering and cursor-based pagination.
+ */
+export const getActivityForTrip = query({
+  args: {
+    tripId: v.id("trips"),
+    eventType: v.optional(eventTypeValidator),
+    paginationOpts: v.optional(
+      v.object({
+        numItems: v.number(),
+        cursor: v.union(v.string(), v.null()),
+      }),
+    ),
+  },
+  returns: v.object({
+    items: v.array(activityLogEntryValidator),
+    isDone: v.boolean(),
+    continueCursor: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const numItems = args.paginationOpts?.numItems ?? 20;
+
+    const q = ctx.db
+      .query("activityLog")
+      .withIndex("by_trip_time", (idx) => idx.eq("tripId", args.tripId))
+      .order("desc");
+
+    const page = await q.paginate({ numItems, cursor: args.paginationOpts?.cursor ?? null });
+
+    const items = (
+      args.eventType
+        ? page.page.filter((e) => e.eventType === args.eventType)
+        : page.page
+    ).map((e) => ({
+      _id: e._id,
+      _creationTime: e._creationTime,
+      tripId: e.tripId,
+      propertyId: e.propertyId,
+      eventType: e.eventType,
+      sitterName: e.sitterName,
+      sitterPhone: e.sitterPhone,
+      metadata: e.metadata,
+      vaultItemId: e.vaultItemId,
+      vaultItemLabel: e.vaultItemLabel,
+      proofPhotoUrl: e.proofPhotoUrl,
+      createdAt: e.createdAt,
+    }));
+
+    return {
+      items,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+/**
+ * Get the activity feed for a property — newest events first.
+ * Returns the most recent events (default 20) across all trips for the property.
+ * Optional eventType filter narrows to a specific event type.
+ */
 export const getActivityFeed = query({
   args: {
     propertyId: v.id("properties"),
@@ -34,7 +139,7 @@ export const getActivityFeed = query({
       .take(Math.min(fetchLimit, 200));
 
     const filtered = args.eventType
-      ? events.filter((e) => e.event === args.eventType)
+      ? events.filter((e) => e.eventType === args.eventType)
       : events;
 
     return filtered.slice(0, args.limit ?? 20).map((e) => ({
@@ -42,8 +147,10 @@ export const getActivityFeed = query({
       _creationTime: e._creationTime,
       tripId: e.tripId,
       propertyId: e.propertyId,
-      event: e.event,
+      eventType: e.eventType,
       sitterName: e.sitterName,
+      sitterPhone: e.sitterPhone,
+      metadata: e.metadata,
       vaultItemId: e.vaultItemId,
       vaultItemLabel: e.vaultItemLabel,
       proofPhotoUrl: e.proofPhotoUrl,
@@ -52,8 +159,10 @@ export const getActivityFeed = query({
   },
 });
 
-// Get today's task completion summary for a property's active trip.
-// Returns { completed, total } or null if no active trip.
+/**
+ * Get today's task completion summary for a property's active trip.
+ * Returns { completed, total } or null if no active trip.
+ */
 export const getTodayTaskSummary = query({
   args: {
     propertyId: v.id("properties"),

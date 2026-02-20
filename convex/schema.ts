@@ -204,14 +204,23 @@ export default defineSchema({
   activityLog: defineTable({
     tripId: v.id("trips"),
     propertyId: v.id("properties"),
-    event: v.string(),
+    eventType: v.union(
+      v.literal("link_opened"),
+      v.literal("task_completed"),
+      v.literal("proof_uploaded"),
+      v.literal("vault_accessed"),
+      v.literal("trip_started"),
+      v.literal("trip_expired"),
+    ),
     sitterName: v.optional(v.string()),
+    sitterPhone: v.optional(v.string()),
+    metadata: v.optional(v.any()),
     vaultItemId: v.optional(v.id("vaultItems")),
     vaultItemLabel: v.optional(v.string()),
     proofPhotoUrl: v.optional(v.string()),
     createdAt: v.number(),
   })
-    .index("by_trip", ["tripId"])
+    .index("by_trip_time", ["tripId", "createdAt"])
     .index("by_property", ["propertyId"]),
 
   // Per-item vault access log — one entry per item viewed (verified: true) or per failed

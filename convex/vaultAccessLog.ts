@@ -65,7 +65,7 @@ export const logVaultAccess = internalMutation({
           await ctx.db.insert("activityLog", {
             tripId: args.tripId,
             propertyId: trip.propertyId,
-            event: "vault_accessed",
+            eventType: "vault_accessed",
             sitterName: args.sitterName,
             vaultItemId: args.vaultItemId,
             vaultItemLabel: vaultItem.label,

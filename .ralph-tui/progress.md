@@ -1181,3 +1181,20 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Service worker already in place**: `public/sw.js` + `ServiceWorkerRegistrar` component registered at root layout handle offline caching. No additional setup needed for this story.
   - **No smart-app-banner**: `appleWebApp: { capable: true }` in layout metadata does NOT add `apple-itunes-app` meta tag (which is the actual Smart App Banner). Only `apple-mobile-web-app-title` and `apple-mobile-web-app-status-bar-style` tags are added.
 ---
+
+## 2026-02-20 - US-068
+- Implemented ActivityLog data model with proper schema, internalMutation logEvent, and getActivityForTrip query with pagination
+- **Files changed:**
+  - `convex/schema.ts` — Updated `activityLog` table: renamed `event: v.string()` → `eventType: v.union(literals)`, added `sitterPhone`, `metadata: v.any()`, changed `by_trip: ["tripId"]` index to `by_trip_time: ["tripId", "createdAt"]` for chronological queries
+  - `convex/activityLog.ts` — Added `logEvent` internalMutation (internal to prevent client injection), added `getActivityForTrip` query with Convex `paginate()` pagination + optional eventType filter, updated `getActivityFeed` handler to use `eventType` field
+  - `convex/trips.ts` — Updated 2 direct `ctx.db.insert` calls: `event:` → `eventType:`
+  - `convex/taskCompletions.ts` — Updated 3 direct inserts: `event:` → `eventType:`
+  - `convex/vaultAccessLog.ts` — Updated 1 direct insert: `event:` → `eventType:`
+  - `convex/vaultItems.ts` — Updated 1 direct insert discovered via typecheck: `event:` → `eventType:`
+  - `src/app/dashboard/page.tsx` — Updated `event.event` → `event.eventType` in two JSX expressions
+- **Learnings:**
+  - **Search callers with Grep before renaming schema fields**: Renaming a field used in `ctx.db.insert` calls across multiple files requires grepping all files, not just the obvious ones. `vaultItems.ts` had a direct activityLog insert that wasn't in the initial grep scope.
+  - **Convex paginate() API**: Use `.paginate({ numItems, cursor })` on a query chain. `cursor` must be `string | null`. Returns `{ page, isDone, continueCursor }`. The cursor can be stored in component state for load-more patterns.
+  - **internalMutation for event logging**: Make logEvent `internalMutation` so actions can call it via `ctx.runMutation(internal.activityLog.logEvent, ...)`, while mutations continue using `ctx.db.insert` directly (mutations cannot call `ctx.runMutation`).
+  - **Index compound field for time-sorted queries**: Index `["tripId", "createdAt"]` enables efficient chronological queries filtered by trip. Without `createdAt` in the index, Convex still sorts but scans all records for the tripId first.
+---

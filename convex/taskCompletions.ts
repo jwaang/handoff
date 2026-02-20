@@ -123,7 +123,7 @@ export const completeTask = mutation({
       await ctx.db.insert("activityLog", {
         tripId: args.tripId,
         propertyId: trip.propertyId,
-        event: "task_completed",
+        eventType: "task_completed",
         sitterName: args.sitterName || undefined,
         createdAt: completedAt,
       });
@@ -168,7 +168,7 @@ export const completeTaskWithProof = mutation({
       await ctx.db.insert("activityLog", {
         tripId: args.tripId,
         propertyId: trip.propertyId,
-        event: "proof_uploaded",
+        eventType: "proof_uploaded",
         sitterName: args.sitterName || undefined,
         proofPhotoUrl,
         createdAt: completedAt,
@@ -203,7 +203,7 @@ export const _attachProof = internalMutation({
       await ctx.db.insert("activityLog", {
         tripId: args.tripId,
         propertyId: trip.propertyId,
-        event: "proof_uploaded",
+        eventType: "proof_uploaded",
         sitterName: args.sitterName,
         createdAt: Date.now(),
       });
