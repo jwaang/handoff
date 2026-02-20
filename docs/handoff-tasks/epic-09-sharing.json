@@ -66,12 +66,13 @@
         "Expiration logic — confirm time-bound access auto-expires correctly"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Load /convex-best-practices to implement expiry as a query-level guard in the getTripByShareLink query: if Trips.linkExpiry < Date.now() or trip.status === 'expired', return { status: 'EXPIRED' } instead of trip data. Store linkExpiry defaulting to the trip endDate in createTrip mutation; add a setLinkExpiry mutation that validates the new expiry is ≤ trip.endDate. The sitter route src/app/t/[shareLink]/page.tsx reads the status field and renders the appropriate expired state. Load /tailwind-design-system to style the expired state: centered card (bg-bg-raised rounded-xl shadow-md p-8) with a muted clock icon, 'This handoff has expired' in font-display, and a brief message in font-body text-text-muted — matching the brand aesthetic without leaking trip details. The creator UI should show the current expiry date on the share panel with an 'Adjust expiry' date picker capped at trip.endDate.",
       "dependsOn": [
         "US-063",
         "US-045"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-066",
@@ -123,6 +124,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-02-20T14:31:00.087Z"
+    "updatedAt": "2026-02-20T15:33:34.822Z"
   }
 }

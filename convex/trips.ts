@@ -84,11 +84,14 @@ export const createTrip = mutation({
         message: "A trip is already in progress for this property.",
       });
     }
+    // Auto-set linkExpiry to end of endDate day (23:59:59.999 UTC)
+    const linkExpiry = new Date(args.endDate + "T23:59:59.999Z").getTime();
     return await ctx.db.insert("trips", {
       propertyId: args.propertyId,
       startDate: args.startDate,
       endDate: args.endDate,
       status: "draft",
+      linkExpiry,
     });
   },
 });
@@ -145,14 +148,25 @@ export const getActiveTripForProperty = query({
 });
 
 // Look up a trip by its shareLink slug (used by the sitter view).
+// Returns { status: "EXPIRED" } if the link has expired (either by linkExpiry timestamp or
+// trip status), null if not found, or the full trip object if valid.
 export const getByShareLink = query({
   args: { shareLink: v.string() },
-  returns: v.union(tripObject, v.null()),
+  returns: v.union(tripObject, v.null(), v.object({ status: v.literal("EXPIRED") })),
   handler: async (ctx, args) => {
-    return await ctx.db
+    const trip = await ctx.db
       .query("trips")
       .withIndex("by_share_link", (q) => q.eq("shareLink", args.shareLink))
       .first();
+    if (!trip) return null;
+    // Check expiry: explicit linkExpiry timestamp or trip status === expired
+    if (
+      trip.status === "expired" ||
+      (trip.linkExpiry !== undefined && trip.linkExpiry < Date.now())
+    ) {
+      return { status: "EXPIRED" as const };
+    }
+    return trip;
   },
 });
 
@@ -175,6 +189,40 @@ export const update = mutation({
     if (Object.keys(updates).length > 0) {
       await ctx.db.patch(tripId, updates);
     }
+    return null;
+  },
+});
+
+// Public: get a single trip by ID (used by creator share panel).
+export const get = query({
+  args: { tripId: v.id("trips") },
+  returns: v.union(tripObject, v.null()),
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.tripId);
+  },
+});
+
+// Sets the link expiry timestamp for a trip.
+// Validates that the new expiry is not later than the trip's end date.
+export const setLinkExpiry = mutation({
+  args: {
+    tripId: v.id("trips"),
+    linkExpiry: v.number(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const trip = await ctx.db.get(args.tripId);
+    if (!trip) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Trip not found" });
+    }
+    const maxExpiry = new Date(trip.endDate + "T23:59:59.999Z").getTime();
+    if (args.linkExpiry > maxExpiry) {
+      throw new ConvexError({
+        code: "INVALID_ARGUMENT",
+        message: "Link expiry cannot be later than the trip end date.",
+      });
+    }
+    await ctx.db.patch(args.tripId, { linkExpiry: args.linkExpiry });
     return null;
   },
 });

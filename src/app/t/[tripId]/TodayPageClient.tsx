@@ -98,6 +98,46 @@ function PasswordProtectedResolver({ tripId, shareLink }: PasswordProtectedResol
   );
 }
 
+// ── Expired state ──────────────────────────────────────────────────────
+
+function ExpiredState() {
+  return (
+    <div className="min-h-dvh bg-bg flex items-center justify-center p-6">
+      <div
+        className="bg-bg-raised rounded-xl p-8 flex flex-col items-center gap-4 w-full max-w-sm text-center"
+        style={{ boxShadow: "var(--shadow-md)" }}
+      >
+        {/* Clock icon */}
+        <div className="w-12 h-12 rounded-round bg-bg-sunken flex items-center justify-center">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-text-muted"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+
+        <h1 className="font-display text-2xl text-text-primary">
+          This handoff has expired
+        </h1>
+        <p className="font-body text-sm text-text-muted">
+          This link is no longer active. Please contact the homeowner if you
+          need access.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── ShareLink resolver — looks up trip by shareLink slug, falls back to tripId ──
 
 function TodayPageResolver({ shareLink }: { shareLink: string }) {
@@ -110,6 +150,11 @@ function TodayPageResolver({ shareLink }: { shareLink: string }) {
         <p className="font-body text-sm text-text-muted">Loading…</p>
       </div>
     );
+  }
+
+  // Expired link
+  if (trip !== null && !("_id" in trip)) {
+    return <ExpiredState />;
   }
 
   // Found by shareLink — check password protection

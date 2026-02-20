@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useAction } from "convex/react";
+import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
@@ -80,6 +80,16 @@ function CheckIcon() {
   );
 }
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function msToDateString(ms: number): string {
+  return new Date(ms).toISOString().split("T")[0];
+}
+
+function dateStringToEndOfDayMs(dateStr: string): number {
+  return new Date(dateStr + "T23:59:59.999Z").getTime();
+}
+
 // ── Main share step ────────────────────────────────────────────────────────────
 
 function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
@@ -90,9 +100,13 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
   const [showToast, setShowToast] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
+  const [expiryError, setExpiryError] = useState("");
+  const [isSavingExpiry, setIsSavingExpiry] = useState(false);
 
+  const trip = useQuery(api.trips.get, { tripId });
   const generateShareLink = useAction(api.shareActions.generateShareLink);
   const updateTrip = useMutation(api.trips.update);
+  const setLinkExpiry = useMutation(api.trips.setLinkExpiry);
 
   useEffect(() => {
     setCanShare(typeof navigator !== "undefined" && "share" in navigator);
@@ -127,6 +141,21 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
       await navigator.share({ url: shareUrl, text: "Here is your Handoff!" });
     } catch {
       // user dismissed — no-op
+    }
+  }
+
+  async function handleExpiryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const dateStr = e.target.value;
+    if (!dateStr || !trip) return;
+    setExpiryError("");
+    setIsSavingExpiry(true);
+    try {
+      const newExpiry = dateStringToEndOfDayMs(dateStr);
+      await setLinkExpiry({ tripId, linkExpiry: newExpiry });
+    } catch {
+      setExpiryError("Could not update expiry. Please try again.");
+    } finally {
+      setIsSavingExpiry(false);
     }
   }
 
@@ -262,6 +291,56 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
               </Button>
             )}
           </div>
+
+          {/* Link expiry */}
+          {trip && (
+            <div
+              className="bg-bg-raised rounded-xl border border-border-default p-5 flex flex-col gap-4"
+              style={{ boxShadow: "var(--shadow-sm)" }}
+            >
+              <div className="flex flex-col gap-1">
+                <p className="font-body text-sm font-semibold text-text-primary">
+                  Link expiry
+                </p>
+                <p className="font-body text-xs text-text-muted">
+                  The link stops working after this date. Cannot be set later than
+                  the trip end date.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="link-expiry-date"
+                  className="font-body text-xs font-medium text-text-secondary"
+                >
+                  Expires on
+                </label>
+                <input
+                  id="link-expiry-date"
+                  type="date"
+                  defaultValue={
+                    trip.linkExpiry
+                      ? msToDateString(trip.linkExpiry)
+                      : trip.endDate
+                  }
+                  max={trip.endDate}
+                  onChange={handleExpiryChange}
+                  disabled={isSavingExpiry}
+                  className="font-body text-sm text-text-primary bg-bg border border-border-default rounded-md px-3 py-2 outline-none focus:border-primary w-full"
+                  style={{
+                    borderWidth: "1.5px",
+                    boxShadow: "none",
+                  }}
+                />
+                {expiryError && (
+                  <p className="font-body text-xs text-danger">{expiryError}</p>
+                )}
+                {isSavingExpiry && (
+                  <p className="font-body text-xs text-text-muted">Saving…</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Activate trip */}
           <div

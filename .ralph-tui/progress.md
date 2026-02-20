@@ -1139,3 +1139,16 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Toggle switch with `aria-checked`**: Use `role="switch"` + `aria-checked` on a `<button>` for accessible toggle semantics. Use `translate-x-4`/`translate-x-0.5` Tailwind classes with `ease-spring` transition for the thumb animation.
   - **Internal mutations in `"use node"` actions**: `shareActions.ts` uses `internal.trips._clearLinkPassword` (new) and `internal.tripSessions._create` (new) via `ctx.runMutation(internal....)`. The `internal` API reference works the same as `api` for cross-module calls.
 ---
+
+## 2026-02-20 - US-065
+- Implemented link expiration for shareable trip links
+- **Files changed:**
+  - `convex/trips.ts` — (1) Updated `getByShareLink` query: returns `{ status: "EXPIRED" }` discriminant object when `trip.status === "expired"` or `trip.linkExpiry < Date.now()`; (2) Updated `createTrip` mutation to auto-set `linkExpiry` from `endDate` as end-of-day UTC timestamp; (3) Added `get` public query by tripId; (4) Added `setLinkExpiry` mutation that validates new expiry ≤ trip.endDate
+  - `src/app/t/[tripId]/TodayPageClient.tsx` — Added `ExpiredState` component (centered card, clock icon, font-display heading, muted message); updated `TodayPageResolver` to check `!('_id' in trip)` and render `ExpiredState` for expired links
+  - `src/app/trip/[tripId]/share/ShareStepInner.tsx` — Added `useQuery(api.trips.get, { tripId })` to read trip data; added expiry card with `<input type="date">` capped at `trip.endDate`; added `setLinkExpiry` mutation call via `handleExpiryChange`
+- **Learnings:**
+  - **Discriminated union for Convex query return**: Use `v.union(tripObject, v.null(), v.object({ status: v.literal("EXPIRED") }))` for query return types that need to communicate status. Client-side check `!('_id' in trip)` is more TypeScript-safe than checking status field (avoids ambiguity with trip's own `status` field).
+  - **linkExpiry auto-set in createTrip**: Store `linkExpiry` as Unix ms timestamp for precise comparison (`Date.now()`), converted from "YYYY-MM-DD" string via `new Date(endDate + "T23:59:59.999Z").getTime()`. End-of-day UTC aligns with cron's date-string comparison behavior.
+  - **`type="date"` input with `max` cap**: Setting `max={trip.endDate}` on a `<input type="date">` natively prevents selecting dates after the trip end — no custom validation needed in the browser.
+  - **`defaultValue` vs `value` for date input**: Used `defaultValue` (uncontrolled) for the date picker since changes are saved server-side via mutation on `onChange` — avoids needing a local state copy that would require re-render on server response.
+---
