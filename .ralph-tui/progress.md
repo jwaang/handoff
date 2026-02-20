@@ -1229,3 +1229,18 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **VAPID key split**: `NEXT_PUBLIC_VAPID_PUBLIC_KEY` goes in `.env.local` for client-side subscription. `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` go in Convex dashboard environment variables for server-side delivery. Never expose private key to browser.
   - **Fallback behavior**: When no push subscription exists (permission denied/not requested), `sendPushNotification` returns null silently — notifications still appear in the in-app activity feed as the fallback.
 ---
+
+## 2026-02-20 - US-071
+- Implemented push notification for sitter's first link open
+- Files changed:
+  - `convex/activityLog.ts` — Added `_checkFirstOpen` internalQuery (server-side dedup: checks for existing `link_opened` event for a tripId)
+  - `convex/properties.ts` — Added `_getById` internalQuery (exposes property record including `ownerId` to internal actions)
+  - `convex/sitterActions.ts` — New file: `recordFirstOpen` public action; deduplicates server-side via `_checkFirstOpen`, logs `link_opened` activity event, schedules push notification to property owner via `ctx.scheduler.runAfter`
+  - `convex/_generated/api.d.ts` — Manually added `sitterActions` import and entry in `fullApi`
+  - `src/app/t/[tripId]/TodayPageInner.tsx` — Added `useEffect` with `useRef` guard + sessionStorage dedup to call `recordFirstOpen` on first ACTIVE trip render
+- **Learnings:**
+  - **Action dedup pattern**: Two-layer dedup for best-effort notifications: (1) sessionStorage key `hoff_opened_${tripId}` prevents re-firing across page navigations in same session; (2) server-side `_checkFirstOpen` internalQuery prevents duplicates across devices. Use `useRef` guard in React to prevent double-invocation in StrictMode dev.
+  - **Public action for unauthenticated callers**: Sitter page has no auth — use a public Convex `action` (not mutation) so it can be called from `useAction` hook without authentication. Actions can call internal queries/mutations and use `ctx.scheduler.runAfter` for push notifications.
+  - **Property ownerId lookup chain**: `tripId → trip.propertyId → property.ownerId → userId for push`. Each step needs its own internal query since actions lack `ctx.db` access. Keep internal queries focused (return only what's needed).
+  - **Best-effort error swallowing**: Wrap entire `recordFirstOpen` handler in try/catch so a notification failure never surfaces to the sitter's page load. Log to console for debugging.
+---

@@ -31,6 +31,7 @@ import type * as properties from "../properties.js";
 import type * as search from "../search.js";
 import type * as sections from "../sections.js";
 import type * as shareActions from "../shareActions.js";
+import type * as sitterActions from "../sitterActions.js";
 import type * as sitters from "../sitters.js";
 import type * as storage from "../storage.js";
 import type * as taskCompletions from "../taskCompletions.js";
@@ -70,6 +71,7 @@ declare const fullApi: ApiFromModules<{
   search: typeof search;
   sections: typeof sections;
   shareActions: typeof shareActions;
+  sitterActions: typeof sitterActions;
   sitters: typeof sitters;
   storage: typeof storage;
   taskCompletions: typeof taskCompletions;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -503,6 +503,28 @@ export default function TodayPageInner({ tripId }: { tripId: string }) {
 
   // Compute today's date as YYYY-MM-DD in local timezone
   const today = new Date().toLocaleDateString("en-CA");
+
+  // Record first open — fire once per browser session, deduplicated server-side too.
+  const recordFirstOpen = useAction(api.sitterActions.recordFirstOpen);
+  const hasRecordedOpenRef = useRef(false);
+  useEffect(() => {
+    if (hasRecordedOpenRef.current) return;
+    const key = `hoff_opened_${tripId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+    } catch {
+      // sessionStorage unavailable (private browsing restrictions) — proceed anyway
+    }
+    hasRecordedOpenRef.current = true;
+    void recordFirstOpen({ tripId: tripId as Id<"trips"> }).then(() => {
+      try {
+        sessionStorage.setItem(key, "1");
+      } catch {
+        // ignore sessionStorage write failures
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
 
   // Proof upload state
   const [pendingProofTask, setPendingProofTask] = useState<TodayTask | null>(null);

@@ -1,4 +1,4 @@
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Discriminated union of all event types for the activity feed.
@@ -156,6 +156,23 @@ export const getActivityFeed = query({
       proofPhotoUrl: e.proofPhotoUrl,
       createdAt: e.createdAt,
     }));
+  },
+});
+
+/**
+ * Internal: check if a link_opened event already exists for this trip.
+ * Used by recordFirstOpen to deduplicate notifications.
+ */
+export const _checkFirstOpen = internalQuery({
+  args: { tripId: v.id("trips") },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("activityLog")
+      .withIndex("by_trip_time", (q) => q.eq("tripId", args.tripId))
+      .filter((q) => q.eq(q.field("eventType"), "link_opened"))
+      .first();
+    return existing !== null;
   },
 });
 

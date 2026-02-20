@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
@@ -44,6 +44,14 @@ export const create = mutation({
 export const get = query({
   args: { propertyId: v.id("properties") },
   returns: v.union(propertyObject, v.null()),
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.propertyId);
+  },
+});
+
+// Internal: look up a property by ID — used by sitterActions for owner notification.
+export const _getById = internalQuery({
+  args: { propertyId: v.id("properties") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.propertyId);
   },
