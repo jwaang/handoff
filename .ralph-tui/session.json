@@ -3,10 +3,10 @@
   "sessionId": "9070c191-048a-4b6a-a247-cfe20585c46e",
   "status": "running",
   "startedAt": "2026-02-20T15:57:01.355Z",
-  "updatedAt": "2026-02-20T16:54:24.592Z",
-  "currentIteration": 4,
+  "updatedAt": "2026-02-20T17:13:50.535Z",
+  "currentIteration": 5,
   "maxIterations": 10,
-  "tasksCompleted": 4,
+  "tasksCompleted": 5,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -41,8 +41,8 @@
       {
         "id": "US-072",
         "title": "Push notification — task completed",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-073",
@@ -104,6 +104,16 @@
       "durationMs": 312691,
       "startedAt": "2026-02-20T16:41:32.079Z",
       "endedAt": "2026-02-20T16:46:44.770Z"
+    },
+    {
+      "iteration": 5,
+      "status": "completed",
+      "taskId": "US-072",
+      "taskTitle": "Push notification — task completed",
+      "taskCompleted": true,
+      "durationMs": 459694,
+      "startedAt": "2026-02-20T16:46:44.896Z",
+      "endedAt": "2026-02-20T16:54:24.590Z"
     }
   ],
   "skippedTaskIds": [],

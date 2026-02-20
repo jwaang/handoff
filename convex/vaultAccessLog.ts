@@ -73,12 +73,15 @@ export const logVaultAccess = internalMutation({
           });
 
           // Schedule push notification to the property owner.
-          // Deep-links to the dashboard activity feed so the owner can review vault access.
+          // Vault access is a security event — sent regardless of notification preferences.
+          // (We call sendPushNotification directly, bypassing sendTaskNotification's
+          // preference check, so this fires even when the owner has preferences set to 'off'.)
+          // Deep-links to the trip activity feed pre-filtered to vault_accessed events.
           await ctx.scheduler.runAfter(0, internal.notifications.sendPushNotification, {
             userId: property.ownerId,
             tripId: args.tripId,
             message,
-            deepLinkUrl: "/dashboard",
+            deepLinkUrl: `/trip/${args.tripId}/activity?filter=vault_accessed`,
           });
         }
       }

@@ -1260,3 +1260,14 @@ Full spec at `docs/handoff-design-system.md`. Aesthetic: **Warm Editorial** — 
   - **Scheduling actions from mutations**: Convex mutations support `ctx.scheduler.runAfter(0, internal.module.fn, args)` for fire-and-forget action dispatch. This is the correct pattern for triggering side effects (notifications) from mutations.
   - **Digest window math**: Floor `completedAt` to hour boundary: `Math.floor(ms / 3_600_000) * 3_600_000`. Next hour = `+ 3_600_000`. Pass both bounds as args to the scheduled action for a self-contained, testable window.
 ---
+
+## 2026-02-20 - US-073
+- Implemented vault access push notification as a security event that bypasses notification preferences
+- **Files changed:**
+  - `convex/vaultAccessLog.ts` — Updated `deepLinkUrl` from `/dashboard` to `/trip/${args.tripId}/activity?filter=vault_accessed`; added comment explaining this calls `sendPushNotification` directly (bypassing `sendTaskNotification`'s preference check) so it fires even when owner has preferences set to 'off'
+  - `src/app/trip/[tripId]/activity/TripActivityFeed.tsx` — Added `useSearchParams` import; `TripActivityFeedInner` now reads `?filter=` URL param to initialize filter state (validated against `VALID_FILTERS` array, defaults to "all")
+- **Learnings:**
+  - **Security event bypass pattern**: Call `sendPushNotification` directly (not via `sendTaskNotification`) to bypass notification preference checks. `sendPushNotification` only checks for a valid push subscription, not the owner's preference setting.
+  - **`useSearchParams` in ssr:false dynamic components**: Safe to use `useSearchParams()` in components loaded via `dynamic(() => import(...), { ssr: false })` — Next.js wraps them in Suspense internally, so no additional Suspense boundary needed.
+  - **URL-initialised filter state**: `useState(initialValue)` only uses the initial value on first render; the filter chip state becomes independent of the URL after mount, which is the desired behavior for a pre-selected-but-changeable filter.
+---

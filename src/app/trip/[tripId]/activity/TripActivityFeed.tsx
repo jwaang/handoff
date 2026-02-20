@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
@@ -54,8 +55,21 @@ const chips: { label: string; value: FeedFilter }[] = [
 
 // ── Inner component (uses Convex hooks) ────────────────────────────────────────
 
+const VALID_FILTERS: FeedFilter[] = [
+  "all",
+  "task_completed",
+  "proof_uploaded",
+  "vault_accessed",
+  "link_opened",
+];
+
 function TripActivityFeedInner({ tripId }: { tripId: Id<"trips"> }) {
-  const [filter, setFilter] = useState<FeedFilter>("all");
+  const searchParams = useSearchParams();
+  const rawFilter = searchParams.get("filter");
+  const initialFilter: FeedFilter = VALID_FILTERS.includes(rawFilter as FeedFilter)
+    ? (rawFilter as FeedFilter)
+    : "all";
+  const [filter, setFilter] = useState<FeedFilter>(initialFilter);
   const [numItems, setNumItems] = useState(PAGE_SIZE);
 
   const trip = useQuery(api.trips.get, { tripId });
