@@ -23,8 +23,8 @@ self.addEventListener("install", (event) => {
       .open(APP_SHELL_CACHE)
       .then((cache) => cache.addAll(APP_SHELL_URLS)),
   );
-  // Activate immediately — no waiting for tabs to close
-  self.skipWaiting();
+  // Don't skipWaiting here — the app will post SKIP_WAITING when the user
+  // taps the "Update available" banner, giving them a chance to save state.
 });
 
 // ── Activate ──────────────────────────────────────────────────────────────
@@ -40,6 +40,16 @@ self.addEventListener("activate", (event) => {
     ),
   );
   self.clients.claim();
+});
+
+// ── Update handshake ──────────────────────────────────────────────────────
+// The app posts { type: 'SKIP_WAITING' } when the user taps the update banner.
+// This activates the new SW immediately; the client then reloads.
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 // ── URL classifiers ───────────────────────────────────────────────────────
