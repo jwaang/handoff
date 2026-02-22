@@ -419,13 +419,13 @@ export function ManualTab({ propertyId }: ManualTabProps) {
           Home Manual
         </p>
         <h1 className="font-display text-2xl text-text-primary">
-          {fullManual ? fullManual.property.name : "Loading\u2026"}
+          {fullManual ? fullManual.property.name : "Loading…"}
         </h1>
       </div>
 
       {/* Search bar */}
       <SearchBar
-        placeholder="Search manual\u2026"
+        placeholder="Search manual…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search manual"
