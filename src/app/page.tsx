@@ -671,7 +671,11 @@ function LocationCardMock() {
   return (
     <div className="bg-bg-raised rounded-lg p-2 shadow-polaroid w-64 -rotate-1">
       <div className="aspect-[4/3] rounded-md overflow-hidden bg-primary-light mb-3">
-        <div className="w-full h-full bg-gradient-to-br from-primary-light to-accent-light" />
+        <img
+          src="/location-card.png"
+          alt="Pills on bottom shelf behind cereal"
+          className="w-full h-full object-cover"
+        />
       </div>
       <p className="font-handwritten text-xl text-text-primary px-1 mb-2">
         Bottom shelf, next to the cereal
