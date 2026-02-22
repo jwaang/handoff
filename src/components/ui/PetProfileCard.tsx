@@ -1,6 +1,7 @@
 "use client";
 
 import { type HTMLAttributes } from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface PetDetail {
@@ -50,10 +51,12 @@ function PetProfileCard({
       {/* Hero photo — 1:1 aspect ratio, full bleed */}
       <div className="relative w-full aspect-square overflow-hidden">
         {src ? (
-          <img
+          <Image
             src={src}
             alt={alt || name}
-            className="w-full h-full object-cover block"
+            fill
+            className="object-cover"
+            sizes="360px"
             draggable={false}
           />
         ) : (

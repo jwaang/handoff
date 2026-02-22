@@ -1,7 +1,7 @@
 {
   "name": "Vadem",
   "short_name": "Vadem",
-  "description": "Vadem — seamless task management",
+  "description": "Create care manuals for your pet and house sitters. One link with daily tasks, location photos, secure codes, and real-time updates.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#C2704A",

@@ -65,13 +65,164 @@ const sampleContacts: EmergencyContact[] = [
 export default function DesignSystemPage() {
   if (process.env.NODE_ENV !== "development") notFound();
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4 pb-[calc(var(--spacing-8)+80px)]">
+    <div className="max-w-[1232px] mx-auto py-8 px-4 pb-[calc(var(--spacing-8)+80px)]">
       <h1 className="font-display text-5xl leading-tight tracking-tight text-text-primary mb-2">
         Vadem
       </h1>
       <p className="font-body text-lg leading-normal text-text-secondary mb-8">
         Component showcase
       </p>
+
+      {/* ── OG Image Preview (1200×630) ── */}
+      <section className="mb-12">
+        <h2 className="font-display text-2xl mb-2">OG Image Preview</h2>
+        <p className="text-sm text-text-muted mb-4">
+          1200&times;630px — screenshot this for og-image.png
+        </p>
+        <div className="overflow-auto border border-border-default rounded-lg">
+          <div
+            style={{
+              width: 1200,
+              height: 630,
+              background: "linear-gradient(145deg, #3D2418 0%, #8B4A2B 35%, #C2704A 65%, #D4943A 100%)",
+            }}
+            className="relative overflow-hidden shrink-0"
+          >
+            {/* Large soft glow — top center */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: -120,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 800,
+                height: 500,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 65%)",
+              }}
+            />
+
+            {/* Warm bloom — bottom-left */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                bottom: -100,
+                left: -80,
+                width: 500,
+                height: 400,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(212,148,58,0.15) 0%, transparent 60%)",
+              }}
+            />
+
+            {/* Cool accent — top-right corner */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: -60,
+                right: -60,
+                width: 350,
+                height: 350,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(94,139,106,0.12) 0%, transparent 60%)",
+              }}
+            />
+
+            {/* Subtle grain overlay — very light */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-overlay"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`,
+              }}
+            />
+
+            {/* Geometric accent — thin diagonal line */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: 0,
+                right: 200,
+                width: 1,
+                height: "140%",
+                background: "rgba(255,255,255,0.04)",
+                transform: "rotate(25deg)",
+                transformOrigin: "top center",
+              }}
+            />
+
+            {/* Second diagonal */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                top: 0,
+                right: 220,
+                width: 1,
+                height: "140%",
+                background: "rgba(255,255,255,0.03)",
+                transform: "rotate(25deg)",
+                transformOrigin: "top center",
+              }}
+            />
+
+            {/* Main content — centered */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
+              {/* Wordmark */}
+              <span
+                className="font-display leading-none tracking-tight text-white"
+                style={{ fontSize: 104 }}
+              >
+                Vadem
+              </span>
+
+              {/* Divider rule */}
+              <div
+                className="rounded-full mt-6 mb-6"
+                style={{
+                  width: 56,
+                  height: 2,
+                  background: "rgba(255,255,255,0.35)",
+                }}
+              />
+
+              {/* Subtext */}
+              <span
+                className="font-body text-center leading-snug"
+                style={{ fontSize: 30, color: "rgba(255,255,255,0.85)" }}
+              >
+                Pet &amp; House Sitter Care Manuals
+              </span>
+
+              {/* Tagline */}
+              <span
+                className="font-body text-center mt-3"
+                style={{ fontSize: 18, color: "rgba(255,255,255,0.50)" }}
+              >
+                One link with everything your sitter needs
+              </span>
+            </div>
+
+            {/* Bottom bar — domain + badge */}
+            <div className="absolute bottom-0 inset-x-0 flex items-center justify-between px-14 py-5">
+              <span
+                className="font-body tracking-wide"
+                style={{ fontSize: 15, color: "rgba(255,255,255,0.35)" }}
+              >
+                vadem.app
+              </span>
+              <span
+                className="font-body text-xs font-semibold px-3 py-1 rounded-pill"
+                style={{
+                  color: "rgba(255,255,255,0.75)",
+                  background: "rgba(255,255,255,0.10)",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Free during early access
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── Layout Shells ── */}
       <section className="mb-8">

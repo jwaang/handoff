@@ -30,9 +30,13 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Vadem",
+  metadataBase: new URL("https://vadem.app"),
+  title: {
+    default: "Vadem — Pet & House Sitter Care Manuals",
+    template: "%s | Vadem",
+  },
   description:
-    "The warmth of a handwritten care note meets the precision of a beautifully designed cookbook.",
+    "Create a care manual for your pet and house sitter. Share one link with daily task checklists, location photos, secure codes, and real-time updates. No app download needed.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -41,6 +45,30 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: "/icons/icon-192x192.png",
+  },
+  openGraph: {
+    title: "Vadem — Pet & House Sitter Care Manuals",
+    description:
+      "One link with everything your sitter needs. Daily tasks, location photos, secure codes, and real-time updates.",
+    url: "https://vadem.app",
+    siteName: "Vadem",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Vadem — care manuals for pet and house sitters",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vadem — Pet & House Sitter Care Manuals",
+    description:
+      "One link with everything your sitter needs. Daily tasks, location photos, secure codes, and real-time updates.",
+    images: ["/og-image.png"],
   },
 };
 

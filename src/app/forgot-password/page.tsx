@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Forgot Password",
+  description: "Reset your Vadem account password.",
+};
 
 export default function ForgotPasswordPage() {
   return (
