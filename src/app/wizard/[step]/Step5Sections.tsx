@@ -166,20 +166,24 @@ function InstructionRow({
         </button>
 
         {/* Location card upload */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
-            className="font-body text-xs text-text-muted hover:text-primary transition-colors duration-150"
+            className="inline-flex items-center gap-1 font-body text-xs font-semibold text-text-muted hover:text-primary hover:bg-primary-subtle px-2 py-1.5 rounded-md transition-colors duration-150"
             onClick={() => setShowUploader(true)}
+            aria-label="Attach photo card"
           >
-            + Photo card
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Photo
           </button>
           <button
             type="button"
-            className="font-body text-xs text-text-muted hover:text-primary transition-colors duration-150"
+            className="inline-flex items-center gap-1 font-body text-xs font-semibold text-text-muted hover:text-primary hover:bg-primary-subtle px-2 py-1.5 rounded-md transition-colors duration-150"
             onClick={() => setShowVideoUploader(true)}
+            aria-label="Attach video card"
           >
-            + Video card
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Video
           </button>
         </div>
       </div>
@@ -213,7 +217,7 @@ interface SectionPanelProps {
 }
 
 function SectionPanel({ section, isPrebuilt, onRemoveSection }: SectionPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const createInstruction = useMutation(api.instructions.create);
@@ -472,6 +476,7 @@ export default function Step5Sections() {
 
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<Id<"manualSections"> | null>(null);
 
   const isLoading = sections === undefined;
 
@@ -490,12 +495,10 @@ export default function Step5Sections() {
     setGeneralError(null);
 
     if (activeSectionTitles.has(prebuilt.title)) {
-      // Uncheck: find and remove the section (cascade deletes instructions)
+      // Uncheck: find the section and confirm removal
       const section = sections?.find((s) => s.title === prebuilt.title);
       if (section) {
-        removeSection({ sectionId: section._id }).catch(() => {
-          setGeneralError("Failed to remove section. Please try again.");
-        });
+        setConfirmRemoveId(section._id);
       }
     } else {
       // Check: create the section
@@ -510,6 +513,14 @@ export default function Step5Sections() {
     }
   };
 
+  const handleConfirmRemove = () => {
+    if (!confirmRemoveId) return;
+    removeSection({ sectionId: confirmRemoveId }).catch(() => {
+      setGeneralError("Failed to remove section. Please try again.");
+    });
+    setConfirmRemoveId(null);
+  };
+
   const handleAddCustomSection = (title: string, icon: string, sortOrder: number) => {
     if (!propertyId) return;
     setShowCustomForm(false);
@@ -521,9 +532,7 @@ export default function Step5Sections() {
 
   const handleRemoveSection = (sectionId: Id<"manualSections">) => {
     setGeneralError(null);
-    removeSection({ sectionId }).catch(() => {
-      setGeneralError("Failed to remove section. Please try again.");
-    });
+    setConfirmRemoveId(sectionId);
   };
 
   return (
@@ -538,12 +547,49 @@ export default function Step5Sections() {
         </p>
       </div>
 
+      {/* Location cards callout */}
+      <div className="bg-accent-subtle border border-accent-light rounded-xl p-4 flex gap-4">
+        <div className="shrink-0 w-16 h-16 rounded-lg bg-bg-raised border border-border-default flex items-center justify-center text-2xl"
+          style={{ boxShadow: "var(--shadow-polaroid)", transform: "rotate(-2deg)" }}
+        >
+          📷
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="font-body text-sm font-semibold text-text-primary">
+            Location cards
+          </p>
+          <p className="font-body text-xs text-text-secondary leading-relaxed">
+            Attach photos or videos to any instruction so your sitter knows exactly where things are — like &ldquo;set the thermostat to 72&deg;&rdquo; with a photo of the dial. Look for the camera icons inside each instruction.
+          </p>
+        </div>
+      </div>
+
       {generalError && (
         <div
           role="alert"
           className="bg-danger-light text-danger rounded-lg px-4 py-3 font-body text-sm"
         >
           {generalError}
+        </div>
+      )}
+
+      {/* Remove confirmation */}
+      {confirmRemoveId && (
+        <div className="bg-warning-light rounded-lg p-4 flex flex-col gap-3 border border-warning">
+          <p className="font-body text-sm font-semibold text-text-primary">
+            Remove this section?
+          </p>
+          <p className="font-body text-xs text-text-secondary">
+            Any instructions you&apos;ve added to this section will be deleted.
+          </p>
+          <div className="flex items-center gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setConfirmRemoveId(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" size="sm" onClick={handleConfirmRemove}>
+              Yes, remove
+            </Button>
+          </div>
         </div>
       )}
 
@@ -634,14 +680,6 @@ export default function Step5Sections() {
       <div className="flex flex-col gap-3 pt-2">
         <Button size="lg" className="w-full" onClick={() => router.push("/wizard/6")}>
           Next
-        </Button>
-        <Button
-          variant="ghost"
-          size="default"
-          className="w-full"
-          onClick={() => router.push("/wizard/6")}
-        >
-          Skip — add later
         </Button>
       </div>
     </div>

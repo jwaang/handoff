@@ -301,7 +301,7 @@ export default function Step6Review() {
     setPublishError(null);
     publishManual({ propertyId })
       .then(() => {
-        router.push("/dashboard");
+        router.push("/dashboard?published=true");
       })
       .catch(() => {
         setIsPublishing(false);

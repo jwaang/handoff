@@ -461,36 +461,49 @@ function NewTripFormInner({ onCancel }: { onCancel: () => void }) {
     const isActive = existingTrip.status === "active";
     return (
       <div
-        className="bg-bg-raised rounded-xl border border-border-default p-6 flex flex-col gap-4"
+        className="bg-bg-raised rounded-xl border border-border-default flex flex-col"
         style={{ boxShadow: "var(--shadow-sm)" }}
       >
-        <div className="flex items-start gap-3">
+        {/* Card header */}
+        <div className="p-5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-accent-subtle flex items-center justify-center shrink-0">
             <CalendarIcon size={22} className="text-accent" />
           </div>
-          <div className="flex flex-col gap-1 min-w-0">
-            <p className="font-body text-sm font-semibold text-text-primary">
-              {isActive ? "Active trip" : "Trip in progress"}
-            </p>
+          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="font-body text-sm font-semibold text-text-primary">
+                {isActive ? "Your trip" : "Trip in progress"}
+              </p>
+              <Badge variant={isActive ? "success" : "overlay"}>
+                {existingTrip.status.charAt(0).toUpperCase() + existingTrip.status.slice(1)}
+              </Badge>
+            </div>
             <p className="font-body text-xs text-text-secondary">
               {formatTripDate(existingTrip.startDate)} – {formatTripDate(existingTrip.endDate)}
             </p>
-            <Badge variant={isActive ? "success" : "overlay"}>
-              {existingTrip.status.charAt(0).toUpperCase() + existingTrip.status.slice(1)}
-            </Badge>
           </div>
+          {isActive && (
+            <Link
+              href={`/trip/${existingTrip._id}/share`}
+              className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors duration-150 shrink-0"
+            >
+              Manage →
+            </Link>
+          )}
         </div>
 
         {isActive && (
-          <ShareLinkPanel
-            tripId={existingTrip._id}
-            initialSlug={existingTrip.shareLink}
-            initialHasPassword={!!existingTrip.linkPassword}
-          />
+          <div className="border-t border-border-default px-5 pb-5 pt-4">
+            <ShareLinkPanel
+              tripId={existingTrip._id}
+              initialSlug={existingTrip.shareLink}
+              initialHasPassword={!!existingTrip.linkPassword}
+            />
+          </div>
         )}
 
         {!isActive && (
-          <>
+          <div className="px-5 pb-5 flex flex-col gap-3">
             <p className="font-body text-xs text-text-muted">
               You can only have one active trip at a time. Continue setting up your current trip or delete it to start a new one.
             </p>
@@ -500,17 +513,7 @@ function NewTripFormInner({ onCancel }: { onCancel: () => void }) {
             >
               Continue Trip Setup
             </Button>
-          </>
-        )}
-
-        {isActive && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/trip/${existingTrip._id}/share`)}
-          >
-            Manage trip setup →
-          </Button>
+          </div>
         )}
       </div>
     );

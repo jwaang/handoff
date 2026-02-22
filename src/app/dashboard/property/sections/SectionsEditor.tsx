@@ -715,11 +715,11 @@ export default function SectionsEditor() {
       <div className="flex flex-col gap-6">
         {/* Back link */}
         <Link
-          href="/dashboard"
+          href="/dashboard/property"
           className="inline-flex items-center gap-1.5 font-body text-sm text-text-muted hover:text-text-primary transition-colors duration-150 self-start"
         >
           <ChevronLeftIcon />
-          Back to dashboard
+          Property
         </Link>
 
         {/* Header */}

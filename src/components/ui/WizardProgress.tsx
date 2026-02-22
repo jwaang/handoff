@@ -1,6 +1,7 @@
 "use client";
 
 import { type HTMLAttributes } from "react";
+import Link from "next/link";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -109,8 +110,13 @@ function WizardProgress({
 
           return (
             <li key={step.label} className="flex items-start">
-              <div
-                className="flex flex-col items-center gap-2 min-w-[72px]"
+              <Link
+                href={`/wizard/${index + 1}`}
+                className={cn(
+                  "flex flex-col items-center gap-2 min-w-[72px] cursor-pointer no-underline",
+                  status === "upcoming" && "hover:[&>span:first-child]:border-primary hover:[&>span:last-child]:text-primary",
+                  status === "completed" && "hover:[&>span:first-child]:opacity-80",
+                )}
                 aria-current={status === "active" ? "step" : undefined}
               >
                 <span className={dotVariants({ status })}>
@@ -121,7 +127,7 @@ function WizardProgress({
                   )}
                 </span>
                 <span className={labelVariants({ status })}>{step.label}</span>
-              </div>
+              </Link>
 
               {!isLast && (
                 <span

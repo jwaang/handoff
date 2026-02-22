@@ -15,7 +15,7 @@ const buttonVariants = cva(
           "bg-secondary text-text-on-primary hover:bg-secondary-hover",
         vault: "bg-vault text-text-on-vault hover:bg-vault-hover",
         ghost:
-          "btn-no-shadow bg-transparent text-text-secondary border border-border-default hover:bg-bg-sunken hover:border-border-strong",
+          "btn-no-shadow btn-ghost bg-transparent text-text-secondary border border-border-default hover:bg-bg-sunken hover:border-border-strong",
         soft: "btn-no-shadow bg-primary-light text-primary hover:bg-[#EEDBD0]",
         danger: "btn-danger bg-danger text-text-on-primary",
       },

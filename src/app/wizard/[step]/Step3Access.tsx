@@ -579,19 +579,20 @@ export default function Step3Access() {
       {/* Navigation */}
       {!showForm && (
         <div className="flex flex-col gap-3 pt-2">
-          {hasItems && (
+          {hasItems ? (
             <Button size="lg" className="w-full" onClick={handleNext}>
               Next
             </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="default"
+              className="w-full"
+              onClick={handleSkip}
+            >
+              Skip — add later
+            </Button>
           )}
-          <Button
-            variant="ghost"
-            size="default"
-            className="w-full"
-            onClick={handleSkip}
-          >
-            {hasItems ? "Done with access info" : "Skip — add later"}
-          </Button>
         </div>
       )}
     </div>

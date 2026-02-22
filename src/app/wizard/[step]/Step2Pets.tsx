@@ -186,12 +186,11 @@ function PetForm({ onSave, onCancel, isSaving, generalError }: PetFormProps) {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Pet name is required";
     if (!formData.species.trim()) newErrors.species = "Species is required";
-    if (!formData.age.trim()) newErrors.age = "Age is required";
-    if (!formData.feedingInstructions.trim())
-      newErrors.feedingInstructions = "Feeding instructions are required";
-    if (!formData.vetName.trim()) newErrors.vetName = "Vet name is required";
-    const vetPhoneErr = validatePhone(formData.vetPhone);
-    if (vetPhoneErr) newErrors.vetPhone = vetPhoneErr;
+    // Vet phone format validation only if user entered something
+    if (formData.vetPhone.trim()) {
+      const vetPhoneErr = validatePhone(formData.vetPhone);
+      if (vetPhoneErr) newErrors.vetPhone = vetPhoneErr;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -329,7 +328,6 @@ function PetForm({ onSave, onCancel, isSaving, generalError }: PetFormProps) {
           value={formData.age}
           onChange={set("age")}
           error={errors.age}
-          required
         />
 
         <Textarea
@@ -338,7 +336,7 @@ function PetForm({ onSave, onCancel, isSaving, generalError }: PetFormProps) {
           value={formData.feedingInstructions}
           onChange={set("feedingInstructions")}
           error={errors.feedingInstructions}
-          required
+          hint="Your sitter will need this — add it now or later"
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -348,7 +346,6 @@ function PetForm({ onSave, onCancel, isSaving, generalError }: PetFormProps) {
             value={formData.vetName}
             onChange={set("vetName")}
             error={errors.vetName}
-            required
           />
           <Input
             label="Vet phone"
@@ -357,7 +354,7 @@ function PetForm({ onSave, onCancel, isSaving, generalError }: PetFormProps) {
             onChange={set("vetPhone")}
             error={errors.vetPhone}
             type="tel"
-            required
+            hint="Your sitter will need this in an emergency"
           />
         </div>
 
@@ -675,19 +672,20 @@ export default function Step2Pets() {
       {/* Navigation */}
       {!showForm && (
         <div className="flex flex-col gap-3 pt-2">
-          {hasPets && (
+          {hasPets ? (
             <Button size="lg" className="w-full" onClick={handleNext}>
               Next
             </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="default"
+              className="w-full"
+              onClick={handleSkip}
+            >
+              Skip — no pets
+            </Button>
           )}
-          <Button
-            variant="ghost"
-            size="default"
-            className="w-full"
-            onClick={handleSkip}
-          >
-            {hasPets ? "Done with pets" : "Skip — no pets"}
-          </Button>
         </div>
       )}
     </div>

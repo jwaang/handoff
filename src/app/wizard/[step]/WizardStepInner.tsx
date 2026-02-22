@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WizardProgress } from "@/components/ui/WizardProgress";
+import { Button } from "@/components/ui/Button";
+import { ChevronLeftIcon } from "@/components/ui/icons";
 import Step1Home from "./Step1Home";
 import Step2Pets from "./Step2Pets";
 import Step3Access from "./Step3Access";
@@ -34,21 +38,58 @@ function WizardLayout({
   step: number;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
   return (
     <main className="min-h-dvh bg-bg flex flex-col items-center px-4 pt-8 pb-12">
       <div className="w-full max-w-lg flex flex-col gap-6">
         {/* Wordmark */}
         <div className="text-center">
-          <Link
-            href="/dashboard"
-            className="font-display text-2xl text-primary italic hover:text-primary-hover transition-colors duration-150"
+          <button
+            type="button"
+            onClick={() => setShowExitConfirm(true)}
+            className="font-display text-2xl text-primary italic hover:text-primary-hover transition-colors duration-150 bg-transparent border-none cursor-pointer"
           >
             Vadem
-          </Link>
+          </button>
         </div>
+
+        {/* Exit confirmation dialog */}
+        {showExitConfirm && (
+          <div className="bg-warning-light rounded-xl p-5 flex flex-col gap-3 border border-warning">
+            <p className="font-body text-sm font-semibold text-text-primary">
+              Leave the wizard?
+            </p>
+            <p className="font-body text-xs text-text-secondary">
+              Any unsaved changes on this step will be lost. Completed steps are already saved.
+            </p>
+            <div className="flex items-center gap-2 justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setShowExitConfirm(false)}>
+                Stay
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => router.push("/dashboard")}>
+                Leave
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Progress indicator */}
         <WizardProgress currentStep={step - 1} />
+
+        {/* Back button */}
+        {step > 1 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/wizard/${step - 1}`)}
+            className="self-start -mt-2"
+          >
+            <ChevronLeftIcon size={14} />
+            Back
+          </Button>
+        )}
 
         {/* Step card */}
         <div

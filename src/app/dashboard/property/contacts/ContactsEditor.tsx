@@ -470,11 +470,11 @@ function ContactsEditorInner() {
         <div className="flex flex-col gap-4">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/dashboard/property")}
             className="inline-flex items-center gap-1.5 font-body text-sm text-text-muted hover:text-text-primary transition-colors duration-150 self-start"
           >
             <ChevronLeftIcon />
-            Dashboard
+            Property
           </button>
           <div className="flex flex-col gap-1">
             <h1 className="font-display text-4xl text-text-primary leading-tight">

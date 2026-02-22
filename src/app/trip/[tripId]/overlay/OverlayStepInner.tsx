@@ -28,10 +28,10 @@ const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
 };
 
 const STEPS = [
-  { label: "Overlay Items", active: true },
-  { label: "Sitters", active: false },
-  { label: "Proof Settings", active: false },
-  { label: "Share", active: false },
+  { label: "Overlay Items", active: true, href: "overlay" },
+  { label: "Sitters", active: false, href: "sitters" },
+  { label: "Proof Settings", active: false, href: "proof" },
+  { label: "Share", active: false, href: "share" },
 ];
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -465,10 +465,10 @@ function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Header */}
       <header className="bg-bg-raised border-b border-border-default px-4 py-4 flex items-center gap-3">
         <a
-          href="/dashboard"
+          href="/dashboard/trips"
           className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
         >
-          ← Dashboard
+          ← Trips
         </a>
         <span className="text-border-strong">|</span>
         <h1 className="font-body text-sm font-semibold text-text-primary">
@@ -479,21 +479,23 @@ function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Step indicator */}
       <div className="bg-bg-raised border-b border-border-default px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center gap-2 overflow-x-auto">
-          {STEPS.map(({ label, active }, i) => (
+          {STEPS.map(({ label, active, href }, i) => (
             <div key={label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
                 <span className="text-border-strong font-body text-xs">→</span>
               )}
-              <span
-                className={[
-                  "font-body text-xs font-semibold px-3 py-1 rounded-pill",
-                  active
-                    ? "bg-accent text-text-on-primary"
-                    : "text-text-muted bg-bg-sunken",
-                ].join(" ")}
-              >
-                {label}
-              </span>
+              {active ? (
+                <span className="font-body text-xs font-semibold px-3 py-1 rounded-pill bg-accent text-text-on-primary">
+                  {label}
+                </span>
+              ) : (
+                <a
+                  href={`/trip/${tripId}/${href}`}
+                  className="font-body text-xs font-semibold px-3 py-1 rounded-pill text-text-muted bg-bg-sunken hover:text-text-secondary hover:bg-border-default transition-colors duration-150"
+                >
+                  {label}
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -545,21 +547,11 @@ function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
           {/* Add item form */}
           <AddItemForm tripId={tripId} onAdded={() => {}} />
 
-          {/* Skip / Continue */}
-          <div className="flex items-center justify-between pt-2">
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="font-body text-sm font-semibold text-text-muted hover:text-text-secondary transition-colors duration-150"
-            >
-              {hasItems ? "Skip for now" : "Skip →"}
-            </button>
-
-            {hasItems && (
-              <Button variant="primary" onClick={handleContinue}>
-                Continue →
-              </Button>
-            )}
+          {/* Continue */}
+          <div className="flex items-center justify-end pt-2">
+            <Button variant="primary" onClick={handleContinue}>
+              Continue →
+            </Button>
           </div>
         </div>
       </main>

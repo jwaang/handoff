@@ -64,6 +64,19 @@ export default function Step1Home() {
     user?.token ? { token: user.token } : "skip",
   );
 
+  // Existing property (for prefilling)
+  const properties = useQuery(
+    api.properties.listByOwner,
+    sessionData?.userId ? { ownerId: sessionData.userId } : "skip",
+  );
+  const existingProperty = properties?.[0];
+
+  // Resolve existing photo URL
+  const existingPhotoUrl = useQuery(
+    api.storage.getUrl,
+    existingProperty?.photo ? { storageId: existingProperty.photo } : "skip",
+  );
+
   const createOrUpdate = useMutation(api.properties.createOrUpdate);
   const generateUploadUrl = useAction(api.storage.generateUploadUrl);
 
@@ -76,6 +89,14 @@ export default function Step1Home() {
   const [isSaving, setIsSaving] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prefilledRef = useRef(false);
+
+  // Prefill form from existing property (once)
+  if (existingProperty && !prefilledRef.current) {
+    prefilledRef.current = true;
+    setName(existingProperty.name);
+    setAddress(existingProperty.address ?? "");
+  }
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,16 +186,29 @@ export default function Step1Home() {
   };
 
   const handleSaveLater = async () => {
-    if (!validate()) return;
     if (!sessionData?.userId) {
       setGeneralError("You must be signed in to save.");
       return;
     }
 
+    // Auto-name if blank so user can exit without filling in anything
+    if (!name.trim()) {
+      setName("My Home");
+    }
+
     setIsSaving(true);
     setGeneralError(null);
     try {
-      await saveProperty(sessionData.userId);
+      let photoId: Id<"_storage"> | undefined;
+      if (selectedFile) {
+        photoId = await uploadPhoto(selectedFile);
+      }
+      await createOrUpdate({
+        ownerId: sessionData.userId,
+        name: name.trim() || "My Home",
+        address: address.trim() || undefined,
+        photo: photoId,
+      });
       router.push("/dashboard");
     } catch {
       setGeneralError("Something went wrong. Please try again.");
@@ -238,12 +272,12 @@ export default function Step1Home() {
             <span className="font-normal text-text-muted">(optional)</span>
           </p>
 
-          {previewUrl ? (
+          {previewUrl || existingPhotoUrl ? (
             /* Photo preview */
             <div className="relative rounded-md overflow-hidden border border-border-default bg-bg-sunken">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={previewUrl}
+                src={(previewUrl ?? existingPhotoUrl)!}
                 alt="Property preview"
                 className="w-full object-cover"
                 style={{ maxHeight: "200px" }}

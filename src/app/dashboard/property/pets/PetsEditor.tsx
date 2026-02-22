@@ -865,11 +865,11 @@ export default function PetsEditor() {
         {/* Header */}
         <div className="flex flex-col gap-1">
           <Link
-            href="/dashboard"
+            href="/dashboard/property"
             className="inline-flex items-center gap-1 font-body text-xs font-semibold text-text-muted hover:text-text-secondary transition-colors duration-150 mb-1"
           >
             <ChevronLeftIcon />
-            Dashboard
+            Property
           </Link>
           <h1 className="font-display text-3xl text-text-primary leading-tight">
             Pets

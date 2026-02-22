@@ -13,10 +13,10 @@ import { NotificationToast } from "@/components/ui/NotificationToast";
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 const STEPS = [
-  { label: "Overlay Items", active: false },
-  { label: "Sitters", active: false },
-  { label: "Proof Settings", active: false },
-  { label: "Share", active: true },
+  { label: "Overlay Items", active: false, href: "overlay" },
+  { label: "Sitters", active: false, href: "sitters" },
+  { label: "Proof Settings", active: false, href: "proof" },
+  { label: "Share", active: true, href: "share" },
 ];
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -116,20 +116,27 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
     setCanShare(typeof navigator !== "undefined" && "share" in navigator);
   }, []);
 
+  // Auto-generate share link on mount
+  useEffect(() => {
+    if (shareSlug || isGenerating) return;
+    let cancelled = false;
+    setIsGenerating(true);
+    generateShareLink({ tripId })
+      .then((slug) => {
+        if (!cancelled) setShareSlug(slug);
+      })
+      .catch(() => {
+        // user can retry manually
+      })
+      .finally(() => {
+        if (!cancelled) setIsGenerating(false);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId]);
+
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const shareUrl = shareSlug ? `${origin}/t/${shareSlug}` : null;
-
-  async function handleGenerate() {
-    setIsGenerating(true);
-    try {
-      const slug = await generateShareLink({ tripId });
-      setShareSlug(slug);
-    } catch {
-      // stay enabled so user can retry
-    } finally {
-      setIsGenerating(false);
-    }
-  }
 
   async function handleReset() {
     setIsResetting(true);
@@ -178,10 +185,15 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
     }
   }
 
-  async function handleActivate() {
+  async function handleActivateAndCopy() {
     setIsActivating(true);
     try {
       await updateTrip({ tripId, status: "active" });
+      if (shareUrl) {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
       router.push("/dashboard");
     } catch {
       setIsActivating(false);
@@ -193,10 +205,10 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Header */}
       <header className="bg-bg-raised border-b border-border-default px-4 py-4 flex items-center gap-3">
         <a
-          href={`/trip/${tripId}/proof`}
+          href="/dashboard/trips"
           className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
         >
-          ← Back
+          ← Trips
         </a>
         <span className="text-border-strong">|</span>
         <h1 className="font-body text-sm font-semibold text-text-primary">
@@ -207,21 +219,23 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Step indicator */}
       <div className="bg-bg-raised border-b border-border-default px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center gap-2 overflow-x-auto">
-          {STEPS.map(({ label, active }, i) => (
+          {STEPS.map(({ label, active, href }, i) => (
             <div key={label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
                 <span className="text-border-strong font-body text-xs">→</span>
               )}
-              <span
-                className={[
-                  "font-body text-xs font-semibold px-3 py-1 rounded-pill",
-                  active
-                    ? "bg-primary text-text-on-primary"
-                    : "text-text-muted bg-bg-sunken",
-                ].join(" ")}
-              >
-                {label}
-              </span>
+              {active ? (
+                <span className="font-body text-xs font-semibold px-3 py-1 rounded-pill bg-primary text-text-on-primary">
+                  {label}
+                </span>
+              ) : (
+                <a
+                  href={`/trip/${tripId}/${href}`}
+                  className="font-body text-xs font-semibold px-3 py-1 rounded-pill text-text-muted bg-bg-sunken hover:text-text-secondary hover:bg-border-default transition-colors duration-150"
+                >
+                  {label}
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -276,7 +290,7 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
                 {/* Copy / Share action buttons */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Button
-                    variant="primary"
+                    variant="soft"
                     size="sm"
                     icon={copied ? <CheckIcon /> : <CopyIcon />}
                     onClick={handleCopy}
@@ -346,13 +360,12 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
                 )}
               </div>
             ) : (
-              <Button
-                variant="primary"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                {isGenerating ? "Generating…" : "Generate link"}
-              </Button>
+              <div className="flex items-center gap-3 py-2">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="font-body text-sm text-text-muted">
+                  Generating your share link…
+                </p>
+              </div>
             )}
           </div>
 
@@ -406,27 +419,22 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
             </div>
           )}
 
-          {/* Activate trip */}
-          <div
-            className="bg-bg-raised rounded-xl border border-border-default p-5 flex flex-col gap-4"
-            style={{ boxShadow: "var(--shadow-sm)" }}
-          >
-            <div>
-              <p className="font-body text-sm font-semibold text-text-primary">
-                Ready to go?
-              </p>
-              <p className="font-body text-xs text-text-muted mt-0.5">
-                Activating the trip makes the link live and starts task tracking.
-              </p>
-            </div>
+          {/* Back / Activate */}
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" onClick={() => router.push(`/trip/${tripId}/proof`)}>
+              ← Back
+            </Button>
             <Button
               variant="primary"
-              onClick={handleActivate}
-              disabled={isActivating}
+              onClick={handleActivateAndCopy}
+              disabled={isActivating || !shareSlug}
             >
-              {isActivating ? "Activating…" : "Activate trip →"}
+              {isActivating ? "Activating…" : "Activate & copy link →"}
             </Button>
           </div>
+          <p className="font-body text-xs text-text-muted text-center -mt-3">
+            This makes the link live and starts task tracking.
+          </p>
         </div>
       </main>
 

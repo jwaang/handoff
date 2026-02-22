@@ -14,10 +14,10 @@ import { validatePhone, formatPhone, formatPhoneInput } from "@/lib/phone";
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 const STEPS = [
-  { label: "Overlay Items", active: false },
-  { label: "Sitters", active: true },
-  { label: "Proof Settings", active: false },
-  { label: "Share", active: false },
+  { label: "Overlay Items", active: false, href: "overlay" },
+  { label: "Sitters", active: true, href: "sitters" },
+  { label: "Proof Settings", active: false, href: "proof" },
+  { label: "Share", active: false, href: "share" },
 ];
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -538,6 +538,7 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
 
   const [editingId, setEditingId] = useState<Id<"sitters"> | null>(null);
   const [toastSitterName, setToastSitterName] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(true);
 
   async function handleRemove(id: Id<"sitters">) {
     await removeSitter({ sitterId: id });
@@ -560,10 +561,10 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Header */}
       <header className="bg-bg-raised border-b border-border-default px-4 py-4 flex items-center gap-3">
         <a
-          href={`/trip/${tripId}/overlay`}
+          href="/dashboard/trips"
           className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
         >
-          ← Back
+          ← Trips
         </a>
         <span className="text-border-strong">|</span>
         <h1 className="font-body text-sm font-semibold text-text-primary">
@@ -574,21 +575,23 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
       {/* Step indicator */}
       <div className="bg-bg-raised border-b border-border-default px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center gap-2 overflow-x-auto">
-          {STEPS.map(({ label, active }, i) => (
+          {STEPS.map(({ label, active, href }, i) => (
             <div key={label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
                 <span className="text-border-strong font-body text-xs">→</span>
               )}
-              <span
-                className={[
-                  "font-body text-xs font-semibold px-3 py-1 rounded-pill",
-                  active
-                    ? "bg-accent text-text-on-primary"
-                    : "text-text-muted bg-bg-sunken",
-                ].join(" ")}
-              >
-                {label}
-              </span>
+              {active ? (
+                <span className="font-body text-xs font-semibold px-3 py-1 rounded-pill bg-accent text-text-on-primary">
+                  {label}
+                </span>
+              ) : (
+                <a
+                  href={`/trip/${tripId}/${href}`}
+                  className="font-body text-xs font-semibold px-3 py-1 rounded-pill text-text-muted bg-bg-sunken hover:text-text-secondary hover:bg-border-default transition-colors duration-150"
+                >
+                  {label}
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -635,23 +638,30 @@ function SittersStep({ tripId }: { tripId: Id<"trips"> }) {
           )}
 
           {/* Add sitter form */}
-          <AddSitterForm tripId={tripId} onAdded={() => {}} />
-
-          {/* Skip / Continue */}
-          <div className="flex items-center justify-between pt-2">
+          {hasSitters && !showAddForm ? (
             <button
               type="button"
-              onClick={handleContinue}
-              className="font-body text-sm font-semibold text-text-muted hover:text-text-secondary transition-colors duration-150"
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center justify-center gap-2 py-4 px-4 rounded-lg border-[1.5px] border-dashed border-border-strong bg-bg-sunken hover:border-primary hover:bg-primary-subtle transition-[border-color,background-color] duration-150 font-body text-sm font-semibold text-text-primary"
             >
-              {hasSitters ? "Skip for now" : "Skip →"}
+              + Add another sitter
             </button>
+          ) : (
+            <AddSitterForm tripId={tripId} onAdded={() => {
+              if (hasSitters || (sitters && sitters.length >= 0)) {
+                setShowAddForm(false);
+              }
+            }} />
+          )}
 
-            {hasSitters && (
-              <Button variant="primary" onClick={handleContinue}>
-                Continue →
-              </Button>
-            )}
+          {/* Back / Continue */}
+          <div className="flex items-center justify-between pt-2">
+            <Button variant="ghost" onClick={() => router.push(`/trip/${tripId}/overlay`)}>
+              ← Back
+            </Button>
+            <Button variant="primary" onClick={handleContinue}>
+              Continue →
+            </Button>
           </div>
         </div>
       </main>

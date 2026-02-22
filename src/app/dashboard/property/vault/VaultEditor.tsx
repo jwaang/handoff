@@ -622,8 +622,8 @@ function VaultEditorWithAuth() {
           <p className="font-body text-sm text-text-secondary">
             No property found. Set up your home first.
           </p>
-          <Link href="/dashboard" className="font-body text-sm text-primary hover:text-primary-hover">
-            ← Back to dashboard
+          <Link href="/dashboard/property" className="font-body text-sm text-primary hover:text-primary-hover">
+            ← Back to property
           </Link>
         </div>
       );
@@ -649,11 +649,11 @@ export default function VaultEditor() {
         {/* Header */}
         <div className="flex flex-col gap-1">
           <Link
-            href="/dashboard"
+            href="/dashboard/property"
             className="inline-flex items-center gap-1.5 font-body text-xs text-text-muted hover:text-text-secondary transition-colors duration-150 mb-2"
           >
             <ChevronLeftIcon />
-            Dashboard
+            Property
           </Link>
           <h1 className="font-display text-4xl text-text-primary leading-tight">Vault</h1>
           <p className="font-body text-sm text-text-secondary">

@@ -89,6 +89,9 @@ function LockedContactCard({ contact }: { contact: ContactDoc }) {
           <PhoneIcon size={13} />
           {formatPhone(contact.phone)}
         </a>
+        <p className="font-body text-xs text-text-muted mt-1">
+          Always included in your manual. Cannot be removed.
+        </p>
       </div>
       <div className="shrink-0 flex items-center gap-1 text-text-muted">
         <LockIcon size={12} />
@@ -119,6 +122,8 @@ function EditableContactCard({
   canMoveUp,
   canMoveDown,
 }: EditableContactCardProps) {
+  // Start collapsed if contact already has a name (i.e. was seeded or previously saved)
+  const [isEditing, setIsEditing] = useState(!contact.name);
   const [form, setForm] = useState<ContactFormState>({
     name: contact.name,
     role: contact.role,
@@ -128,7 +133,6 @@ function EditableContactCard({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState("");
-  const [justSaved, setJustSaved] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Only reset form when contact identity changes (not on every Convex update)
@@ -140,12 +144,6 @@ function EditableContactCard({
       notes: contact.notes ?? "",
     });
   }, [contact._id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isDirty =
-    form.name.trim() !== contact.name ||
-    form.role.trim() !== contact.role ||
-    normalizePhone(form.phone) !== contact.phone ||
-    form.notes.trim() !== (contact.notes ?? "");
 
   const set =
     (field: keyof ContactFormState) =>
@@ -166,8 +164,7 @@ function EditableContactCard({
     setSaveError(null);
     try {
       await onUpdate({ ...form, phone: normalizePhone(form.phone) });
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2000);
+      setIsEditing(false);
     } catch {
       setSaveError("Failed to save. Please try again.");
     } finally {
@@ -177,8 +174,54 @@ function EditableContactCard({
 
   const cid = contact._id;
 
+  // Collapsed read-only view
+  if (!isEditing) {
+    return (
+      <div
+        className="rounded-lg border border-border-default bg-bg-raised p-4 flex items-center gap-3 cursor-pointer hover:border-border-strong transition-colors duration-150"
+        onClick={() => setIsEditing(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsEditing(true); }}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="font-body text-sm font-semibold text-text-primary truncate">
+            {contact.name || "Unnamed contact"}
+          </p>
+          <p className="font-body text-xs text-text-muted mt-0.5">
+            {contact.role}{contact.phone ? ` · ${formatPhone(contact.phone)}` : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <IconButton
+            icon={<ChevronUpIcon size={14} />}
+            aria-label="Move up"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+            disabled={!canMoveUp}
+          />
+          <IconButton
+            icon={<ChevronDownIcon size={14} />}
+            aria-label="Move down"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+            disabled={!canMoveDown}
+          />
+          <IconButton
+            icon={<TrashIcon size={14} />}
+            aria-label={`Remove ${contact.role || "contact"}`}
+            variant="danger"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Expanded edit view
   return (
-    <div className="rounded-lg border border-border-default bg-bg-raised overflow-hidden">
+    <div className="rounded-lg border-2 border-primary bg-bg-raised overflow-hidden">
       {/* Card header */}
       <div className="flex items-center gap-2 px-4 py-3 bg-bg-sunken border-b border-border-default">
         <p className="font-body text-sm font-semibold text-text-secondary flex-1 truncate">
@@ -269,14 +312,29 @@ function EditableContactCard({
           hint="Optional"
         />
 
-        <div className="flex justify-end pt-1">
+        <div className="flex justify-end gap-2 pt-1">
           <Button
             size="sm"
-            variant={justSaved ? "soft" : "primary"}
-            onClick={() => void handleSave()}
-            disabled={isSaving || !isDirty}
+            variant="ghost"
+            onClick={() => {
+              setForm({
+                name: contact.name,
+                role: contact.role,
+                phone: formatPhone(contact.phone),
+                notes: contact.notes ?? "",
+              });
+              setIsEditing(false);
+            }}
           >
-            {isSaving ? "Saving…" : justSaved ? "Saved ✓" : "Save contact"}
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => void handleSave()}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving…" : "Save contact"}
           </Button>
         </div>
       </div>
@@ -464,7 +522,7 @@ export default function Step4Contacts() {
       {/* ASPCA note */}
       {!isLoading && (
         <p className="font-body text-xs text-text-muted text-center">
-          🔒 ASPCA Animal Poison Control is always included and cannot be removed.
+          🔒 ASPCA Poison Control: (888) 426-4435
         </p>
       )}
 
@@ -472,14 +530,6 @@ export default function Step4Contacts() {
       <div className="flex flex-col gap-3 pt-2">
         <Button size="lg" className="w-full" onClick={() => router.push("/wizard/5")}>
           Next
-        </Button>
-        <Button
-          variant="ghost"
-          size="default"
-          className="w-full"
-          onClick={() => router.push("/wizard/5")}
-        >
-          Skip — add later
         </Button>
       </div>
     </div>

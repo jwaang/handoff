@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -10,7 +10,23 @@ import { CreatorLayout } from "@/components/layouts/CreatorLayout";
 import { Button } from "@/components/ui/Button";
 import { ActivityFeedItem, type ActivityType } from "@/components/ui/ActivityFeedItem";
 import { VerificationBanner } from "@/components/ui/VerificationBanner";
-import { HomeIcon, CalendarIcon, ClockIcon, BellIcon } from "@/components/ui/icons";
+import { HomeIcon, CalendarIcon, ClockIcon, BellIcon, CheckIcon, XIcon } from "@/components/ui/icons";
+
+// ── Trip Status ────────────────────────────────────────────────────────
+
+const TRIP_STATUS_LABELS: Record<string, string> = {
+  draft: "In setup",
+  active: "Active",
+  expired: "Completed",
+  archived: "Archived",
+};
+
+const TRIP_STATUS_CLASSES: Record<string, string> = {
+  active: "bg-secondary-light text-secondary",
+  draft: "bg-accent-light text-accent",
+  expired: "bg-bg-sunken text-text-muted",
+  archived: "bg-bg-sunken text-text-muted",
+};
 
 // ── Shared Empty State Card ────────────────────────────────────────────
 
@@ -283,7 +299,22 @@ function DashboardOverview({ email, token }: DashboardOverviewProps) {
     propertyId ? { propertyId } : "skip",
   );
 
+  const today = new Date().toLocaleDateString("en-CA");
+  const taskSummary = useQuery(
+    api.activityLog.getTodayTaskSummary,
+    propertyId && existingTrip?.status === "active"
+      ? { propertyId, date: today }
+      : "skip",
+  );
+
   const isLoadingProperties = properties === undefined;
+
+  // Signal to parent that property exists (for deferred push banner)
+  useEffect(() => {
+    if (property) {
+      sessionStorage.setItem("has_property", "1");
+    }
+  }, [property]);
 
   let propertyContent: React.ReactNode;
   if (isLoadingProperties) {
@@ -301,6 +332,7 @@ function DashboardOverview({ email, token }: DashboardOverviewProps) {
         title="Let's set up your home"
         description="Add your property details and care instructions so sitters have everything they need."
         cta="Get started"
+        onCta={() => router.push("/wizard/1")}
       />
     );
   } else {
@@ -357,35 +389,85 @@ function DashboardOverview({ email, token }: DashboardOverviewProps) {
         </div>
       );
     } else if (existingTrip) {
-      const statusClass =
-        existingTrip.status === "active"
-          ? "bg-secondary-light text-secondary"
-          : "bg-bg-sunken text-text-muted";
+      const statusClass = TRIP_STATUS_CLASSES[existingTrip.status] ?? "bg-bg-sunken text-text-muted";
+      const statusLabel = TRIP_STATUS_LABELS[existingTrip.status] ?? existingTrip.status;
+      const isActive = existingTrip.status === "active";
+
+      // Compute trip duration progress for active trips
+      const startMs = new Date(existingTrip.startDate + "T12:00:00").getTime();
+      const endMs = new Date(existingTrip.endDate + "T12:00:00").getTime();
+      const todayMs = new Date(today + "T12:00:00").getTime();
+      const totalDays = Math.max(1, Math.round((endMs - startMs) / 86400000));
+      const daysLeft = Math.max(0, Math.round((endMs - todayMs) / 86400000));
+      const progressPct = isActive
+        ? Math.min(100, Math.round(((totalDays - daysLeft) / totalDays) * 100))
+        : 0;
+
       tripContent = (
-        <div
-          className="bg-bg-raised rounded-xl border border-border-default p-5"
-          style={{ boxShadow: "var(--shadow-sm)" }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`font-body text-xs font-semibold rounded-pill px-2.5 py-1 ${statusClass}`}
-            >
-              {existingTrip.status.charAt(0).toUpperCase() + existingTrip.status.slice(1)}
-            </span>
+        <Link href="/dashboard/trips" className="block group">
+          <div
+            className="bg-bg-raised rounded-xl border border-border-default overflow-hidden transition-[border-color] duration-150 group-hover:border-border-strong"
+            style={{ boxShadow: "var(--shadow-sm)" }}
+          >
+            <div className="flex items-center gap-3 px-4 py-3">
+              <div className="w-10 h-10 rounded-lg bg-accent-subtle flex items-center justify-center shrink-0">
+                <CalendarIcon size={20} className="text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-display italic text-base text-text-primary leading-snug">
+                    {formatTripDate(existingTrip.startDate)} – {formatTripDate(existingTrip.endDate)}
+                  </span>
+                  <span
+                    className={`font-body text-xs font-semibold rounded-pill px-2.5 py-0.5 ${statusClass}`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  {isActive ? (
+                    <>
+                      <span className="font-body text-xs text-text-muted">
+                        {daysLeft === 0
+                          ? "Last day"
+                          : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+                      </span>
+                      {taskSummary && (
+                        <>
+                          <span className="font-body text-xs text-border-strong">·</span>
+                          <span className="font-body text-xs text-text-muted">
+                            {taskSummary.completed}/{taskSummary.total} tasks today
+                          </span>
+                        </>
+                      )}
+                      {existingTrip.shareLink && (
+                        <>
+                          <span className="font-body text-xs text-border-strong">·</span>
+                          <span className="font-body text-xs text-secondary">Link shared</span>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <span className="font-body text-xs text-text-muted">
+                      Continue setting up your trip
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="font-body text-sm text-text-muted group-hover:text-primary transition-colors duration-150 shrink-0">
+                →
+              </span>
+            </div>
+            {isActive && (
+              <div className="h-1 bg-bg-sunken">
+                <div
+                  className="h-full bg-accent transition-[width] duration-400"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+            )}
           </div>
-          <p className="font-body text-sm text-text-primary">
-            {formatTripDate(existingTrip.startDate)} –{" "}
-            {formatTripDate(existingTrip.endDate)}
-          </p>
-          <div className="flex justify-end mt-4">
-            <Link
-              href="/dashboard/trips"
-              className="font-body text-xs text-text-muted hover:text-text-primary transition-colors duration-150"
-            >
-              View trip →
-            </Link>
-          </div>
-        </div>
+        </Link>
       );
     } else {
       tripContent = (
@@ -437,6 +519,56 @@ function DashboardOverview({ email, token }: DashboardOverviewProps) {
           ))}
         </div>
         {propertyContent}
+
+        {/* Setup progress card for incomplete properties */}
+        {property && manualSummary && (() => {
+          const areas = [
+            { label: "Pets", done: (manualSummary.petCount ?? 0) > 0 },
+            { label: "Sections", done: (manualSummary.sectionCount ?? 0) > 0 },
+            { label: "Contacts", done: (manualSummary.contactCount ?? 0) > 0 },
+            { label: "Vault", done: (manualSummary.vaultItemCount ?? 0) > 0 },
+          ];
+          const completedCount = areas.filter((a) => a.done).length;
+          if (completedCount >= areas.length) return null;
+          const pct = Math.round((completedCount / areas.length) * 100);
+          return (
+            <div
+              className="bg-accent-subtle border border-accent-light rounded-xl p-4 flex flex-col gap-3 mt-3"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-body text-sm font-semibold text-text-primary">
+                  Your manual is {pct}% complete
+                </p>
+                <Link
+                  href="/wizard/2"
+                  className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150"
+                >
+                  Continue setup →
+                </Link>
+              </div>
+              <div className="h-1.5 bg-bg rounded-pill overflow-hidden">
+                <div
+                  className="h-full bg-accent rounded-pill transition-[width] duration-400"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {areas.map(({ label, done }) => (
+                  <span
+                    key={label}
+                    className={`font-body text-xs font-semibold px-2 py-0.5 rounded-pill ${
+                      done
+                        ? "bg-secondary-light text-secondary"
+                        : "bg-bg-sunken text-text-muted"
+                    }`}
+                  >
+                    {done ? "✓" : "○"} {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </section>
 
       {(!isLoadingProperties && property) || tripContent ? (
@@ -445,7 +577,7 @@ function DashboardOverview({ email, token }: DashboardOverviewProps) {
             id="trip-heading"
             className="font-body text-base font-semibold text-text-primary mb-3"
           >
-            Active Trip
+            Trips
           </h2>
           {tripContent}
         </section>
@@ -538,11 +670,13 @@ function LoadingScreen() {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [showPushBanner, setShowPushBanner] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [showVerificationBanner, setShowVerificationBanner] = useState(false);
+  const [showPublishedBanner, setShowPublishedBanner] = useState(false);
 
   const storePushSubscription = useMutation(api.users.storePushSubscription);
 
@@ -551,16 +685,27 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (searchParams.get("published") === "true") {
+      setShowPublishedBanner(true);
+      router.replace("/dashboard");
+    }
+  }, [searchParams, router]);
+
+  useEffect(() => {
     if (mounted && !isLoading && !user) {
       router.replace("/login");
     }
   }, [mounted, user, isLoading, router]);
 
+  // Push banner deferred — shown only after user has set up a property.
+  // The DashboardOverview triggers it via sessionStorage when property exists.
   useEffect(() => {
     if (!mounted || isLoading || !user) return;
     if (typeof Notification === "undefined") return;
     if (Notification.permission === "denied") return;
     if (sessionStorage.getItem("push_banner_dismissed")) return;
+    // Defer push banner until after wizard completion (property exists)
+    if (!sessionStorage.getItem("has_property")) return;
     if (Notification.permission === "default") {
       setShowPushBanner(true);
       return;
@@ -634,6 +779,24 @@ export default function DashboardPage() {
   return (
     <CreatorLayout>
       <div className="flex flex-col gap-6">
+        {showPublishedBanner && (
+          <div className="bg-secondary-light border border-secondary rounded-lg px-4 py-3 flex items-center gap-3">
+            <span className="shrink-0 text-secondary">
+              <CheckIcon size={18} />
+            </span>
+            <p className="font-body text-sm text-text-primary flex-1">
+              Your Vadem is published!
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPublishedBanner(false)}
+              className="shrink-0 text-text-muted hover:text-text-secondary transition-colors duration-150"
+              aria-label="Dismiss"
+            >
+              <XIcon size={16} />
+            </button>
+          </div>
+        )}
         {showVerificationBanner && (
           <VerificationBanner onDismiss={handleDismissVerification} />
         )}
