@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function buildRedirectUrl(request: NextRequest, params: URLSearchParams): string {
+  // Use X-Forwarded-Host / Host header to build a reliable origin on Vercel,
+  // since request.url can sometimes contain internal routing URLs.
+  const host =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const proto =
+    request.headers.get("x-forwarded-proto") ?? "https";
+  const origin = host ? `${proto}://${host}` : new URL(request.url).origin;
+
+  const qs = params.toString();
+  return `${origin}/auth/callback/apple/complete${qs ? `?${qs}` : ""}`;
+}
+
 // Apple Sign In uses response_mode=form_post — it POSTs code/state to this route.
 // We convert the POST into a GET redirect to the /complete page, which the
 // existing client-side CallbackHandler can process via useSearchParams().
@@ -14,13 +27,21 @@ export async function POST(request: NextRequest) {
   if (code) params.set("code", code);
   if (state) params.set("state", state);
 
-  // Build redirect URL from request.url, but force http:// on localhost.
-  // ngrok sets X-Forwarded-Proto: https which Next.js reflects in request.url,
-  // causing https://localhost which isn't valid.
-  const base = new URL(request.url);
-  if (base.hostname === "localhost") base.protocol = "http:";
-  base.pathname = "/auth/callback/apple/complete";
-  base.search = params.toString();
+  return NextResponse.redirect(buildRedirectUrl(request, params), {
+    status: 302,
+  });
+}
 
-  return NextResponse.redirect(base.toString(), { status: 302 });
+// Apple may redirect here with GET on error, or a user may land here directly.
+// Redirect to login with an error message instead of returning 405.
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const error = searchParams.get("error");
+
+  const params = new URLSearchParams();
+  params.set("error", error ?? "apple_auth_failed");
+
+  return NextResponse.redirect(buildRedirectUrl(request, params), {
+    status: 302,
+  });
 }
