@@ -71,11 +71,16 @@ function WelcomeClientInner() {
     setCurrentSlide(index);
   };
 
-  const completeOnboarding = async (destination: string) => {
-    if (user?.token) {
-      await markOnboarding({ token: user.token });
-    }
+  const completeOnboarding = (destination: string) => {
+    // Navigate FIRST, then mark onboarding complete in the background.
+    // If we await markOnboarding before navigating, the Convex reactive
+    // subscription updates sessionData.hasCompletedOnboarding → true,
+    // which triggers the useEffect redirect to /dashboard before
+    // router.push can take effect.
     router.push(destination);
+    if (user?.token) {
+      void markOnboarding({ token: user.token });
+    }
   };
 
   if (!user || sessionData === undefined) {
