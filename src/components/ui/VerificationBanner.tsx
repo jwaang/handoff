@@ -35,41 +35,43 @@ export function VerificationBanner({ onDismiss }: VerificationBannerProps) {
 
   return (
     <>
-      <div className="bg-primary-subtle border border-primary-light rounded-lg px-4 py-3 flex items-center gap-3">
-        {/* Envelope icon */}
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-primary shrink-0"
-          aria-hidden="true"
-        >
-          <rect
-            x="2"
-            y="4"
+      <div className="bg-primary-subtle border border-primary-light rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          {/* Envelope icon */}
+          <svg
             width="20"
-            height="16"
-            rx="2"
-            stroke="currentColor"
-            strokeWidth="1.75"
-          />
-          <path
-            d="M2 7l10 7 10-7"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-primary shrink-0 mt-0.5"
+            aria-hidden="true"
+          >
+            <rect
+              x="2"
+              y="4"
+              width="20"
+              height="16"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.75"
+            />
+            <path
+              d="M2 7l10 7 10-7"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
 
-        <p className="font-body text-sm text-text-primary flex-1 min-w-0">
-          Check your inbox at{" "}
-          <strong className="font-semibold">{user?.email}</strong> to verify
-          your email address.
-        </p>
+          <p className="font-body text-sm text-text-primary min-w-0">
+            Check your inbox at{" "}
+            <strong className="font-semibold">{user?.email}</strong> to verify
+            your email address.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <button
             type="button"
             onClick={onDismiss}

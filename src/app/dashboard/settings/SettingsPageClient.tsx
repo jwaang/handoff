@@ -3,19 +3,43 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
 import { CreatorLayout } from "@/components/layouts/CreatorLayout";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 // ── Settings Section ──────────────────────────────────────────────────
 
 interface SettingsSectionProps {
   email: string;
+  emailVerified: boolean;
+  sessionToken: string;
   onSignOut: () => void;
 }
 
-function SettingsSection({ email, onSignOut }: SettingsSectionProps) {
+function SettingsSection({ email, emailVerified, sessionToken, onSignOut }: SettingsSectionProps) {
+  const [isSending, setIsSending] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastError, setToastError] = useState(false);
+  const resend = useAction(api.authActions.resendVerificationEmail);
+
+  async function handleResend() {
+    setIsSending(true);
+    try {
+      await resend({ sessionToken });
+      setToastError(false);
+      setShowToast(true);
+    } catch {
+      setToastError(true);
+      setShowToast(true);
+    } finally {
+      setIsSending(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -35,14 +59,43 @@ function SettingsSection({ email, onSignOut }: SettingsSectionProps) {
             Account
           </p>
         </div>
-        <div className="px-5 py-4 flex items-center justify-between gap-4">
+        <div className="px-5 py-4 flex items-start justify-between gap-4">
           <div className="flex flex-col gap-0.5 min-w-0">
             <p className="font-body text-sm font-semibold text-text-primary">Email address</p>
             <p className="font-body text-sm text-text-muted truncate">{email}</p>
           </div>
-          <Badge variant="success">Active</Badge>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {emailVerified ? (
+              <Badge variant="success">Verified</Badge>
+            ) : (
+              <>
+                <Badge variant="warning">Unverified</Badge>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isSending}
+                  className="font-body text-xs font-semibold text-primary hover:text-primary-hover transition-colors duration-150 disabled:opacity-50"
+                >
+                  {isSending ? "Sending…" : "Resend verification →"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      <NotificationToast
+        title={toastError ? "Failed to send" : "Email sent!"}
+        message={
+          toastError
+            ? "Please try again in a moment."
+            : `Verification email sent to ${email}.`
+        }
+        variant={toastError ? "warning" : "success"}
+        visible={showToast}
+        autoDismissMs={4000}
+        onDismiss={() => setShowToast(false)}
+      />
 
       {/* Notifications */}
       <div
@@ -137,7 +190,12 @@ export default function SettingsPageClient() {
 
   return (
     <CreatorLayout>
-      <SettingsSection email={user.email} onSignOut={handleSignOut} />
+      <SettingsSection
+        email={user.email}
+        emailVerified={user.emailVerified}
+        sessionToken={user.token}
+        onSignOut={handleSignOut}
+      />
     </CreatorLayout>
   );
 }
