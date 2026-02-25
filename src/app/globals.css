@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
-/* Force light mode — Vadem has no dark theme.
-   The "only" keyword forbids Brave/Chrome "Auto Dark Mode for Web Contents"
-   from algorithmically inverting colors even when the OS is in dark mode. */
+/* Disable Tailwind v4's automatic dark mode (prefers-color-scheme).
+   Vadem has no dark theme — this ensures dark: variants only activate
+   via a .dark class (which we never add). */
+@custom-variant dark (&:is(.dark *));
+
+/* Force light mode — the "only" keyword forbids Brave/Chrome
+   "Auto Dark Mode for Web Contents" from algorithmically inverting
+   colors even when the OS is in dark mode. */
 html {
   color-scheme: only light;
 }
