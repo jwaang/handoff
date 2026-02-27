@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://vadem.app",
   },
+  openGraph: {
+    url: "https://vadem.app",
+  },
 };
 
 const websiteSchema = {

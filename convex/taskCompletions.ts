@@ -166,6 +166,9 @@ export const completeTask = mutation({
     // offline-queued completion so the owner sees when the task was actually
     // checked, not when the sync happened.
     completedAt: v.optional(v.number()),
+    // Optional: client's local YYYY-MM-DD date so the stored date matches the
+    // client's todayView query filter (avoids UTC timezone mismatch).
+    date: v.optional(v.string()),
   },
   returns: v.id("taskCompletions"),
   handler: async (ctx, args) => {
@@ -178,11 +181,10 @@ export const completeTask = mutation({
       .first();
     if (existing) return existing._id;
 
-    // Destructure out the optional completedAt so we can compute a clean value
-    const { completedAt: providedCompletedAt, ...taskFields } = args;
+    // Destructure out the optional completedAt/date so we can compute clean values
+    const { completedAt: providedCompletedAt, date: providedDate, ...taskFields } = args;
     const completedAt = providedCompletedAt ?? Date.now();
-    // YYYY-MM-DD in UTC — close enough for daily task grouping
-    const date = new Date(completedAt).toISOString().split("T")[0];
+    const date = providedDate ?? new Date(completedAt).toISOString().split("T")[0];
     const completionId = await ctx.db.insert("taskCompletions", {
       ...taskFields,
       completedAt,
@@ -233,6 +235,8 @@ export const completeTaskWithProof = mutation({
     // Optional: supply the original client-side timestamp when syncing an
     // offline-queued photo upload.
     completedAt: v.optional(v.number()),
+    // Optional: client's local YYYY-MM-DD date (avoids UTC timezone mismatch).
+    date: v.optional(v.string()),
   },
   returns: v.id("taskCompletions"),
   handler: async (ctx, args) => {
@@ -250,7 +254,7 @@ export const completeTaskWithProof = mutation({
       throw new ConvexError({ code: "STORAGE_ERROR", message: "Failed to resolve proof photo URL" });
     }
     const completedAt = args.completedAt ?? Date.now();
-    const date = new Date(completedAt).toISOString().split("T")[0];
+    const date = args.date ?? new Date(completedAt).toISOString().split("T")[0];
     const completionId = await ctx.db.insert("taskCompletions", {
       tripId: args.tripId,
       taskRef: args.taskRef,

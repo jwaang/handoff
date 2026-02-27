@@ -200,7 +200,7 @@ interface UncheckConfirmSheetProps {
 function UncheckConfirmSheet({ hasProof, onConfirm, onCancel }: UncheckConfirmSheetProps) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(42,31,26,0.4)]"
+      className="fixed inset-0 z-[110] flex items-end justify-center bg-[rgba(42,31,26,0.4)]"
       onClick={onCancel}
     >
       <div
@@ -253,7 +253,7 @@ function NamePrompt({ initialName, onConfirm, onCancel }: NamePromptProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(42,31,26,0.4)]"
+      className="fixed inset-0 z-[110] flex items-end justify-center bg-[rgba(42,31,26,0.4)]"
       onClick={onCancel}
     >
       <div
@@ -974,6 +974,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
           sitterName: entry.sitterName,
           storageId: storageId as Id<"_storage">,
           completedAt: entry.completedAt,
+          date: today,
         });
         await removePhotoEntry(entry.id);
         setPendingUploadCount((prev) => Math.max(0, prev - 1));
@@ -1027,6 +1028,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
             taskType: entry.taskType,
             sitterName: entry.sitterName,
             completedAt: entry.completedAt,
+            date: today,
           });
           dequeue(tripId, entry.id);
           setPendingTaskRefs((prev) => {
@@ -1086,6 +1088,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
           taskType: task.taskType,
           sitterName,
           completedAt,
+          date: today,
         });
         // Mutation succeeded: remove from queue (liveData update will clean state)
         dequeue(tripId, entryId);
@@ -1185,6 +1188,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
         taskType: task.taskType,
         sitterName,
         storageId: storageId as Id<"_storage">,
+        date: today,
       });
     } catch (err) {
       console.error("[ProofUpload] Failed:", err);

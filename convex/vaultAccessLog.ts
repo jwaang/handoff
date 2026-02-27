@@ -54,8 +54,10 @@ export const logVaultAccess = internalMutation({
       if (vaultItem && trip) {
         const property = await ctx.db.get(trip.propertyId);
         if (property) {
+          const owner = await ctx.db.get(property.ownerId);
           const sitterDisplay = args.sitterName ?? args.sitterPhone;
           const timeStr = new Date(accessedAt).toLocaleTimeString("en-US", {
+            timeZone: owner?.timezone ?? undefined,
             hour: "numeric",
             minute: "2-digit",
           });

@@ -15,6 +15,7 @@
 
 const STORAGE_PREFIX = "vadem_trip_";
 const META_PREFIX = "vadem_trip_meta_";
+const MANUAL_PREFIX = "vadem_manual_";
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // ── Trip metadata cache (shareLink → trip routing info) ──────────────────────
@@ -110,6 +111,51 @@ export function clearTripData(tripId: string): void {
     localStorage.removeItem(`${STORAGE_PREFIX}${tripId}`);
   } catch {
     // ignore
+  }
+}
+
+// ── Manual data cache (keyed by propertyId) ──────────────────────────────
+
+interface PersistedManualData<T> {
+  data: T;
+  savedAt: number;
+  manualVersion: number;
+}
+
+export function saveManualData<T>(
+  propertyId: string,
+  manualVersion: number,
+  data: T,
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: PersistedManualData<T> = {
+      data,
+      savedAt: Date.now(),
+      manualVersion,
+    };
+    localStorage.setItem(
+      `${MANUAL_PREFIX}${propertyId}`,
+      JSON.stringify(payload),
+    );
+  } catch {
+    // Ignore storage quota errors — offline data is best-effort
+  }
+}
+
+export function loadManualData<T>(propertyId: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(`${MANUAL_PREFIX}${propertyId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedManualData<T>;
+    if (Date.now() - parsed.savedAt > MAX_AGE_MS) {
+      localStorage.removeItem(`${MANUAL_PREFIX}${propertyId}`);
+      return null;
+    }
+    return parsed.data;
+  } catch {
+    return null;
   }
 }
 

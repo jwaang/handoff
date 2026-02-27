@@ -11,6 +11,7 @@ import { PetProfileCard, type PetDetail } from "@/components/ui/PetProfileCard";
 import { LocationCard } from "@/components/ui/LocationCard";
 import { cn } from "@/lib/utils";
 import { formatPhone } from "@/lib/phone";
+import { saveManualData, loadManualData } from "@/lib/offlineTripData";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ interface ContactData {
 }
 
 interface FullManualData {
-  property: { _id: string; name: string; address?: string };
+  property: { _id: string; name: string; address?: string; manualVersion?: number };
   sections: SectionData[];
   pets: PetData[];
   emergencyContacts: ContactData[];
@@ -254,6 +255,20 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
     { propertyId },
   ) as FullManualData | null | undefined;
 
+  // ── Offline cache ───────────────────────────────────────────────────────
+  const [cachedManual] = useState<FullManualData | null>(
+    () => loadManualData<FullManualData>(propertyId),
+  );
+
+  useEffect(() => {
+    if (!fullManual) return;
+    const version = fullManual.property.manualVersion ?? 0;
+    saveManualData(propertyId, version, fullManual);
+  }, [fullManual, propertyId]);
+
+  const manual = fullManual ?? cachedManual;
+  const isShowingCached = !fullManual && !!cachedManual;
+
   // ── Search state ──────────────────────────────────────────────────────────
   const [query, setQuery] = useState<string>(() => {
     if (typeof window === "undefined") return "";
@@ -325,11 +340,11 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
 
   // ── Client-side fallback search (uses fullManual cache) ───────────────────
   const clientResults = useMemo<SearchResult[]>(() => {
-    if (!debouncedQuery.trim() || convexResults !== undefined || !fullManual)
+    if (!debouncedQuery.trim() || convexResults !== undefined || !manual)
       return [];
     const q = debouncedQuery.toLowerCase().trim();
     const out: SearchResult[] = [];
-    for (const section of fullManual.sections) {
+    for (const section of manual.sections) {
       if (section.title.toLowerCase().includes(q)) {
         out.push({
           type: "section",
@@ -355,7 +370,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
         }
       }
     }
-    for (const pet of fullManual.pets) {
+    for (const pet of manual.pets) {
       // Search across all pet text fields
       const searchable = [
         pet.name,
@@ -388,7 +403,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
         });
       }
     }
-    for (const contact of fullManual.emergencyContacts) {
+    for (const contact of manual.emergencyContacts) {
       const searchable = [contact.name, contact.role, contact.phone, contact.notes];
       const match = searchable.find((s) => s?.toLowerCase().includes(q));
       if (match) {
@@ -405,7 +420,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
       }
     }
     return out;
-  }, [debouncedQuery, convexResults, fullManual, propertyId]);
+  }, [debouncedQuery, convexResults, manual, propertyId]);
 
   const results: SearchResult[] | null = debouncedQuery.trim()
     ? (convexResults ?? clientResults)
@@ -417,20 +432,20 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
 
   // ── Section nav ───────────────────────────────────────────────────────────
   const navSections = useMemo(() => {
-    if (!fullManual) return [];
-    const secs = fullManual.sections.map((s) => ({
+    if (!manual) return [];
+    const secs = manual.sections.map((s) => ({
       id: s._id,
       emoji: s.icon ?? "📋",
       label: s.title,
     }));
-    if (fullManual.pets.length > 0) {
+    if (manual.pets.length > 0) {
       secs.push({ id: "pets", emoji: "🐾", label: "Pets" });
     }
-    if (fullManual.emergencyContacts.length > 0) {
+    if (manual.emergencyContacts.length > 0) {
       secs.push({ id: "contacts", emoji: "📞", label: "Contacts" });
     }
     return secs;
-  }, [fullManual]);
+  }, [manual]);
 
   const handleSectionScroll = useCallback((id: string) => {
     document
@@ -475,7 +490,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
   }
 
   // ── Offline state ────────────────────────────────────────────────────────
-  if (!isOnline && fullManual === undefined) {
+  if (!isOnline && manual === undefined) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="w-14 h-14 rounded-full bg-bg-sunken flex items-center justify-center mb-4">
@@ -508,7 +523,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
   }
 
   // ── Not found state ───────────────────────────────────────────────────────
-  if (fullManual === null) {
+  if (fullManual === null && !cachedManual) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <p className="font-body text-lg text-text-secondary">
@@ -523,13 +538,20 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
 
   return (
     <>
+      {/* Offline banner */}
+      {isShowingCached && (
+        <div className="bg-warning-light text-warning rounded-lg px-4 py-2.5 font-body text-sm mb-4">
+          Viewing offline — some images may not load
+        </div>
+      )}
+
       {/* Property header */}
       <div className="mb-5">
         <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
           Home Manual
         </p>
         <h1 className="font-display text-2xl text-text-primary">
-          {fullManual ? fullManual.property.name : "Loading…"}
+          {manual ? manual.property.name : "Loading…"}
         </h1>
       </div>
 
@@ -581,7 +603,7 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
           )}
 
           {/* Loading skeleton */}
-          {!fullManual && (
+          {!manual && (
             <div className="mt-5 space-y-2">
               {[1, 2, 3].map((n) => (
                 <div
@@ -593,10 +615,10 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
           )}
 
           {/* Full manual browse — all sections visible, scroll-to on nav tap */}
-          {fullManual && (
+          {manual && (
             <div className="flex flex-col gap-8 mt-4 pb-4">
               {/* Manual sections */}
-              {fullManual.sections.map((section) => (
+              {manual.sections.map((section) => (
                 <div
                   key={section._id}
                   id={section._id}
@@ -672,14 +694,14 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
               ))}
 
               {/* Pets section */}
-              {fullManual.pets.length > 0 && (
+              {manual.pets.length > 0 && (
                 <div id="pets" className="scroll-mt-24">
                   <h2 className="font-body text-base font-semibold text-text-secondary mb-3 flex items-center gap-2">
                     <span aria-hidden="true">🐾</span>
                     Pets
                   </h2>
                   <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
-                    {fullManual.pets.map((pet) => (
+                    {manual.pets.map((pet) => (
                       <PetProfileCard
                         key={pet._id}
                         src={pet.resolvedPhotoUrl ?? undefined}
@@ -696,14 +718,14 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
               )}
 
               {/* Emergency contacts section */}
-              {fullManual.emergencyContacts.length > 0 && (
+              {manual.emergencyContacts.length > 0 && (
                 <div id="contacts" className="scroll-mt-24">
                   <h2 className="font-body text-base font-semibold text-text-secondary mb-3 flex items-center gap-2">
                     <span aria-hidden="true">📞</span>
                     Emergency Contacts
                   </h2>
                   <div className="space-y-2">
-                    {fullManual.emergencyContacts.map((contact) => (
+                    {manual.emergencyContacts.map((contact) => (
                       <div
                         key={contact._id}
                         className="bg-bg-raised rounded-lg border border-border-default p-4"
@@ -736,9 +758,9 @@ export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
               )}
 
               {/* Empty manual state */}
-              {fullManual.sections.length === 0 &&
-                fullManual.pets.length === 0 &&
-                fullManual.emergencyContacts.length === 0 && (
+              {manual.sections.length === 0 &&
+                manual.pets.length === 0 &&
+                manual.emergencyContacts.length === 0 && (
                   <div className="text-center py-12">
                     <p className="font-body text-base text-text-secondary">
                       This manual is empty.

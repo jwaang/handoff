@@ -5,6 +5,8 @@ import { SignupPageClient } from "./SignupPageClient";
 export const metadata: Metadata = {
   title: "Create account – Vadem",
   description: "Sign up to start building your home care manual.",
+  alternates: { canonical: "https://vadem.app/signup" },
+  robots: { index: false, follow: true },
 };
 
 export default async function SignupPage({

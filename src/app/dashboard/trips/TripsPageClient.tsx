@@ -407,7 +407,8 @@ function NewTripFormInner({ onCancel }: { onCancel: () => void }) {
 
   const createTrip = useMutation(api.trips.createTrip);
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");

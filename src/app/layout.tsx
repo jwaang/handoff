@@ -48,7 +48,6 @@ export const metadata: Metadata = {
     title: "Vadem — Pet & House Sitter Care Manuals",
     description:
       "One link with everything your sitter needs. Daily tasks, location photos, secure codes, and real-time updates.",
-    url: "https://vadem.app",
     siteName: "Vadem",
     images: [
       {

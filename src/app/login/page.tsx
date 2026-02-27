@@ -5,6 +5,8 @@ import { LoginFormWrapper } from "./LoginFormWrapper";
 export const metadata: Metadata = {
   title: "Sign in – Vadem",
   description: "Sign in to your Vadem account.",
+  alternates: { canonical: "https://vadem.app/login" },
+  robots: { index: false, follow: true },
 };
 
 export default function LoginPage() {
