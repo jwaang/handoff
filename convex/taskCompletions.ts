@@ -179,7 +179,14 @@ export const completeTask = mutation({
         q.eq("tripId", args.tripId).eq("taskRef", args.taskRef),
       )
       .first();
-    if (existing) return existing._id;
+    if (existing) {
+      // Patch date if the caller provided one that differs (fixes UTC→local mismatch
+      // for completions created before the client started sending local dates).
+      if (args.date && existing.date !== args.date) {
+        await ctx.db.patch(existing._id, { date: args.date });
+      }
+      return existing._id;
+    }
 
     // Destructure out the optional completedAt/date so we can compute clean values
     const { completedAt: providedCompletedAt, date: providedDate, ...taskFields } = args;
@@ -247,7 +254,12 @@ export const completeTaskWithProof = mutation({
         q.eq("tripId", args.tripId).eq("taskRef", args.taskRef),
       )
       .first();
-    if (existingCompletion) return existingCompletion._id;
+    if (existingCompletion) {
+      if (args.date && existingCompletion.date !== args.date) {
+        await ctx.db.patch(existingCompletion._id, { date: args.date });
+      }
+      return existingCompletion._id;
+    }
 
     const proofPhotoUrl = await ctx.storage.getUrl(args.storageId);
     if (!proofPhotoUrl) {
