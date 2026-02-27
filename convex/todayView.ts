@@ -63,8 +63,7 @@ export const getTodayTasks = query({
       ),
     );
 
-    // Only recurring instructions appear in the daily task list
-    const recurringInstructions = instructionsPerSection.flat().filter((i) => i.isRecurring);
+    const recurringInstructions = instructionsPerSection.flat();
 
     // Overlay items visible today: explicit date match OR undated (everyday)
     const todayOverlayItems = allOverlayItems.filter(

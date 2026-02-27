@@ -8,6 +8,7 @@ const searchResultObject = v.object({
     v.literal("section"),
     v.literal("pet"),
     v.literal("location_card"),
+    v.literal("contact"),
   ),
   id: v.string(),
   snippet: v.string(),
@@ -27,7 +28,7 @@ export const searchManual = query({
 
     const pid = args.propertyId;
     const results: Array<{
-      type: "instruction" | "section" | "pet" | "location_card";
+      type: "instruction" | "section" | "pet" | "location_card" | "contact";
       id: string;
       snippet: string;
       sectionName: string;
@@ -138,6 +139,26 @@ export const searchManual = query({
           propertyId: pid,
         });
       }
+    }
+
+    // ── Emergency contacts ────────────────────────────────────────────────────
+    const contactHits = await ctx.db
+      .query("emergencyContacts")
+      .withSearchIndex("search_name", (q) =>
+        q.search("name", args.query).eq("propertyId", pid),
+      )
+      .take(5);
+    for (const contact of contactHits) {
+      const snippet = contact.role
+        ? `${contact.name} — ${contact.role}`
+        : contact.name;
+      results.push({
+        type: "contact",
+        id: contact._id,
+        snippet,
+        sectionName: "Emergency Contacts",
+        propertyId: pid,
+      });
     }
 
     return results;

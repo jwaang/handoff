@@ -87,9 +87,11 @@ interface SavedItemRowProps {
     locationCardId?: Id<"locationCards">;
   };
   onDelete: (id: Id<"overlayItems">) => void;
+  minDate?: string;
+  maxDate?: string;
 }
 
-function SavedItemRow({ item, onDelete }: SavedItemRowProps) {
+function SavedItemRow({ item, onDelete, minDate, maxDate }: SavedItemRowProps) {
   const updateItem = useMutation(api.overlayItems.update);
   const [showPhotoUploader, setShowPhotoUploader] = useState(false);
   const [showVideoUploader, setShowVideoUploader] = useState(false);
@@ -140,6 +142,8 @@ function SavedItemRow({ item, onDelete }: SavedItemRowProps) {
                 id={`edit-date-${item._id}`}
                 value={editDate}
                 onChange={setEditDate}
+                min={minDate}
+                max={maxDate}
                 hint="Leave empty for all days"
               />
               <TimePicker
@@ -326,9 +330,11 @@ function SavedItemRow({ item, onDelete }: SavedItemRowProps) {
 interface AddItemFormProps {
   tripId: Id<"trips">;
   onAdded: () => void;
+  minDate?: string;
+  maxDate?: string;
 }
 
-function AddItemForm({ tripId, onAdded }: AddItemFormProps) {
+function AddItemForm({ tripId, onAdded, minDate, maxDate }: AddItemFormProps) {
   const createItem = useMutation(api.overlayItems.create);
 
   const [text, setText] = useState("");
@@ -412,6 +418,8 @@ function AddItemForm({ tripId, onAdded }: AddItemFormProps) {
             id="overlay-date"
             value={date}
             onChange={setDate}
+            min={minDate}
+            max={maxDate}
             hint="Leave empty to apply all days"
           />
 
@@ -450,6 +458,7 @@ function AddItemForm({ tripId, onAdded }: AddItemFormProps) {
 
 function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
   const router = useRouter();
+  const trip = useQuery(api.trips.get, { tripId });
   const items = useQuery(api.overlayItems.listByTrip, { tripId });
   const removeItem = useMutation(api.overlayItems.remove);
 
@@ -545,6 +554,8 @@ function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
                     locationCardId: item.locationCardId,
                   }}
                   onDelete={handleDelete}
+                  minDate={trip?.startDate}
+                  maxDate={trip?.endDate}
                 />
               ))}
               {deletingId && (
@@ -556,7 +567,7 @@ function OverlayStep({ tripId }: { tripId: Id<"trips"> }) {
           )}
 
           {/* Add item form */}
-          <AddItemForm tripId={tripId} onAdded={() => { }} />
+          <AddItemForm tripId={tripId} onAdded={() => { }} minDate={trip?.startDate} maxDate={trip?.endDate} />
 
           {/* Continue */}
           <div className="flex items-center justify-end pt-2">

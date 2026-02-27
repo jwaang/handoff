@@ -96,13 +96,13 @@ function WelcomeClientInner() {
   const isLastSlide = currentSlide === SLIDES.length - 1;
 
   return (
-    <main className="min-h-dvh bg-bg flex flex-col items-center px-4 pt-8 pb-12">
-      <div className="w-full max-w-md mx-auto flex flex-col items-center gap-8 flex-1">
+    <main className="h-dvh bg-bg flex flex-col items-center px-6 overflow-hidden">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center flex-1 min-h-0 pt-8 pb-8">
         {/* Wordmark */}
-        <p className="font-display text-2xl text-primary italic">Vadem</p>
+        <p className="font-display text-2xl text-primary italic shrink-0">Vadem</p>
 
-        {/* Slide content */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
+        {/* Slide content — fills the middle, vertically centers */}
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full py-6">
           <div
             key={currentSlide}
             className="flex flex-col items-center gap-5 text-center"
@@ -145,7 +145,7 @@ function WelcomeClientInner() {
 
             {/* CTA on last slide */}
             {isLastSlide && (
-              <div className="flex flex-col gap-3 w-full mt-2">
+              <div className="flex flex-col items-center gap-3 w-full max-w-xs mt-2">
                 <Button
                   size="lg"
                   className="w-full"
@@ -165,35 +165,29 @@ function WelcomeClientInner() {
           </div>
         </div>
 
-        {/* Dot indicators */}
-        <div className="flex items-center gap-2">
-          {SLIDES.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-round transition-all duration-250 ${
-                index === currentSlide
-                  ? "bg-primary w-5"
-                  : "bg-border-strong hover:bg-text-muted"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-              aria-current={index === currentSlide ? "true" : undefined}
-            />
-          ))}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between w-full">
-          {!isLastSlide ? (
-            <>
+        {/* Bottom section — always visible, pinned to bottom of viewport */}
+        <div className="flex flex-col items-center gap-4 shrink-0 w-full">
+          {/* Dot indicators */}
+          <div className="flex items-center gap-2">
+            {SLIDES.map((_, index) => (
               <button
+                key={index}
                 type="button"
-                onClick={() => completeOnboarding("/setup/home")}
-                className="font-body text-sm text-text-muted hover:text-text-secondary transition-colors duration-150"
-              >
-                Skip
-              </button>
+                onClick={() => goToSlide(index)}
+                className={`w-2 h-2 rounded-round transition-all duration-250 ${
+                  index === currentSlide
+                    ? "bg-primary w-5"
+                    : "bg-border-strong hover:bg-text-muted"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+                aria-current={index === currentSlide ? "true" : undefined}
+              />
+            ))}
+          </div>
+
+          {/* Navigation */}
+          {!isLastSlide && (
+            <div className="flex flex-col items-center gap-3">
               <div className="flex items-center gap-2">
                 {currentSlide > 0 && (
                   <Button
@@ -214,13 +208,17 @@ function WelcomeClientInner() {
                   <ChevronRightIcon size={14} />
                 </Button>
               </div>
-            </>
-          ) : (
-            <div />
+              <button
+                type="button"
+                onClick={() => completeOnboarding("/setup/home")}
+                className="font-body text-xs text-text-muted hover:text-text-secondary transition-colors duration-150"
+              >
+                Skip setup
+              </button>
+            </div>
           )}
         </div>
       </div>
-
     </main>
   );
 }

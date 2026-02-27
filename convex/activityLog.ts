@@ -232,7 +232,7 @@ export const getTodayTaskSummary = query({
         .query("instructions")
         .withIndex("by_section_sort", (q) => q.eq("sectionId", section._id))
         .collect();
-      total += instructions.filter((i) => i.isRecurring).length;
+      total += instructions.length;
     }
 
     // Add today's overlay items (specific date + everyday items with no date)

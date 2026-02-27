@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import type { Doc } from "../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { useAuth } from "@/lib/authContext";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -152,6 +152,15 @@ function TrashIcon() {
   );
 }
 
+function PencilIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
+
 function PlusIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -186,9 +195,11 @@ type VaultItemLabel = Omit<Doc<"vaultItems">, "encryptedValue">;
 
 function SavedVaultItem({
   item,
+  onEdit,
   onRemove,
 }: {
   item: VaultItemLabel;
+  onEdit: () => void;
   onRemove: () => void;
 }) {
   const typeConfig = VAULT_TYPES.find((t) => t.value === item.itemType);
@@ -214,6 +225,14 @@ function SavedVaultItem({
       <div className="flex items-center gap-0.5 shrink-0">
         <button
           type="button"
+          onClick={onEdit}
+          className="p-1.5 text-text-muted hover:text-primary transition-colors duration-150 rounded"
+          aria-label={`Edit ${item.label}`}
+        >
+          <PencilIcon />
+        </button>
+        <button
+          type="button"
           onClick={onRemove}
           className="p-1.5 text-text-muted hover:text-danger transition-colors duration-150 rounded"
           aria-label={`Remove ${item.label}`}
@@ -232,15 +251,17 @@ interface MaskedInputProps {
   onChange: (v: string) => void;
   placeholder?: string;
   error?: string;
+  required?: boolean;
+  hint?: string;
 }
 
-function MaskedInput({ value, onChange, placeholder, error }: MaskedInputProps) {
+function MaskedInput({ value, onChange, placeholder, error, required = true, hint }: MaskedInputProps) {
   const [show, setShow] = useState(false);
 
   return (
     <div className="flex flex-col gap-1.5">
       <label className="font-body text-sm font-semibold text-text-primary">
-        Code or password <span className="text-danger">*</span>
+        Code or password {required && <span className="text-danger">*</span>}
       </label>
       <div
         className={[
@@ -271,6 +292,9 @@ function MaskedInput({ value, onChange, placeholder, error }: MaskedInputProps) 
       {error && (
         <span className="font-body text-xs text-danger">{error}</span>
       )}
+      {!error && hint && (
+        <span className="font-body text-xs text-text-muted">{hint}</span>
+      )}
     </div>
   );
 }
@@ -282,10 +306,22 @@ interface VaultFormProps {
   onCancel: () => void;
   isSaving: boolean;
   generalError: string | null;
+  editItem?: VaultItemLabel;
 }
 
-function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps) {
-  const [formData, setFormData] = useState<VaultFormValues>(EMPTY_FORM);
+function VaultForm({ onSave, onCancel, isSaving, generalError, editItem }: VaultFormProps) {
+  const isEdit = !!editItem;
+  const [formData, setFormData] = useState<VaultFormValues>(() =>
+    editItem
+      ? {
+          itemType: editItem.itemType as VaultItemType,
+          label: editItem.label,
+          value: "",
+          instructions: editItem.instructions ?? "",
+          networkName: editItem.networkName ?? "",
+        }
+      : EMPTY_FORM,
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectType = (type: VaultItemType) => {
@@ -305,7 +341,7 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
     const newErrors: Record<string, string> = {};
     if (!formData.itemType) newErrors.itemType = "Please select a type";
     if (!formData.label.trim()) newErrors.label = "Label is required";
-    if (!formData.value.trim()) newErrors.value = "Code or password is required";
+    if (!isEdit && !formData.value.trim()) newErrors.value = "Code or password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -319,7 +355,7 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
     <div className="border border-border-default rounded-xl bg-bg-raised overflow-hidden">
       <div className="px-5 py-4 border-b border-border-default bg-bg-sunken">
         <h2 className="font-body text-base font-semibold text-text-primary">
-          Add access info
+          {isEdit ? "Edit access info" : "Add access info"}
         </h2>
       </div>
 
@@ -382,6 +418,19 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
           required
         />
 
+        {/* Network name (WiFi only) — above password so sitter sees SSID first */}
+        {formData.itemType === "wifi" && (
+          <Input
+            label="Network name"
+            placeholder="e.g. HomeWiFi_5G"
+            value={formData.networkName}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, networkName: e.target.value }))
+            }
+            hint="Shown to your sitter so they know which network to join"
+          />
+        )}
+
         {/* Masked value */}
         <MaskedInput
           value={formData.value}
@@ -397,20 +446,9 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
               : "e.g. 1234"
           }
           error={errors.value}
+          required={!isEdit}
+          hint={isEdit ? "Leave blank to keep current value" : undefined}
         />
-
-        {/* Network name (WiFi only) */}
-        {formData.itemType === "wifi" && (
-          <Input
-            label="Network name"
-            placeholder="e.g. HomeWiFi_5G"
-            value={formData.networkName}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, networkName: e.target.value }))
-            }
-            hint="Shown to your sitter so they know which network to join"
-          />
-        )}
 
         {/* Instructions */}
         <Textarea
@@ -431,7 +469,7 @@ function VaultForm({ onSave, onCancel, isSaving, generalError }: VaultFormProps)
             onClick={handleSubmit}
             disabled={isSaving}
           >
-            {isSaving ? "Saving…" : "Save item"}
+            {isSaving ? "Saving…" : isEdit ? "Update item" : "Save item"}
           </Button>
           <Button
             variant="ghost"
@@ -475,8 +513,11 @@ export default function Step3Access() {
 
   const createVaultItem = useAction(api.vaultActions.createVaultItem);
   const removeVaultItem = useMutation(api.vaultItems.remove);
+  const updateMeta = useMutation(api.vaultItems.update);
+  const updateValue = useAction(api.vaultActions.updateVaultItemValue);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<Id<"vaultItems"> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -518,6 +559,31 @@ export default function Step3Access() {
     }
   };
 
+  const handleSaveEdit = async (data: VaultFormValues): Promise<void> => {
+    if (!editingItemId || !data.itemType) return;
+
+    setIsSaving(true);
+    setGeneralError(null);
+
+    try {
+      await updateMeta({
+        vaultItemId: editingItemId,
+        itemType: data.itemType,
+        label: data.label.trim(),
+        instructions: data.instructions.trim() || undefined,
+        networkName: data.itemType === "wifi" ? data.networkName.trim() || undefined : undefined,
+      });
+      if (data.value.trim()) {
+        await updateValue({ vaultItemId: editingItemId, value: data.value.trim() });
+      }
+      setEditingItemId(null);
+    } catch {
+      setGeneralError("Something went wrong updating the item. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleNext = () => router.push("/setup/contacts");
   const handleSkip = () => router.push("/setup/contacts");
 
@@ -549,13 +615,32 @@ export default function Step3Access() {
       {/* Saved items */}
       {hasItems && (
         <div className="flex flex-col gap-2">
-          {vaultItems!.map((item) => (
-            <SavedVaultItem
-              key={item._id}
-              item={item}
-              onRemove={() => void handleRemove(item._id)}
-            />
-          ))}
+          {vaultItems!.map((item) =>
+            editingItemId === item._id ? (
+              <VaultForm
+                key={item._id}
+                editItem={item}
+                onSave={handleSaveEdit}
+                onCancel={() => {
+                  setEditingItemId(null);
+                  setGeneralError(null);
+                }}
+                isSaving={isSaving}
+                generalError={editingItemId === item._id ? generalError : null}
+              />
+            ) : (
+              <SavedVaultItem
+                key={item._id}
+                item={item}
+                onEdit={() => {
+                  setEditingItemId(item._id);
+                  setShowForm(false);
+                  setGeneralError(null);
+                }}
+                onRemove={() => void handleRemove(item._id)}
+              />
+            ),
+          )}
         </div>
       )}
 

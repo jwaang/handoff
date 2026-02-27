@@ -180,7 +180,12 @@ export default defineSchema({
     notes: v.optional(v.string()),
     sortOrder: v.number(),
     isLocked: v.boolean(),
-  }).index("by_property_sort", ["propertyId", "sortOrder"]),
+  })
+    .index("by_property_sort", ["propertyId", "sortOrder"])
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["propertyId"],
+    }),
 
   trips: defineTable({
     propertyId: v.id("properties"),

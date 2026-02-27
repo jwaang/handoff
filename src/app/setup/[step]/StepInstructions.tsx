@@ -289,7 +289,7 @@ function SectionPanel({ section, isPrebuilt, onRemoveSection }: SectionPanelProp
       text: "",
       sortOrder: maxSortOrder + 1,
       timeSlot: "anytime",
-      isRecurring: false,
+      isRecurring: true,
       proofRequired: false,
     }).catch(() => {
       setError("Failed to add instruction. Please try again.");

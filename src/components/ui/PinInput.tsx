@@ -16,8 +16,17 @@ function PinInput({ value, onChange, disabled, error, autoFocus }: PinInputProps
   const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? "");
 
   function handleChange(index: number, inputValue: string) {
-    // Accept only the last digit typed (handles cases where the browser inserts multiple chars)
-    const digit = inputValue.replace(/\D/g, "").slice(-1);
+    const allDigits = inputValue.replace(/\D/g, "");
+    // Multi-char input (iOS SMS autofill or paste-like behavior)
+    if (allDigits.length > 1) {
+      const full = allDigits.slice(0, 6);
+      onChange(full);
+      const focusIdx = Math.min(full.length, 5);
+      inputRefs.current[focusIdx]?.focus();
+      return;
+    }
+    // Single char — normal typing
+    const digit = allDigits.slice(-1);
     const next = [...digits];
     next[index] = digit;
     onChange(next.join(""));
@@ -71,7 +80,8 @@ function PinInput({ value, onChange, disabled, error, autoFocus }: PinInputProps
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          maxLength={2}
+          autoComplete={i === 0 ? "one-time-code" : undefined}
+          maxLength={i === 0 ? 6 : 2}
           value={digit}
           autoFocus={autoFocus && i === 0}
           onChange={(e) => handleChange(i, e.target.value)}

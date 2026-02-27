@@ -15,7 +15,7 @@ import { formatPhone } from "@/lib/phone";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface SearchResult {
-  type: "instruction" | "section" | "pet" | "location_card";
+  type: "instruction" | "section" | "pet" | "location_card" | "contact";
   id: string;
   snippet: string;
   sectionName: string;
@@ -166,6 +166,7 @@ function ResultRow({ result, query, onClick }: ResultRowProps) {
     section: "Section",
     pet: "Pet",
     location_card: "Photo",
+    contact: "Contact",
   };
 
   return (
@@ -243,9 +244,10 @@ function EmptyState({ query }: { query: string }) {
 
 export interface ManualTabProps {
   propertyId: Id<"properties">;
+  isOnline?: boolean;
 }
 
-export function ManualTab({ propertyId }: ManualTabProps) {
+export function ManualTab({ propertyId, isOnline }: ManualTabProps) {
   // ── Data ─────────────────────────────────────────────────────────────────
   const fullManual = useQuery(
     api.manualView.getFullManual,
@@ -386,6 +388,22 @@ export function ManualTab({ propertyId }: ManualTabProps) {
         });
       }
     }
+    for (const contact of fullManual.emergencyContacts) {
+      const searchable = [contact.name, contact.role, contact.phone, contact.notes];
+      const match = searchable.find((s) => s?.toLowerCase().includes(q));
+      if (match) {
+        const snippet = contact.role
+          ? `${contact.name} — ${contact.role}`
+          : contact.name;
+        out.push({
+          type: "contact",
+          id: contact._id,
+          snippet,
+          sectionName: "Emergency Contacts",
+          propertyId: propertyId as string,
+        });
+      }
+    }
     return out;
   }, [debouncedQuery, convexResults, fullManual, propertyId]);
 
@@ -441,6 +459,8 @@ export function ManualTab({ propertyId }: ManualTabProps) {
       let targetId: string;
       if (result.type === "pet") {
         targetId = "pets";
+      } else if (result.type === "contact") {
+        targetId = "contacts";
       } else if (result.type === "section") {
         targetId = result.id;
       } else {
@@ -452,6 +472,39 @@ export function ManualTab({ propertyId }: ManualTabProps) {
           ?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 80);
     }
+  }
+
+  // ── Offline state ────────────────────────────────────────────────────────
+  if (!isOnline && fullManual === undefined) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-14 h-14 rounded-full bg-bg-sunken flex items-center justify-center mb-4">
+          <svg
+            className="text-text-muted"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+        </div>
+        <p className="font-body text-base text-text-secondary">
+          Connect to the internet to view the manual
+        </p>
+        <p className="font-body text-sm text-text-muted mt-1">
+          The full manual will load when you&apos;re back online.
+        </p>
+      </div>
+    );
   }
 
   // ── Not found state ───────────────────────────────────────────────────────

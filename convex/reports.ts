@@ -150,10 +150,7 @@ async function buildTripReport(ctx: QueryCtx, trip: Doc<"trips">) {
     manualSections.map((s) => [s._id as string, s.title]),
   );
 
-  // Only recurring instructions appear in the daily task list
-  const recurringInstructions = instructionsPerSection
-    .flat()
-    .filter((i) => i.isRecurring);
+  const recurringInstructions = instructionsPerSection.flat();
 
   // Build completions index: taskRef → completion[]
   // Allows O(1) prefix-based lookups per instruction without re-scanning

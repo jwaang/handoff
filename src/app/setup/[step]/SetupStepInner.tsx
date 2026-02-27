@@ -51,7 +51,7 @@ function SetupLayout({
   const prevSlug = stepIndex > 0 ? SETUP_STEPS[stepIndex - 1].slug : null;
 
   return (
-    <main className="min-h-dvh bg-bg flex flex-col items-center px-4 pt-8 pb-12">
+    <main className="min-h-dvh bg-bg flex flex-col items-center px-5 pt-8 pb-12">
       <div className={`w-full flex flex-col gap-6 ${wide ? "max-w-lg lg:max-w-4xl" : "max-w-lg"}`}>
         {/* Wordmark */}
         <div className="text-center">

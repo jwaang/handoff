@@ -412,6 +412,7 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
                 id="link-expiry-date"
                 value={expiryValue}
                 onChange={handleExpirySelect}
+                min={trip.startDate}
                 max={trip.endDate}
                 disabled={isSavingExpiry}
                 error={expiryError || undefined}
@@ -430,11 +431,11 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
               onClick={handleActivateAndCopy}
               disabled={isActivating || !shareSlug}
             >
-              {isActivating ? "Activating…" : "Activate & copy link →"}
+              {isActivating ? "Finishing…" : "Finish & copy link →"}
             </Button>
           </div>
           <p className="font-body text-xs text-text-muted text-center -mt-3">
-            This makes the link live and starts task tracking.
+            Copies the link and returns to your dashboard.
           </p>
         </div>
       </main>

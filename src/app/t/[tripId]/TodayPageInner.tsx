@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -713,20 +713,23 @@ function SitterConversionBanner({ tripId }: { tripId: string }) {
 
 export default function TodayPageInner({ tripId, shareLink }: { tripId: string; shareLink: string }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const activeTab: TabId = (() => {
+  // Read initial tab from URL, then manage locally to avoid router.replace()
+  // which fails offline (Next.js tries to fetch RSC payload from server).
+  const [activeTab, setActiveTabState] = useState<TabId>(() => {
     const tab = searchParams.get("tab");
     if (tab === "manual" || tab === "vault" || tab === "contacts") return tab;
     return "today";
-  })();
+  });
   const setActiveTab = useCallback((tab: TabId) => {
-    const params = new URLSearchParams(searchParams.toString());
+    setActiveTabState(tab);
+    // Update URL for deep-linking / back button without triggering Next.js navigation
+    const params = new URLSearchParams(window.location.search);
     if (tab === "today") params.delete("tab");
     else params.set("tab", tab);
     if (tab !== "manual") params.delete("q");
     const qs = params.toString();
-    router.replace(`/t/${shareLink}${qs ? `?${qs}` : ""}`, { scroll: false });
-  }, [searchParams, router, shareLink]);
+    window.history.replaceState(null, "", `/t/${shareLink}${qs ? `?${qs}` : ""}`);
+  }, [shareLink]);
 
   // Compute today's date as YYYY-MM-DD in local timezone
   const today = new Date().toLocaleDateString("en-CA");
@@ -1434,7 +1437,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
 
       {/* ── Manual tab ─────────────────────────────────────────────── */}
       {activeTab === "manual" && property && (
-        <ManualTab propertyId={property._id} />
+        <ManualTab propertyId={property._id} isOnline={isOnline} />
       )}
     </SitterLayout>
   );

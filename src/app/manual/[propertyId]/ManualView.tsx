@@ -16,7 +16,7 @@ import { formatPhone } from "@/lib/phone";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface SearchResult {
-  type: "instruction" | "section" | "pet" | "location_card";
+  type: "instruction" | "section" | "pet" | "location_card" | "contact";
   id: string;
   snippet: string;
   sectionName: string;
@@ -136,6 +136,7 @@ function ResultRow({ result, query, onClick }: ResultRowProps) {
     section: "Section",
     pet: "Pet",
     location_card: "Photo",
+    contact: "Contact",
   };
 
   return (
@@ -393,6 +394,8 @@ export default function ManualView({ propertyId }: ManualViewProps) {
       let targetId: string;
       if (result.type === "pet") {
         targetId = "pets";
+      } else if (result.type === "contact") {
+        targetId = "contacts";
       } else if (result.type === "section") {
         targetId = result.id;
       } else {

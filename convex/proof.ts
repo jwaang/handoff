@@ -51,16 +51,14 @@ export const getTasksForTrip = query({
         .collect();
 
       for (const instr of instructions) {
-        if (instr.isRecurring) {
-          recurringTasks.push({
-            id: instr._id,
-            text: instr.text,
-            timeSlot: instr.timeSlot,
-            proofRequired: instr.proofRequired,
-            type: "recurring",
-            sectionTitle: section.title,
-          });
-        }
+        recurringTasks.push({
+          id: instr._id,
+          text: instr.text,
+          timeSlot: instr.timeSlot,
+          proofRequired: instr.proofRequired,
+          type: "recurring",
+          sectionTitle: section.title,
+        });
       }
     }
 
