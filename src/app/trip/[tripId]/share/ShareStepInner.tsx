@@ -8,6 +8,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { trackShareLinkCopied } from "@/lib/analytics";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,7 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
   async function handleCopy() {
     if (!shareUrl) return;
     await navigator.clipboard.writeText(shareUrl);
+    trackShareLinkCopied();
     setCopied(true);
     setShowToast(true);
     setTimeout(() => setCopied(false), 2000);
@@ -210,6 +212,7 @@ function ShareStep({ tripId }: { tripId: Id<"trips"> }) {
       if (shareUrl) {
         try {
           await navigator.clipboard.writeText(shareUrl);
+          trackShareLinkCopied();
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         } catch {

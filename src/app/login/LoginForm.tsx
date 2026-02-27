@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
+import { identifyUser } from "@/lib/analytics";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { OAuthButtons, hasOAuthProviders } from "@/components/ui/OAuthButtons";
@@ -27,6 +28,7 @@ export function LoginForm() {
     try {
       const result = await doSignIn({ email: email.trim(), password });
       setUser({ token: result.token, email: result.email, emailVerified: result.emailVerified });
+      identifyUser(result.token, result.email);
       router.push("/dashboard");
     } catch (err) {
       const raw = err instanceof Error ? err.message : "";

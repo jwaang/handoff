@@ -18,6 +18,7 @@ import { LocationCard } from "@/components/ui/LocationCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { VaultTab } from "./VaultTab";
+import { trackSitterLinkOpened, trackSitterTabSwitched, trackSitterTaskChecked, trackSitterProofUploaded } from "@/lib/analytics";
 import { ManualTab } from "./ManualTab";
 import { formatPhone } from "@/lib/phone";
 import {
@@ -722,6 +723,9 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
   });
   const setActiveTab = useCallback((tab: TabId) => {
     setActiveTabState(tab);
+    if (tab === "today" || tab === "vault" || tab === "contacts") {
+      trackSitterTabSwitched(tab === "today" ? "tasks" : tab === "contacts" ? "activity" : tab);
+    }
     // Update URL for deep-linking / back button without triggering Next.js navigation
     const params = new URLSearchParams(window.location.search);
     if (tab === "today") params.delete("tab");
@@ -746,6 +750,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
       // sessionStorage unavailable (private browsing restrictions) — proceed anyway
     }
     hasRecordedOpenRef.current = true;
+    trackSitterLinkOpened();
     void recordFirstOpen({ tripId: tripId as Id<"trips"> }).then(() => {
       try {
         sessionStorage.setItem(key, "1");
@@ -1078,6 +1083,7 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
       });
 
       // Step 2 — Show as checked in local state immediately
+      trackSitterTaskChecked();
       setPendingTaskRefs((prev) => new Set([...prev, task.taskRef]));
 
       // Step 3 — Attempt Convex mutation
@@ -1190,6 +1196,8 @@ export default function TodayPageInner({ tripId, shareLink }: { tripId: string; 
         storageId: storageId as Id<"_storage">,
         date: today,
       });
+      trackSitterTaskChecked();
+      trackSitterProofUploaded();
     } catch (err) {
       console.error("[ProofUpload] Failed:", err);
     } finally {

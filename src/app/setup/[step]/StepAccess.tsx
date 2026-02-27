@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/authContext";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
+import { trackOnboardingStepCompleted } from "@/lib/analytics";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -584,7 +585,7 @@ export default function Step3Access() {
     }
   };
 
-  const handleNext = () => router.push("/setup/contacts");
+  const handleNext = () => { trackOnboardingStepCompleted("access"); router.push("/setup/contacts"); };
   const handleSkip = () => router.push("/setup/contacts");
 
   const hasItems = (vaultItems?.length ?? 0) > 0;

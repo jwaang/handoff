@@ -59,3 +59,17 @@ export const insertActivity = internalMutation({
     });
   },
 });
+
+export const insertTaskCompletion = internalMutation({
+  args: {
+    tripId: v.id("trips"),
+    taskRef: v.string(),
+    taskType: v.union(v.literal("recurring"), v.literal("overlay")),
+    sitterName: v.string(),
+    completedAt: v.number(),
+    date: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("taskCompletions", args);
+  },
+});

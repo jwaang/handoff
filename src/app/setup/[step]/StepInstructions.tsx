@@ -13,6 +13,7 @@ import { LocationCardUploader } from "@/components/ui/LocationCardUploader";
 import { LocationCardVideoUploader } from "@/components/ui/LocationCardVideoUploader";
 import { TimePicker } from "@/components/ui/TimePicker";
 import { ChevronUpIcon, ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon, CheckIcon, XIcon, PencilIcon, CameraIcon } from "@/components/ui/icons";
+import { trackOnboardingStepCompleted } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -730,7 +731,7 @@ export default function Step5Sections() {
 
       {/* Navigation */}
       <div className="flex flex-col gap-3 pt-2">
-        <Button size="lg" className="w-full" onClick={() => router.push("/setup/review")}>
+        <Button size="lg" className="w-full" onClick={() => { trackOnboardingStepCompleted("instructions"); router.push("/setup/review"); }}>
           Next
         </Button>
       </div>

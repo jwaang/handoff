@@ -16,6 +16,7 @@
     "seed-demo": "bash scripts/seed-demo.sh"
   },
   "dependencies": {
+    "@posthog/nextjs-config": "^1.8.18",
     "@prelude.so/sdk": "^0.10.0",
     "@react-pdf/renderer": "^4.3.2",
     "class-variance-authority": "^0.7.1",
@@ -23,6 +24,8 @@
     "convex": "^1.31.7",
     "framer-motion": "^12.34.3",
     "next": "16.1.6",
+    "posthog-js": "^1.356.1",
+    "posthog-node": "^5.26.0",
     "react": "19.2.3",
     "react-day-picker": "^9.13.2",
     "react-dom": "19.2.3",

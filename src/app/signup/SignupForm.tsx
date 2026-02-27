@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAction, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
+import { identifyUser, trackSignupCompleted } from "@/lib/analytics";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { OAuthButtons, hasOAuthProviders } from "@/components/ui/OAuthButtons";
@@ -79,6 +80,8 @@ function SignupFormInner({ originTripId }: { originTripId?: string | null }) {
         ...(originTripId ? { originTripId } : {}),
       });
       setUser({ token, email: userEmail, emailVerified: false });
+      identifyUser(token, userEmail);
+      trackSignupCompleted("email");
       router.push("/welcome");
     } catch (err) {
       if (err instanceof Error && err.message.includes("already exists")) {

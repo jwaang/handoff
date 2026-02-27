@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/authContext";
 import { Input } from "@/components/ui/Input";
 import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete";
 import { Button } from "@/components/ui/Button";
+import { trackOnboardingStepCompleted } from "@/lib/analytics";
 
 // ── Upload icon ──────────────────────────────────────────────────────
 
@@ -178,6 +179,7 @@ export default function Step1Home() {
     setGeneralError(null);
     try {
       await saveProperty(sessionData.userId);
+      trackOnboardingStepCompleted("home");
       router.push("/setup/pets");
     } catch {
       setGeneralError("Something went wrong. Please try again.");

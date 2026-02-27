@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { LockIcon, ChevronUpIcon, ChevronDownIcon, TrashIcon, PlusIcon, PhoneIcon } from "@/components/ui/icons";
 import { validatePhone, normalizePhone, formatPhone, formatPhoneInput } from "@/lib/phone";
+import { trackOnboardingStepCompleted } from "@/lib/analytics";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -528,7 +529,7 @@ export default function Step4Contacts() {
 
       {/* Navigation */}
       <div className="flex flex-col gap-3 pt-2">
-        <Button size="lg" className="w-full" onClick={() => router.push("/setup/instructions")}>
+        <Button size="lg" className="w-full" onClick={() => { trackOnboardingStepCompleted("contacts"); router.push("/setup/instructions"); }}>
           Next
         </Button>
       </div>

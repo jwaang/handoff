@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Seeds the Convex dev database with a demo account and sample data.
-# Usage: pnpm seed-demo
+# Seeds the Convex database with a demo account and sample data.
+# Usage: pnpm seed-demo         (dev — default)
+#        pnpm seed-demo prod    (production)
 #
 # Creates:
 #   Login:  test@test.com / test
@@ -10,13 +11,25 @@
 
 set -e
 
-echo "🌱 Seeding demo account..."
+ENV="${1:-dev}"
 
-echo "→ Deploying functions..."
-npx convex dev --once
+if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
+  echo "Usage: pnpm seed-demo [dev|prod]"
+  exit 1
+fi
 
-echo "→ Running seed..."
-npx convex run seed:run --no-push
+echo "🌱 Seeding demo account ($ENV)..."
+
+if [[ "$ENV" == "dev" ]]; then
+  echo "→ Deploying functions..."
+  npx convex dev --once
+
+  echo "→ Running seed..."
+  npx convex run seed:run --no-push
+else
+  echo "→ Running seed on production..."
+  npx convex run --prod seed:run
+fi
 
 echo ""
 echo "✓ Done! Sign in with: test@test.com / test"

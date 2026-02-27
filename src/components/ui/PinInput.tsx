@@ -90,6 +90,7 @@ function PinInput({ value, onChange, disabled, error, autoFocus }: PinInputProps
           onFocus={() => handleFocus(i)}
           disabled={disabled}
           aria-label={`Digit ${i + 1} of 6`}
+          data-sensitive="true"
           className={cn(
             "w-11 h-14 text-center font-mono text-2xl font-bold rounded-md border-[1.5px] bg-bg-raised",
             "outline-none transition-[border-color,box-shadow] duration-150 ease-out",

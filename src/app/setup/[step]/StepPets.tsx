@@ -13,6 +13,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { PetProfileCard } from "@/components/ui/PetProfileCard";
 import { validatePhone, normalizePhone, formatPhone, formatPhoneInput } from "@/lib/phone";
 import { UploadIcon, TrashIcon, PlusIcon, PencilIcon, XIcon, ChevronDownIcon } from "@/components/ui/icons";
+import { trackOnboardingStepCompleted } from "@/lib/analytics";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -882,7 +883,7 @@ export default function Step2Pets() {
     }
   };
 
-  const handleNext = () => router.push("/setup/access");
+  const handleNext = () => { trackOnboardingStepCompleted("pets"); router.push("/setup/access"); };
   const handleSkip = () => router.push("/setup/access");
 
   const hasPets = (pets?.length ?? 0) > 0;

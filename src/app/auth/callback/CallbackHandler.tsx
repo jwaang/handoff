@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
+import { identifyUser, trackSignupCompleted } from "@/lib/analytics";
 
 interface CallbackHandlerProps {
   provider: "google" | "apple";
@@ -59,6 +60,8 @@ function CallbackHandlerInner({ provider }: CallbackHandlerProps) {
     exchangeCode({ provider, code, redirectUri })
       .then(({ token, email, isNewUser }) => {
         setUser({ token, email, emailVerified: true });
+        identifyUser(token, email);
+        if (isNewUser) trackSignupCompleted(provider);
         router.replace(isNewUser ? "/welcome" : "/dashboard");
       })
       .catch((err: unknown) => {

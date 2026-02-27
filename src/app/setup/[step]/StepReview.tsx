@@ -8,6 +8,7 @@ import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/Button";
 import type { SetupSlug } from "@/lib/setupSteps";
+import { trackOnboardingStepCompleted, trackPropertyPublished } from "@/lib/analytics";
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
@@ -95,6 +96,8 @@ export default function StepReview() {
     setPublishError(null);
     publishManual({ propertyId })
       .then(() => {
+        trackOnboardingStepCompleted("review");
+        trackPropertyPublished();
         router.push("/dashboard?published=true");
       })
       .catch(() => {

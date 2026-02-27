@@ -2,7 +2,8 @@
 
 /**
  * Seed script: creates a demo "test / test" account with realistic sample data.
- * Run via: npx convex run seed:run --no-push
+ * Run via: pnpm seed-demo       (dev)
+ *          pnpm seed-demo prod  (production)
  */
 
 import { action } from "./_generated/server";
@@ -178,22 +179,26 @@ export const run = action({
       icon: "☀️",
       sortOrder: 0,
     });
-    for (const [i, task] of [
-      "Let Luna out to the backyard (she'll scratch the sliding door)",
-      "Feed Luna — 2 cups kibble in the silver bowl by the pantry",
-      "Feed Mochi — 1/3 cup dry food in the blue bowl on the counter",
-      "Give Luna her glucosamine chew (bag on the kitchen counter)",
-      "Walk Luna around the lake trail — 30 minutes",
-      "Check water bowls and refill if needed",
-    ].entries()) {
-      await ctx.runMutation(api.instructions.create, {
+    const morningTasks = [
+      { text: "Let Luna out to the backyard (she'll scratch the sliding door)", specificTime: "07:00" },
+      { text: "Feed Luna — 2 cups kibble in the silver bowl by the pantry", specificTime: "07:15" },
+      { text: "Feed Mochi — 1/3 cup dry food in the blue bowl on the counter" },
+      { text: "Give Luna her glucosamine chew (bag on the kitchen counter)" },
+      { text: "Walk Luna around the lake trail — 30 minutes", specificTime: "07:30" },
+      { text: "Check water bowls and refill if needed" },
+    ];
+    const morningInstructionIds: Id<"instructions">[] = [];
+    for (const [i, task] of morningTasks.entries()) {
+      const id = await ctx.runMutation(api.instructions.create, {
         sectionId: morningId,
-        text: task,
+        text: task.text,
         sortOrder: i,
         timeSlot: "morning",
         isRecurring: true,
         proofRequired: i === 4, // proof for the walk
+        ...(task.specificTime ? { specificTime: task.specificTime } : {}),
       });
+      morningInstructionIds.push(id);
     }
 
     // Evening Routine
@@ -203,21 +208,23 @@ export const run = action({
       icon: "🌙",
       sortOrder: 1,
     });
-    for (const [i, task] of [
-      "Walk Luna — 20 min neighborhood loop around 5pm",
-      "Feed Luna dinner — 2 cups kibble",
-      "Feed Mochi — 1 can wet food (Fancy Feast from the pantry)",
-      "Plug in Mochi's heated bed in the living room",
-      "Let Luna out one last time before bed (~10pm)",
-      "Lock the back sliding door and check the front deadbolt",
-    ].entries()) {
+    const eveningTasks = [
+      { text: "Walk Luna — 20 min neighborhood loop around 5pm", specificTime: "17:00" },
+      { text: "Feed Luna dinner — 2 cups kibble", specificTime: "18:00" },
+      { text: "Feed Mochi — 1 can wet food (Fancy Feast from the pantry)" },
+      { text: "Plug in Mochi's heated bed in the living room" },
+      { text: "Let Luna out one last time before bed (~10pm)", specificTime: "22:00" },
+      { text: "Lock the back sliding door and check the front deadbolt" },
+    ];
+    for (const [i, task] of eveningTasks.entries()) {
       await ctx.runMutation(api.instructions.create, {
         sectionId: eveningId,
-        text: task,
+        text: task.text,
         sortOrder: i,
         timeSlot: "evening",
         isRecurring: true,
         proofRequired: i === 0,
+        ...(task.specificTime ? { specificTime: task.specificTime } : {}),
       });
     }
 
@@ -372,6 +379,9 @@ export const run = action({
     console.log("✓ Sitter created: Alex Rivera");
 
     // ── 10. Create trip-specific overlay items ─────────────────────────
+    const todayStr = fmt(today);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
     const dayAfterTomorrow = new Date(today);
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
     const threeDaysOut = new Date(today);
@@ -379,23 +389,73 @@ export const run = action({
 
     await ctx.runMutation(api.overlayItems.create, {
       tripId,
+      text: "FedEx delivering a package — leave the porch light on",
+      date: todayStr,
+      timeSlot: "afternoon",
+      proofRequired: false,
+    });
+    await ctx.runMutation(api.overlayItems.create, {
+      tripId,
       text: "Bring trash & recycling bins to the curb (pickup is early morning)",
-      date: fmt(dayAfterTomorrow),
+      date: fmt(tomorrow),
       timeSlot: "evening",
       proofRequired: false,
     });
     await ctx.runMutation(api.overlayItems.create, {
       tripId,
       text: "Jamie (neighbor) is dropping off a package — leave the garage open between 2-4pm",
-      date: fmt(threeDaysOut),
+      date: fmt(dayAfterTomorrow),
       timeSlot: "afternoon",
+      proofRequired: false,
+    });
+    await ctx.runMutation(api.overlayItems.create, {
+      tripId,
+      text: "Gardener coming at 10am — keep Luna inside until noon",
+      date: fmt(threeDaysOut),
+      timeSlot: "morning",
+      specificTime: "10:00",
       proofRequired: false,
     });
     console.log("✓ Overlay items created");
 
-    // ── 11. Seed some activity log entries ──────────────────────────────
-    const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+    // ── 11. Seed task completions (partially done morning) ────────────
+    // Mark a few of today's morning tasks as completed so testers see
+    // what an in-progress day looks like in the sitter view.
+    const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
+    const fiveAndHalfHoursAgo = Date.now() - 5.5 * 60 * 60 * 1000;
     const fiveHoursAgo = Date.now() - 5 * 60 * 60 * 1000;
+
+    // "Let Luna out" — completed
+    await ctx.runMutation(internal.seedHelpers.insertTaskCompletion, {
+      tripId,
+      taskRef: `recurring:${morningInstructionIds[0]}:${todayStr}`,
+      taskType: "recurring",
+      sitterName: "Alex Rivera",
+      completedAt: sixHoursAgo,
+      date: todayStr,
+    });
+    // "Feed Luna" — completed
+    await ctx.runMutation(internal.seedHelpers.insertTaskCompletion, {
+      tripId,
+      taskRef: `recurring:${morningInstructionIds[1]}:${todayStr}`,
+      taskType: "recurring",
+      sitterName: "Alex Rivera",
+      completedAt: fiveAndHalfHoursAgo,
+      date: todayStr,
+    });
+    // "Feed Mochi" — completed
+    await ctx.runMutation(internal.seedHelpers.insertTaskCompletion, {
+      tripId,
+      taskRef: `recurring:${morningInstructionIds[2]}:${todayStr}`,
+      taskType: "recurring",
+      sitterName: "Alex Rivera",
+      completedAt: fiveHoursAgo,
+      date: todayStr,
+    });
+    console.log("✓ Task completions seeded (3 morning tasks done today)");
+
+    // ── 12. Seed activity log entries ─────────────────────────────────
+    const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
     const yesterday = Date.now() - 24 * 60 * 60 * 1000;
 
     await ctx.runMutation(internal.seedHelpers.insertActivity, {
@@ -410,15 +470,30 @@ export const run = action({
       propertyId,
       eventType: "task_completed",
       sitterName: "Alex Rivera",
-      taskTitle: "Feed Luna — 2 cups kibble in the silver bowl by the pantry",
-      createdAt: fiveHoursAgo,
+      taskTitle: "Let Luna out to the backyard",
+      createdAt: sixHoursAgo,
     });
     await ctx.runMutation(internal.seedHelpers.insertActivity, {
       tripId,
       propertyId,
       eventType: "task_completed",
       sitterName: "Alex Rivera",
-      taskTitle: "Walk Luna around the lake trail — 30 minutes",
+      taskTitle: "Feed Luna — 2 cups kibble in the silver bowl by the pantry",
+      createdAt: fiveAndHalfHoursAgo,
+    });
+    await ctx.runMutation(internal.seedHelpers.insertActivity, {
+      tripId,
+      propertyId,
+      eventType: "task_completed",
+      sitterName: "Alex Rivera",
+      taskTitle: "Feed Mochi — 1/3 cup dry food in the blue bowl on the counter",
+      createdAt: fiveHoursAgo,
+    });
+    await ctx.runMutation(internal.seedHelpers.insertActivity, {
+      tripId,
+      propertyId,
+      eventType: "link_opened",
+      sitterName: "Alex Rivera",
       createdAt: twoHoursAgo,
     });
     console.log("✓ Activity log seeded");

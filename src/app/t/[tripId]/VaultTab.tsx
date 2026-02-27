@@ -9,6 +9,7 @@ import { PinInput } from "@/components/ui/PinInput";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { validatePhone, formatPhoneInput } from "@/lib/phone";
+import { trackSitterVaultAccessed } from "@/lib/analytics";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -259,6 +260,7 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
       const result = await verifyPinAction({ tripId, sitterPhone: phone.trim(), pin });
       if (result.success) {
         sessionStorage.setItem(sessionKey, "1");
+        trackSitterVaultAccessed();
         setPhase("loading_items");
       } else if (result.error === "INVALID_PIN") {
         const remaining = attemptsLeft - 1;
@@ -545,6 +547,7 @@ export function VaultTab({ tripId, propertyId, ownerName }: VaultTabProps) {
               }}
               disabled={isSending}
               error={error ?? undefined}
+              data-sensitive="true"
             />
             {/* SMS consent */}
             <label className="flex items-start gap-2.5 cursor-pointer">

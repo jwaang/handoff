@@ -7,6 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
 import { Button } from "@/components/ui/Button";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/icons";
+import { trackOnboardingCompleted } from "@/lib/analytics";
 
 const SLIDES = [
   {
@@ -76,6 +77,7 @@ function WelcomeClientInner() {
     // Mark that we're navigating away so the useEffect doesn't
     // race us to /dashboard when the mutation updates sessionData.
     isLeavingRef.current = true;
+    trackOnboardingCompleted();
     router.push(destination);
     if (user?.token) {
       void markOnboarding({ token: user.token });

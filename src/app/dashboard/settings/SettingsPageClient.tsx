@@ -7,6 +7,7 @@ import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "@/lib/authContext";
 import { CreatorLayout } from "@/components/layouts/CreatorLayout";
+import { resetAnalytics } from "@/lib/analytics";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { NotificationToast } from "@/components/ui/NotificationToast";
@@ -184,6 +185,7 @@ export default function SettingsPageClient() {
   }
 
   function handleSignOut() {
+    resetAnalytics();
     signOut();
     router.push("/login");
   }

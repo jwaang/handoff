@@ -12,6 +12,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Badge } from "@/components/ui/Badge";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CalendarIcon, PlusIcon, CopyIcon, ShareNetworkIcon, CheckIcon, RefreshIcon, HomeIcon, ChevronRightIcon } from "@/components/ui/icons";
+import { trackTripCreated } from "@/lib/analytics";
 
 // ── Date formatting ────────────────────────────────────────────────────
 
@@ -449,6 +450,7 @@ function NewTripFormInner({ onCancel }: { onCancel: () => void }) {
     setSubmitError("");
     try {
       const tripId = await createTrip({ propertyId, startDate, endDate });
+      trackTripCreated();
       router.push(`/trip/${tripId}/overlay`);
     } catch (err) {
       const msg =

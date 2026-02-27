@@ -165,6 +165,7 @@ function ValueInput({ label, id, value, onChange, hint, error, placeholder }: Va
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete="off"
+          data-sensitive="true"
           className={[
             "font-body text-base leading-normal text-text-primary bg-bg-raised border-[1.5px] rounded-md p-3 pr-11 outline-none w-full transition-[border-color,box-shadow,background-color] duration-150 ease-out placeholder:text-text-muted hover:border-border-strong focus:border-primary focus:shadow-[0_0_0_3px_var(--color-primary-subtle)]",
             error
